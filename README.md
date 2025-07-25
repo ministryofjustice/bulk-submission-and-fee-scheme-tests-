@@ -1,15 +1,2 @@
-# API Test Framework (Playwright + JavaScript)
-
-## 🚀 Getting Started
-
-1. Install dependencies:
-\`\`\`
-npm install
-\`\`\`
-
-2. Set your environment variables in the \`.env\` file.
-
-3. Run your tests:
-\`\`\`
-npm test
-\`\`\`
+# bulk-submission-and-fee-scheme-tests-
+UI and API tests for bulk submission and Fee scheme 
