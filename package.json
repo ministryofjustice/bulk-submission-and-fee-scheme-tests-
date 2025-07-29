@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "test": "npx playwright test",
+    "test-ui": "npx playwright test --ui",
     "cucumber": "cucumber-js tests/bdd/features/**/*.feature --require tests/bdd/steps/**/*.js"
   },
   "devDependencies": {
