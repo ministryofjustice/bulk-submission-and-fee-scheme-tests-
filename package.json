@@ -1,16 +1,23 @@
 {
-  "name": "api-test-framework",
+  "name": "playwright-tests",
+  "description": "Playwright tests for UI and API",
   "version": "1.0.0",
   "scripts": {
-    "test": "npx playwright test",
-    "test-ui": "npx playwright test --ui",
-    "cucumber": "cucumber-js tests/bdd/features/**/*.feature --require tests/bdd/steps/**/*.js"
+     "test": "cucumber-js --require-module ts-node/register --require \"tests/features/**/*.ts\" --format json:reports/cucumber.json --format html:reports/cucumber.html \"tests/features/**/*.feature\"",
+    "test:smoke": "cucumber-js --require-module ts-node/register   --require \"tests/features/**/*.ts\" --format json:reports/cucumber.json  --format html:reports/cucumber.html --tags \"@smoke\" \"tests/features/**/*.feature\"",
+    "test:api": "cucumber-js --require-module ts-node/register  --require \"tests/features/**/*.ts\" --format json:reports/cucumber.json  --format html:reports/cucumber.html --tags \"@api\" \"tests/features/**/*.feature\"",
+    "test:ui": "cucumber-js --require-module ts-node/register  --require \"tests/features/**/*.ts\" --format json:reports/cucumber.json  --format html:reports/cucumber.html --tags \"@ui\" \"tests/features/**/*.feature\"",
+    "report:bdd": "node scripts/report.js",
+    "test:report": "playwright show-report"
   },
   "devDependencies": {
     "@cucumber/cucumber": "^12.1.0",
-    "@playwright/test": "^1.43.1",
-    "@types/node": "^24.1.0",
-    "dotenv": "^16.3.1",
-    "zod": "^3.22.4"
+    "@playwright/test": "^1.54.2",
+    "playwright": "^1.54.2",
+    "axios": "^1.11.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2",
+    "cucumber-html-reporter": "^7.2.0",
+    "dotenv": "^17.2.1"
   }
 }

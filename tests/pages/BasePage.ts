@@ -34,8 +34,9 @@ class BasePage {
   }
 
   async waitForPageToLoad() {
+    await this.page.waitForLoadState('load');
     // Footer is the last element on the page
-    await this.footer.waitFor();
+    // await this.footer.waitFor();
   }
 }
 
