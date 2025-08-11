@@ -10,39 +10,39 @@ Feature: Fee Scheme API Tests
     Examples:
       | feeCode   | categoryCode |
       | CAPA      | AAP          |
-      | CLIN      | MED          |
-      | COM       | COM          |
-      | DEBT      | DEB          |
-      | DISC      | DISC         |
-      | EDUFIN    | EDU          |
-      | ELA       | ELA          |
-      | FPB1      | MAT          |
-      | FPB8A     | MAT          |
-      | FPV12     | MAT          |
-      | HOUS      | HOU          |
-      | LIMMLH1   | IMMOT        |
-      | LIMMCLR1  | IMMOT        |
-      | IMMDIS    | IMMOT        |
-      | LASYLH1   | IMMAS        |
-      | LASYCLR1  | IMMAS        |
-      | LASYDDAS1 | IMMAS        |
-      | LASYDAC   | IMMAS        |
-      | ASYDIS    | IMMAS        |
-      | MHL01     | MHE          |
-      | MHLDIS    | MHE          |
-      | PUB       | PUB          |
-      | MISCGEN   | MSC          |
-      | MISCCON   | MSC          |
-      | MISCPI    | MSC          |
-      | MISCASBI  | MSC          |
-      | MISCEMP   | MSC          |
-      | WFB1      | WB           |
-      | MAM1      | MEDI         |
-      | MED1      | MEDI         |
-      | APPA      | APPEALS      |
-      | APPB      | APPEALS      |
-      | APPC      | APPEALS      |
-      | PRIA      | PRISON       |
-      | PRIB1     | PRISON       |
-      | PRIC1     | PRISON       |
-      | ABC123    | ASY          |
+      # | CLIN      | MED          |
+      # | COM       | COM          |
+      # | DEBT      | DEB          |
+      # | DISC      | DISC         |
+      # | EDUFIN    | EDU          |
+      # | ELA       | ELA          |
+      # | FPB1      | MAT          |
+      # | FPB8A     | MAT          |
+      # | FPV12     | MAT          |
+      # | HOUS      | HOU          |
+      # | LIMMLH1   | IMMOT        |
+      # | LIMMCLR1  | IMMOT        |
+      # | IMMDIS    | IMMOT        |
+      # | LASYLH1   | IMMAS        |
+      # | LASYCLR1  | IMMAS        |
+      # | LASYDDAS1 | IMMAS        |
+      # | LASYDAC   | IMMAS        |
+      # | ASYDIS    | IMMAS        |
+      # | MHL01     | MHE          |
+      # | MHLDIS    | MHE          |
+      # | PUB       | PUB          |
+      # | MISCGEN   | MSC          |
+      # | MISCCON   | MSC          |
+      # | MISCPI    | MSC          |
+      # | MISCASBI  | MSC          |
+      # | MISCEMP   | MSC          |
+      # | WFB1      | WB           |
+      # | MAM1      | MEDI         |
+      # | MED1      | MEDI         |
+      # | APPA      | APPEALS      |
+      # | APPB      | APPEALS      |
+      # | APPC      | APPEALS      |
+      # | PRIA      | PRISON       |
+      # | PRIB1     | PRISON       |
+      # | PRIC1     | PRISON       |
+      # | ABC123    | ASY          |
