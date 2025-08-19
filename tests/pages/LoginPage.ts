@@ -4,17 +4,18 @@ import {Locator, Page} from "@playwright/test";
 class LoginPage extends BasePage{
   private usernameField: Locator;
   private passwordField: Locator;
+  private loginButton: Locator;
 
   constructor(page: Page) {
     super(page, "Login", "Sign in");
+   this.usernameField = page.locator('#username');
+   this.passwordField = page.locator('#password');
+   this.loginButton = page.locator('button[type="submit"]');
 
-    // Initialize additional locators specific to this page
-    this.usernameField = page.locator('#username-input');
-    this.passwordField = page.locator('#password-input');
   }
 
   async navigateTo() {
-    await this.page.goto('/login');
+    await this.page.goto('/');
     await this.waitForPageToLoad()
   }
 
@@ -24,6 +25,11 @@ class LoginPage extends BasePage{
 
   async enterPassword(password: string) {
     await this.passwordField.fill(password);
+  }
+
+  async clickLogin() {
+    await this.loginButton.click()
+
   }
 
 }

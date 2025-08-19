@@ -4,13 +4,14 @@ import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 import { chromium, Browser, BrowserContext, Page, LaunchOptions } from 'playwright';
 import dotenv from 'dotenv';
 import { LoginPage } from '../../pages/LoginPage';
-import { SampleLoginPage } from '../../pages/SampleLoginPage';
+import { BulkImportPage } from '../../pages/bulkImportPage';
+import {BulkClaimSubmitPage} from '../../pages/BulkClaimSubmitPage';
 
 dotenv.config();
 
 export class World {
    attach!: (data: string | Buffer, mediaType?: string) => Promise<void>;
-  
+
   // API
   client: AxiosInstance;
   response?: AxiosResponse;
@@ -21,9 +22,24 @@ export class World {
   browser?: Browser;
   context?: BrowserContext;
   page?: Page;
+  fileName?: string;
+  openBrowser(opts?: LaunchOptions): Promise<void>;
+  goto(path: string): Promise<void>;
 
   loginPage?: LoginPage;
-  sampleLoginPage?: SampleLoginPage;
+  bulkImportPage?: BulkImportPage;
+  bulkClaimSubmitPage?: BulkClaimSubmitPage;
+}
+
+export class World implements CustomWorld {
+  client: AxiosInstance;
+  response?: AxiosResponse;
+  browser?: Browser;
+  context?: BrowserContext;
+  page?: Page;
+  fileName?: string;
+  loginPage?: LoginPage;
+  bulkClaimSubmitPage?: BulkClaimSubmitPage;
 
   constructor(options: IWorldOptions) {
     this.client = axios.create({

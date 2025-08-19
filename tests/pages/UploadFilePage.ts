@@ -5,6 +5,7 @@ class UploadFilePage extends BasePage{
   private providerDropdown: Locator;
   private nullSubmissionCheckbox: Locator;
   private uploadButton: Locator;
+  const bulkImportButton = page.locator('a', { hasText: 'Bulk import' });
 
   constructor(page: Page) {
     super(page, "Bulk import", "Continue");

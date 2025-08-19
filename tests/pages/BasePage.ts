@@ -8,7 +8,7 @@ class BasePage {
   private signOutLink: Locator;
   private serviceNavigationImportClaims: Locator;
   private serviceNavigationSearch: Locator;
-  private errorSummary: Locator;
+  protected errorSummary: Locator;
   private footer: Locator;
 
 
