@@ -4,11 +4,6 @@ import assert from 'assert';
 import type { World as CustomWorld } from '../support/world';
 import axios from 'axios';
 
-Given('I have an initialized API client', function (this: CustomWorld) {
-  if (!this.client) {
-    throw new Error('API client is not initialized');
-  }
-});
 
 When('I GET {string}', async function (this: CustomWorld, path: string) {
   // Derive the full URL for debugging
@@ -28,19 +23,6 @@ When('I GET {string}', async function (this: CustomWorld, path: string) {
   }
 });
 
-Then('the response status should be {int}', function (this: CustomWorld, status: number) {
-  const actual = this.response?.status;
-  assert.equal(actual, status,
-    `Expected status ${status} but got ${actual}`);
-});
 
-Then('the JSON path {string} should equal {string}', function 
-  (this: CustomWorld, jsonPath: string, expected: string) 
-{
-  const data = this.response?.data;
-  const actual = jsonPath
-    .split('.')
-    .reduce((o: any, k: string) => o && o[k], data);
-  assert.equal(actual, expected,
-    `Expected JSON path "${jsonPath}" to be "${expected}" but got "${actual}"`);
-});
+
+

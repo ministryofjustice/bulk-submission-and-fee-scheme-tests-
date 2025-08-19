@@ -1,70 +1,91 @@
 // tests/features/support/world.ts
-import { setWorldConstructor, IWorldOptions } from '@cucumber/cucumber';
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import {
-  chromium,
-  Browser,
-  BrowserContext,
-  Page,
-  LaunchOptions
-} from 'playwright';
+import { setWorldConstructor, IWorldOptions, DataTable } from '@cucumber/cucumber';
+import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
+import { chromium, Browser, BrowserContext, Page, LaunchOptions } from 'playwright';
+import dotenv from 'dotenv';
 import { LoginPage } from '../../pages/LoginPage';
 import { SampleLoginPage } from '../../pages/SampleLoginPage';
 
-export interface CustomWorld {
+dotenv.config();
+
+export class World {
   // API
   client: AxiosInstance;
   response?: AxiosResponse;
+  requestBody?: Record<string, any>;
+  error?: AxiosError;
 
   // UI
   browser?: Browser;
   context?: BrowserContext;
   page?: Page;
-  openBrowser(opts?: LaunchOptions): Promise<void>;
-  goto(path: string): Promise<void>;
 
-  // Page objects
   loginPage?: LoginPage;
-  sampleLoginPage?: SampleLoginPage; // Assuming you might have another page object
-}
-
-export class World implements CustomWorld {
-  client: AxiosInstance;
-  response?: AxiosResponse;
-  browser?: Browser;
-  context?: BrowserContext;
-  page?: Page;
-  loginPage?: LoginPage;
+  sampleLoginPage?: SampleLoginPage;
 
   constructor(options: IWorldOptions) {
-    // Initialize API client
-    this.client = axios.create({ baseURL: process.env.API_BASE_URL });
+    this.client = axios.create({
+      baseURL: process.env.API_BASE_URL,
+      timeout: 10000,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      // Let us inspect 4xx/5xx without exceptions
+      validateStatus: () => true
+    });
   }
 
-  // API helper
+  // ===== API helpers =====
   async get(path: string) {
+    this.error = undefined;
     this.response = await this.client.get(path);
     return this.response;
   }
 
-  // UI helpers
+  async post(path: string, body: any) {
+    this.error = undefined;
+    this.response = await this.client.post(path, body);
+    return this.response;
+  }
+
+  setPayloadFromTable(table: DataTable) {
+    const payload: Record<string, any> = {};
+    for (const [k, v] of table.rows()) payload[k] = this.coerce(v);
+    this.requestBody = payload;
+  }
+
+  setPayload(payload: Record<string, any>) {
+    this.requestBody = payload;
+  }
+
+  getByPath(obj: unknown, path: string): unknown {
+    return path.split('.').reduce((acc: any, key: string) => (acc == null ? acc : acc[key]), obj as any);
+  }
+
+  // ===== UI helpers =====
   async openBrowser(opts: LaunchOptions = { headless: process.env.HEADLESS === 'true' }) {
     this.browser = await chromium.launch(opts);
-    // Create a context with baseURL so page.goto('/...') works
-    this.context = await this.browser.newContext({
-      baseURL: process.env.UI_BASE_URL,
-    });
+    this.context = await this.browser.newContext({ baseURL: process.env.UI_BASE_URL });
     this.page = await this.context.newPage();
   }
 
   async goto(path: string) {
-    if (!this.page) {
-      throw new Error('Browser not opened! Did you forget to tag this scenario with @ui?');
-    }
-    // With context.baseURL set, this will resolve correctly
+    if (!this.page) throw new Error('Browser not opened! Did you forget to tag this scenario with @ui?');
     await this.page.goto(path);
     console.log(`✔️  Landed on: ${this.page.url()}`);
+  }
+
+  // ===== private utils =====
+  private coerce(val: string): any {
+    if (val === 'true') return true;
+    if (val === 'false') return false;
+    // numeric (keep dates like 2013-06-07 as strings)
+    if (/^-?\d+(\.\d+)?$/.test(val)) return Number(val);
+    return val;
   }
 }
 
 setWorldConstructor(World);
+export default World;
+export type CustomWorld = World;
