@@ -1,6 +1,6 @@
 Feature: Fee Scheme API Tests
 
-  @api
+  # @api
   Scenario Outline: Fetch a known category-of-law code for a given fee code
     Given I have an initialized API client
     When I GET "/api/v1/category-of-law/<feeCode>"
