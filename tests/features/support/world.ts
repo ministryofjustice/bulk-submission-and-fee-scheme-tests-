@@ -9,6 +9,8 @@ import { SampleLoginPage } from '../../pages/SampleLoginPage';
 dotenv.config();
 
 export class World {
+   attach!: (data: string | Buffer, mediaType?: string) => Promise<void>;
+  
   // API
   client: AxiosInstance;
   response?: AxiosResponse;
