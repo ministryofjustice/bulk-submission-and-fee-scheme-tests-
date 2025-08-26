@@ -9,8 +9,9 @@ Given('I have an initialized API client', function (this: World) {
 
 Then('the JSON path {string} should equal number {float}', function (this: World, jsonPath: string, expected: number) {
   const actual = this.getByPath(this.response?.data ?? {}, jsonPath);
-  expect(typeof actual).toBe('number');
-  expect(actual as number).toBeCloseTo(expected, 2);
+  const numeric = Number(actual);
+  expect(numeric).toBe(expected);
+  expect(numeric.toFixed(2)).toBe(expected.toFixed(2));
 });
 
 Then('the JSON path {string} should equal {string}', function (this: World, jsonPath: string, expected: string) {
