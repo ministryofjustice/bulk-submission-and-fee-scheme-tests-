@@ -1,5 +1,6 @@
 // tests/features/support/hooks.ts
 import {
+  BeforeAll,
   Before,
   After,
   AfterStep,
@@ -14,6 +15,19 @@ import * as path from 'path';
 
 setDefaultTimeout(60 * 1000);
 
+// ---------- Clear Down ----------
+BeforeAll(function () {
+const dir = path.join(process.cwd(), 'reports', 'attachments');
+  try {
+    fs.rmSync(dir, { recursive: true, force: true }); // clear old attachments
+    fs.mkdirSync(dir, { recursive: true });           // recreate
+    // eslint-disable-next-line no-console
+    console.log(`🧹 cleared attachments: ${path.relative(process.cwd(), dir)}`);
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn('Could not initialize attachments directory:', err);
+  }
+});
 // ---------- UI hooks ----------
 Before({ tags: '@ui' }, async function (this: World) {
   await this.openBrowser();
@@ -75,5 +89,5 @@ After({ tags: '@api' }, async function (this: World, scenario: ITestCaseHookPara
     ? `### Response\n- Status: ${this.response.status}\n- Body:\n\`\`\`json\n${JSON.stringify(this.response.data, null, 2)}\n\`\`\`\n`
     : '### Response\n(none)\n';
 
-  await safeAttach(this, 'api-failure-scenario', `## API Failure Context (After Scenario)\n\n${payloadBlock}${responseBlock}`);
+  await safeAttach(this, 'api-test-evidence', `## API Test Evidence\n\n${payloadBlock}${responseBlock}`);
 });
