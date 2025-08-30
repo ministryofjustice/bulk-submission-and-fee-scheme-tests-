@@ -17,7 +17,7 @@ Given('a fee calculation payload with:', function (this: World, table: DataTable
     vatIndicator: rows.vatIndicator === 'true',
     disbursementPriorAuthority: undefined,
     boltOns: {
-      boltOnAdjournedHearing: 0,
+      boltOnAdjournedHearing: Number(rows.boltOnAdjournedHearing || 0),
       boltOnDetentionTravelWaitingCosts: 0,
       boltOnJrFormFilling: 0,
       boltOnCmrhOral: 0,
