@@ -10,9 +10,10 @@ Given('a fee calculation payload with:', function (this: World, table: DataTable
   this.setPayload({
     feeCode: rows.feeCode,
     startDate: rows.startDate,
-    netProfitCosts: 0,
+    netProfitCosts: Number(rows.netProfitCosts),
+    netCostOfCounsel: Number(rows.netCostOfCounsel),
+    travelAndWaitingCosts: Number(rows.travelAndWaitingCosts || 0),
     netDisbursementAmount: Number(rows.netDisbursementAmount),
-    netCostOfCounsel: 0,
     disbursementVatAmount: Number(rows.disbursementVatAmount),
     vatIndicator: rows.vatIndicator === 'true',
     disbursementPriorAuthority: undefined,
@@ -24,8 +25,6 @@ Given('a fee calculation payload with:', function (this: World, table: DataTable
       boltOnCrmhTelephone: 0,
       boltOnAdditionalTravel: 0
     },
-    netTravelCosts: 0,
-    netWaitingCosts: 0,
     numberOfMediationSessions: Number(rows.numberOfMediationSessions ?? 0)
   });
 });

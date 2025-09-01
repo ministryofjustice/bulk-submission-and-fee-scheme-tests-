@@ -79,7 +79,7 @@ AfterStep({ tags: '@api' }, async function (this: World, step: ITestStepHookPara
 
 // ---------- attach at end of failing API scenario (backup) ----------
 After({ tags: '@api' }, async function (this: World, scenario: ITestCaseHookParameter) {
-  if (scenario.result?.status !== Status.FAILED) return;
+  if (scenario.result?.status == Status.FAILED) return;
 
   const payloadBlock = this.requestBody
     ? `### Request Payload\n\`\`\`json\n${JSON.stringify(this.requestBody, null, 2)}\n\`\`\`\n\n`
