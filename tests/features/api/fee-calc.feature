@@ -11,6 +11,9 @@ Feature: Fee Calculation API
       | vatIndicator              | <vatIndicator>              |
       | numberOfMediationSessions | <numberOfMediationSessions> |
       | boltOnAdjournedHearing    | <boltOnAdjournedHearing>    |
+      | netProfitCosts            | <netProfitCosts>            |
+      | netCostOfCounsel          | <netCostOfCounsel>          |
+      | travelAndWaitingCosts     | <travelAndWaitingCosts>     |
     When I POST "/api/v1/fee-calculation" with the payload
     Then the response status should be 200
     And the JSON path "feeCalculation.totalAmount" should equal number <expectedTotal>
@@ -30,6 +33,10 @@ Feature: Fee Calculation API
       | MISCPI  | 2015-06-18 | 104.28                | 25.57                 | true         | 0                         | 0                      | 373.45        |
       | MISCEMP | 2013-06-19 | 106.30                | 27.50                 | false        | 0                         | 0                      | 340.80        |
       | PUB     | 2013-06-20 | 108.32                | 29.43                 | true         | 0                         | 0                      | 448.55        |
+      
+      @mediation
+      Examples: Mediation 
+      | feeCode | startDate  | netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal |
       | MAM1    | 2013-06-07 | 50.5                  | 20.15                 | true         | 0                         | 0                      | 175.05        |
       | MAM3    | 2025-08-07 | 999                   | 200                   | false        | 0                         | 0                      | 1329.00       |
       | MED1    | 2016-08-08 | 50.5                  | 20.15                 | true         | 1                         | 0                      | 272.25        |
@@ -45,3 +52,14 @@ Feature: Fee Calculation API
       | MHL02   | 2013-06-20 | 170.8                 | 99.6                  | true         | 0                         | 2                      | 706.00        |
       | MHL03   | 2013-06-21 | 202.15                | 18.99                 | false        | 0                         | 3                      | 1022.14       |
       | MHL10   | 2013-06-22 | 1111.89               | 20.11                 | false        | 0                         | 0                      | 1261.00       |
+
+    @discrimination
+    Examples:
+      | feeCode | startDate  | netProfitCosts | netCostOfCounsel | travelAndWaitingCosts | netDisbursementAmount | disbursementVatAmount | vatIndicator | expectedTotal|
+      | DISC    | 2013-06-15 | 100.16         | 200.18           | 999.12                | 100                   | 20                    | true         | 960          |
+      | DISC    | 2013-06-16 | 30.23          | 12.34            | 10.12                 | 100                   | 20                    | false        | 172.69       |
+      | DISC    | 2013-06-17 | 0              | 20               | 0                     | 100                   | 20                    | true         | 144          |
+      | DISC    | 2013-06-18 | 0              | 0                | 0                     | 100                   | 20                    | false        | 120          |
+      | DISC    | 2013-06-19 | 159            | 0                | 800                   | 100                   | 20                    | true         | 960          |
+      | DISC    | 2013-06-20 | 0              | 200              |                       | 100                   | 20                    | true         | 360          |
+      | DISC    | 2013-06-21 | 10             | 20               | 699                   | 100                   | 20                    | true         | 960          |
