@@ -35,4 +35,4 @@ Feature: Bulk import
   Scenario: Bulk submission fails with large files
     Given I am on the bulk import page
     When I upload "invalid"
-    Then the user sees an error message "Only .xml, .csv and .txt files are allowed"
+    Then the user sees an error message "File must be less than or equals to 10MB"
