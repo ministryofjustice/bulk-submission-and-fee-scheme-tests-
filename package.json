@@ -10,6 +10,7 @@
     "report:bdd": "node scripts/report.js",
     "test:report": "playwright show-report",
     "test:tag": "cucumber-js --require-module ts-node/register --require \"tests/features/**/*.ts\" --format json:reports/cucumber.json --format html:reports/cucumber.html tests/features/**/*.feature"
+ 
   },
   "devDependencies": {
     "@cucumber/cucumber": "^12.1.0",

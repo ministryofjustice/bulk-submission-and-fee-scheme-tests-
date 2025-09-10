@@ -9,13 +9,14 @@ import { SampleLoginPage } from '../../pages/SampleLoginPage';
 dotenv.config();
 
 export class World {
-   attach!: (data: string | Buffer, mediaType?: string) => Promise<void>;
-  
+  attach!: (data: string | Buffer, mediaType?: string) => Promise<void>;
+
   // API
   client: AxiosInstance;
   response?: AxiosResponse;
   requestBody?: Record<string, any>;
   error?: AxiosError;
+  private authToken?: string; // ⬅️ keep a copy for hooks/attachments
 
   // UI
   browser?: Browser;
@@ -26,8 +27,11 @@ export class World {
   sampleLoginPage?: SampleLoginPage;
 
   constructor(options: IWorldOptions) {
+    const baseURL = process.env.API_BASE_URL;
+    if (!baseURL) throw new Error('API_BASE_URL is not set');
+
     this.client = axios.create({
-      baseURL: process.env.API_BASE_URL,
+      baseURL,
       timeout: 10000,
       headers: {
         'Content-Type': 'application/json',
@@ -36,6 +40,25 @@ export class World {
       // Let us inspect 4xx/5xx without exceptions
       validateStatus: () => true
     });
+
+    // Load token from env if provided
+    const token = process.env.API_TOKEN;
+    if (token) this.setAuthToken(token);
+  }
+
+  /** Set or clear the Authorization header (Bearer token). */
+  setAuthToken(token?: string) {
+    this.authToken = token;
+    if (token) {
+      this.client.defaults.headers.common['Authorization'] = `${token}`;
+    } else {
+      delete this.client.defaults.headers.common['Authorization'];
+    }
+  }
+
+  /** Read the currently configured token (if any). */
+  getAuthToken(): string | undefined {
+    return this.authToken;
   }
 
   // ===== API helpers =====

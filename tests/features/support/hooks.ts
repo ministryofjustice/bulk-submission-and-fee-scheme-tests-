@@ -17,7 +17,7 @@ setDefaultTimeout(60 * 1000);
 
 // ---------- Clear Down ----------
 BeforeAll(function () {
-const dir = path.join(process.cwd(), 'reports', 'attachments');
+  const dir = path.join(process.cwd(), 'reports', 'attachments');
   try {
     fs.rmSync(dir, { recursive: true, force: true }); // clear old attachments
     fs.mkdirSync(dir, { recursive: true });           // recreate
@@ -28,6 +28,7 @@ const dir = path.join(process.cwd(), 'reports', 'attachments');
     console.warn('Could not initialize attachments directory:', err);
   }
 });
+
 // ---------- UI hooks ----------
 Before({ tags: '@ui' }, async function (this: World) {
   await this.openBrowser();
@@ -37,27 +38,39 @@ After({ tags: '@ui' }, async function (this: World) {
   await this.browser?.close();
 });
 
+// ---------- Ensure API token for @api ----------
+Before({ tags: '@api' }, function (this: World) {
+  // prefer scenario-provided token; else use env
+  if (!this.getAuthToken && (this as any).setAuthToken) {
+    // older World without getters—skip
+    return;
+  }
+  if (!this.getAuthToken() && process.env.API_TOKEN) {
+    this.setAuthToken(process.env.API_TOKEN);
+  }
+});
+
 // ---------- helpers ----------
-function scenarioSlug(s: ITestCaseHookParameter | ITestStepHookParameter) {
-  const name = s.pickle?.name ?? 'scenario';
-  const id = s.pickle?.id ?? '';
-  return (
-    name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '') + (id ? `-${id}` : '')
-  );
+function redactSecrets(text: string) {
+  const token = process.env.API_TOKEN;
+  let out = text;
+  if (token) out = out.split(token).join('***REDACTED***');
+  // also redact any inline Authorization headers
+  out = out.replace(/Authorization:\s*Bearer\s+[^\s]+/gi, 'Authorization: Bearer ***REDACTED***');
+  return out;
 }
 
 async function safeAttach(world: World, label: string, content: string) {
+  const redacted = redactSecrets(content);
   if (typeof world.attach === 'function') {
-    await world.attach(content, 'text/markdown');
+    await world.attach(redacted, 'text/markdown');
   } else {
     // fallback: dump into file
     const dir = path.join(process.cwd(), 'reports', 'attachments');
     fs.mkdirSync(dir, { recursive: true });
     const file = path.join(dir, `${Date.now()}.${label}.md`);
-    fs.writeFileSync(file, content, 'utf8');
+    fs.writeFileSync(file, redacted, 'utf8');
+    // eslint-disable-next-line no-console
     console.warn(`⚠️ wrote attachment to ${file}`);
   }
 }
@@ -70,24 +83,42 @@ AfterStep({ tags: '@api' }, async function (this: World, step: ITestStepHookPara
     ? `### Request Payload\n\`\`\`json\n${JSON.stringify(this.requestBody, null, 2)}\n\`\`\`\n\n`
     : '### Request Payload\n(none)\n\n';
 
+  const authLine = this.getAuthToken ? (this.getAuthToken() ? 'Authorization: Bearer ***REDACTED***' : '(no Authorization)') : '(no Authorization)';
+
   const responseBlock = this.response
     ? `### Response\n- Status: ${this.response.status}\n- Body:\n\`\`\`json\n${JSON.stringify(this.response.data, null, 2)}\n\`\`\`\n`
     : '### Response\n(none)\n';
 
-  await safeAttach(this, 'api-failure', `## API Failure Context\n\n${payloadBlock}${responseBlock}`);
+  const content = `## API Failure Context
+
+### Request
+- ${authLine}
+
+${payloadBlock}${responseBlock}`;
+
+  await safeAttach(this, 'api-failure', content);
 });
 
 // ---------- attach at end of failing API scenario (backup) ----------
 After({ tags: '@api' }, async function (this: World, scenario: ITestCaseHookParameter) {
-  if (scenario.result?.status == Status.FAILED) return;
+  if (scenario.result?.status !== Status.FAILED) return; // ✅ only on failure
 
   const payloadBlock = this.requestBody
     ? `### Request Payload\n\`\`\`json\n${JSON.stringify(this.requestBody, null, 2)}\n\`\`\`\n\n`
     : '### Request Payload\n(none)\n\n';
 
+  const authLine = this.getAuthToken ? (this.getAuthToken() ? 'Authorization: Bearer ***REDACTED***' : '(no Authorization)') : '(no Authorization)';
+
   const responseBlock = this.response
     ? `### Response\n- Status: ${this.response.status}\n- Body:\n\`\`\`json\n${JSON.stringify(this.response.data, null, 2)}\n\`\`\`\n`
     : '### Response\n(none)\n';
 
-  await safeAttach(this, 'api-test-evidence', `## API Test Evidence\n\n${payloadBlock}${responseBlock}`);
+  const content = `## API Failure Context (After Scenario)
+
+### Request
+- ${authLine}
+
+${payloadBlock}${responseBlock}`;
+
+  await safeAttach(this, 'api-failure-scenario', content);
 });
