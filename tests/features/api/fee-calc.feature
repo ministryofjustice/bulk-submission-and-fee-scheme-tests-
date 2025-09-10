@@ -37,13 +37,13 @@ Feature: Fee Calculation API
       @mediation
       Examples: Mediation 
       | feeCode | startDate  | netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal |
-      | MAM1    | 2013-06-07 | 50.5                  | 20.15                 | true         | 0                         | 0                      | 175.05        |
-      | MAM3    | 2025-08-07 | 999                   | 200                   | false        | 0                         | 0                      | 1329.00       |
-      | MED1    | 2016-08-08 | 50.5                  | 20.15                 | true         | 1                         | 0                      | 272.25        |
-      | MED20   | 2017-08-09 | 650                   | 17.62                 | false        | 2                         | 0                      | 1199.62       |
-      | MED30   | 2018-08-10 | 230                   | 647                   | true         | 2                         | 0                      | 1330.60       |
-      | MED32   | 2019-08-11 | 100                   | 20                    | false        | 1                         | 0                      | 413.00        |
-      | MED30   | 2018-08-10 | 100                   | 20                    | true         | 2                         | 0                      | 573.60        |
+      | ASSS    | 2013-06-07 | 50.5                  | 20.15                 | true         | 0                         | 0                      | 175.05        |
+      | ASST    | 2025-08-07 | 999                   | 200                   | false        | 0                         | 0                      | 1329.00       |
+      | MDAS2B  | 2016-08-08 | 50.5                  | 20.15                 | true         | 1                         | 0                      | 272.25        |
+      | MDPC1B  | 2017-08-09 | 650                   | 17.62                 | false        | 2                         | 0                      | 1199.62       |
+      | MDCS1S  | 2018-08-10 | 230                   | 647                   | true         | 2                         | 0                      | 1330.60       |
+      | MDCC1S  | 2019-08-11 | 100                   | 20                    | false        | 1                         | 0                      | 413.00        |
+      | MDCS1S  | 2018-08-10 | 100                   | 20                    | true         | 2                         | 0                      | 573.60        |
     
     @mental_health
     Examples: Mental Health
