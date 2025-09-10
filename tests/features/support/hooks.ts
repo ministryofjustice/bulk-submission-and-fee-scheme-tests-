@@ -21,10 +21,8 @@ BeforeAll(function () {
   try {
     fs.rmSync(dir, { recursive: true, force: true }); // clear old attachments
     fs.mkdirSync(dir, { recursive: true });           // recreate
-    // eslint-disable-next-line no-console
     console.log(`🧹 cleared attachments: ${path.relative(process.cwd(), dir)}`);
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.warn('Could not initialize attachments directory:', err);
   }
 });
@@ -40,9 +38,7 @@ After({ tags: '@ui' }, async function (this: World) {
 
 // ---------- Ensure API token for @api ----------
 Before({ tags: '@api' }, function (this: World) {
-  // prefer scenario-provided token; else use env
   if (!this.getAuthToken && (this as any).setAuthToken) {
-    // older World without getters—skip
     return;
   }
   if (!this.getAuthToken() && process.env.API_TOKEN) {
@@ -55,7 +51,6 @@ function redactSecrets(text: string) {
   const token = process.env.API_TOKEN;
   let out = text;
   if (token) out = out.split(token).join('***REDACTED***');
-  // also redact any inline Authorization headers
   out = out.replace(/Authorization:\s*Bearer\s+[^\s]+/gi, 'Authorization: Bearer ***REDACTED***');
   return out;
 }
@@ -65,13 +60,12 @@ async function safeAttach(world: World, label: string, content: string) {
   if (typeof world.attach === 'function') {
     await world.attach(redacted, 'text/markdown');
   } else {
-    // fallback: dump into file
+    
     const dir = path.join(process.cwd(), 'reports', 'attachments');
     fs.mkdirSync(dir, { recursive: true });
     const file = path.join(dir, `${Date.now()}.${label}.md`);
     fs.writeFileSync(file, redacted, 'utf8');
-    // eslint-disable-next-line no-console
-    console.warn(`⚠️ wrote attachment to ${file}`);
+    console.warn(` wrote attachment to ${file}`);
   }
 }
 
@@ -101,7 +95,7 @@ ${payloadBlock}${responseBlock}`;
 
 // ---------- attach at end of failing API scenario (backup) ----------
 After({ tags: '@api' }, async function (this: World, scenario: ITestCaseHookParameter) {
-  if (scenario.result?.status !== Status.FAILED) return; // ✅ only on failure
+  if (scenario.result?.status !== Status.FAILED) return; // only on failure
 
   const payloadBlock = this.requestBody
     ? `### Request Payload\n\`\`\`json\n${JSON.stringify(this.requestBody, null, 2)}\n\`\`\`\n\n`

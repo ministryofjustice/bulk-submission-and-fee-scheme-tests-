@@ -16,7 +16,7 @@ export class World {
   response?: AxiosResponse;
   requestBody?: Record<string, any>;
   error?: AxiosError;
-  private authToken?: string; // ⬅️ keep a copy for hooks/attachments
+  private authToken?: string; 
 
   // UI
   browser?: Browser;
@@ -37,7 +37,6 @@ export class World {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      // Let us inspect 4xx/5xx without exceptions
       validateStatus: () => true
     });
 
@@ -46,7 +45,7 @@ export class World {
     if (token) this.setAuthToken(token);
   }
 
-  /** Set or clear the Authorization header (Bearer token). */
+  /** Set or clear the Authorization header. */
   setAuthToken(token?: string) {
     this.authToken = token;
     if (token) {
@@ -105,7 +104,6 @@ export class World {
   private coerce(val: string): any {
     if (val === 'true') return true;
     if (val === 'false') return false;
-    // numeric (keep dates like 2013-06-07 as strings)
     if (/^-?\d+(\.\d+)?$/.test(val)) return Number(val);
     return val;
   }
