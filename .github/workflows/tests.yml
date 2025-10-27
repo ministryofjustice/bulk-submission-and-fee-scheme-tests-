@@ -1,4 +1,4 @@
-name: Run API Tests
+name: Run E2E Tests
 
 on:
   push:
@@ -25,10 +25,10 @@ jobs:
       - name: Authenticate to the EKS cluster
         uses: ./.github/actions/authenticate-to-eks-cluster
         with:
-          kube_cluster: ${{ secrets.kube_cluster }}
-          kube_namespace: ${{ secrets.kube_namespace }}
-          kube_token: ${{ secrets.kube_token }}
-          kube_cert: ${{ secrets.kube_cert }}
+          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          kube_token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
+          kube_cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
 
       - name: Create .env file
         shell: bash
@@ -85,10 +85,10 @@ jobs:
       - name: Authenticate to the EKS cluster
         uses: ./.github/actions/authenticate-to-eks-cluster
         with:
-          kube_cluster: ${{ secrets.kube_cluster }}
-          kube_namespace: ${{ secrets.kube_namespace }}
-          kube_token: ${{ secrets.kube_token }}
-          kube_cert: ${{ secrets.kube_cert }}
+          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube_token: ${{ secrets.KUBE_TOKEN_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube_cert: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
 
       - name: Create .env file
         shell: bash
