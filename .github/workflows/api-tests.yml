@@ -2,12 +2,13 @@ name: Run API Tests
 
 on:
   push:
-    branches: [ main, workflows ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  test:
+  api-tests:
     environment: uat
     runs-on: ubuntu-latest
     container:
@@ -40,7 +41,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run API Tests
+      - name: Port forward to FPS-API pod
+        env:
+          KUBE_NAMESPACE: ${{ secrets.kube_namespace }}
         run: |
           POD_LABEL="app.kubernetes.io/name=laa-fee-scheme-api"
           POD_NAME=$(kubectl get pod -n "$KUBE_NAMESPACE" -l "$POD_LABEL" -o jsonpath='{.items[0].metadata.name}')
@@ -49,4 +52,18 @@ jobs:
           PORT_FORWARD_PID=$!
           echo "Port-forward started with PID $PORT_FORWARD_PID"
 
+          echo "PORT_FORWARD_PID=$PORT_FORWARD_PID" >> "$GITHUB_ENV"
+
+      - name: Run API Tests
+        run: |
           npm run test:api
+
+      - name: Stop port forward to FSP-API pod
+        if: always()
+        run: |
+          if [[ -n "${PORT_FORWARD_PID:-}" ]]; then
+            echo "Stopping port-forward with PID $PORT_FORWARD_PID"
+            kill "$PORT_FORWARD_PID" || true
+          else
+            echo "No port-forward PID recorded"
+          fi
