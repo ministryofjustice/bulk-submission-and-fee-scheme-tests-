@@ -8,11 +8,18 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
     environment: uat
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.45.0-jammy
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: v1.29.4
 
       - name: Authenticate to the EKS cluster
         uses: ./.github/actions/authenticate-to-eks-cluster
@@ -21,12 +28,6 @@ jobs:
           kube_namespace: ${{ secrets.kube_namespace }}
           kube_token: ${{ secrets.kube_token }}
           kube_cert: ${{ secrets.kube_cert }}
-          
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ inputs.node-version }}
-          cache: npm
 
       - name: Create .env file
         shell: bash
@@ -38,9 +39,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
 
       - name: Run API Tests
         run: |
