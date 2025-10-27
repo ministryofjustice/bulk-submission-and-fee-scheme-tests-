@@ -96,6 +96,10 @@ jobs:
           cat <<EOF > .env
           API_BASE_URL=${{ secrets.API_BASE_URL }}
           API_TOKEN=${{ secrets.API_TOKEN }}
+          MFA_SECRET=${{ secrets.MFA_SECRET }}
+          PASSWORD=${{ secrets.PASSWORD }}
+          UI_BASE_URL=${{ secrets.UI_BASE_URL }}
+          USERNAME=${{ secrets.USERNAME }}
           EOF
 
       - name: Install dependencies
@@ -114,9 +118,9 @@ jobs:
 
           echo "PORT_FORWARD_PID=$PORT_FORWARD_PID" >> "$GITHUB_ENV"
 
-      - name: Run API Tests
+      - name: Run UI Tests
         run: |
-          npm run test:api
+          npm run test:ui
 
       - name: Stop port forward to SaBC pod
         if: always()
