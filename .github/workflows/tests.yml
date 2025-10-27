@@ -100,6 +100,7 @@ jobs:
           PASSWORD=${{ secrets.PASSWORD }}
           UI_BASE_URL=${{ secrets.UI_BASE_URL }}
           USERNAME=${{ secrets.USERNAME }}
+          HEADLESS=true
           EOF
 
       - name: Install dependencies
