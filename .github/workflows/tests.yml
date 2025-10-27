@@ -67,3 +67,63 @@ jobs:
           else
             echo "No port-forward PID recorded"
           fi
+          
+  ui-tests:
+    environment: uat
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.45.0-jammy
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: v1.29.4
+
+      - name: Authenticate to the EKS cluster
+        uses: ./.github/actions/authenticate-to-eks-cluster
+        with:
+          kube_cluster: ${{ secrets.kube_cluster }}
+          kube_namespace: ${{ secrets.kube_namespace }}
+          kube_token: ${{ secrets.kube_token }}
+          kube_cert: ${{ secrets.kube_cert }}
+
+      - name: Create .env file
+        shell: bash
+        run: |
+          cat <<EOF > .env
+          API_BASE_URL=${{ secrets.API_BASE_URL }}
+          API_TOKEN=${{ secrets.API_TOKEN }}
+          EOF
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Port forward to SaBC pod
+        env:
+          KUBE_NAMESPACE: ${{ secrets.kube_namespace }}
+        run: |
+          POD_LABEL="app.kubernetes.io/name=uat-submit-a-bulk-claim"
+          POD_NAME=$(kubectl get pod -n "$KUBE_NAMESPACE" -l "$POD_LABEL" -o jsonpath='{.items[0].metadata.name}')
+          echo "Port forwarding pod: $POD_NAME"
+          kubectl port-forward -n "$KUBE_NAMESPACE" pod/"$POD_NAME" 8082:8082 > pf.log 2>&1 &
+          PORT_FORWARD_PID=$!
+          echo "Port-forward started with PID $PORT_FORWARD_PID"
+
+          echo "PORT_FORWARD_PID=$PORT_FORWARD_PID" >> "$GITHUB_ENV"
+
+      - name: Run API Tests
+        run: |
+          npm run test:api
+
+      - name: Stop port forward to SaBC pod
+        if: always()
+        run: |
+          if [[ -n "${PORT_FORWARD_PID:-}" ]]; then
+            echo "Stopping port-forward with PID $PORT_FORWARD_PID"
+            kill "$PORT_FORWARD_PID" || true
+          else
+            echo "No port-forward PID recorded"
+          fi
