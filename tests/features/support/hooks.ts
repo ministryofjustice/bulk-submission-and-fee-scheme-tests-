@@ -7,11 +7,12 @@ import {
   setDefaultTimeout,
   Status,
   ITestCaseHookParameter,
-  ITestStepHookParameter,
+  ITestStepHookParameter, AfterAll,
 } from '@cucumber/cucumber';
 import World from './world';
 import * as fs from 'fs';
 import * as path from 'path';
+import os from "os";
 
 setDefaultTimeout(60 * 1000);
 
@@ -19,100 +20,117 @@ setDefaultTimeout(60 * 1000);
 BeforeAll(function () {
   const dir = path.join(process.cwd(), 'reports', 'attachments');
   try {
-    fs.rmSync(dir, { recursive: true, force: true }); // clear old attachments
-    fs.mkdirSync(dir, { recursive: true });           // recreate
-    console.log(`🧹 cleared attachments: ${path.relative(process.cwd(), dir)}`);
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.mkdirSync(dir, { recursive: true });
+    console.log(`🧹 Cleared attachments: ${path.relative(process.cwd(), dir)}`);
   } catch (err) {
-    console.warn('Could not initialize attachments directory:', err);
+    console.warn('⚠️ Could not initialize attachments directory:', err);
   }
 });
 
-// ---------- UI hooks ----------
-Before({ tags: '@ui' }, async function (this: World) {
-  await this.openBrowser();
-});
-
-After({ tags: '@ui' }, async function (this: World) {
-  await this.browser?.close();
-});
-
-// ---------- Ensure API token for @api ----------
-Before({ tags: '@api' }, function (this: World) {
-  if (!this.getAuthToken && (this as any).setAuthToken) {
-    return;
+Before({ tags: 'not @api' }, async function (this: World, scenario) {
+  if (!this.browser) {
+    await this.openBrowser();
+    await this.attach('🌐 Browser launched for worker', 'text/plain');
   }
-  if (!this.getAuthToken() && process.env.API_TOKEN) {
-    this.setAuthToken(process.env.API_TOKEN);
+
+  const globalStorage = path.resolve('storageState.json');
+  const workerStorage = path.resolve(os.tmpdir(), `storageState-${process.pid}.json`);
+
+  if (fs.existsSync(globalStorage) && !fs.existsSync(workerStorage)) {
+    fs.copyFileSync(globalStorage, workerStorage);
+  }
+
+  this.context = await this.browser!.newContext({
+    baseURL: process.env.UI_BASE_URL,
+    storageState: fs.existsSync(workerStorage) ? workerStorage : undefined,
+  });
+
+  this.page = await this.context.newPage();
+  await this.attach(`🧭 New isolated context created for: ${scenario.pickle.name}`, 'text/plain');
+});
+
+After({ tags: 'not @api' }, async function (this: World) {
+  try {
+    if (this.context) {
+      await this.context.close();
+      this.context = undefined;
+    }
+    console.log('🧹 Closed browser context after scenario');
+  } catch (err) {
+    console.warn('⚠️ Error closing browser context:', err);
   }
 });
 
-// ---------- helpers ----------
-function redactSecrets(text: string) {
-  const token = process.env.API_TOKEN;
-  let out = text;
-  if (token) out = out.split(token).join('***REDACTED***');
-  out = out.replace(/Authorization:\s*Bearer\s+[^\s]+/gi, 'Authorization: Bearer ***REDACTED***');
-  return out;
-}
+AfterStep({ tags: 'not @api' }, async function (this: World, step) {
+  if (step.result?.status === Status.FAILED && this.page) {
+    const screenshotPath = `reports/attachments/${Date.now()}-${step.pickle.name}.png`;
+    await this.page.screenshot({ path: screenshotPath, fullPage: true });
+    await this.attach(fs.readFileSync(screenshotPath), 'image/png');
+    console.log(`📸 Screenshot captured for failed step: ${screenshotPath}`);
+  }
+});
 
+AfterAll(async function () {
+  try {
+    const globalBrowsers = (global as any).__browsers;
+    if (globalBrowsers) {
+      for (const [pid, browser] of Object.entries(globalBrowsers)) {
+        // @ts-ignore
+        if (browser && browser.isConnected()) {
+          // @ts-ignore
+          await browser.close();
+          console.log(`🧹 Closed browser for worker PID: ${pid}`);
+        }
+      }
+      delete (global as any).__browsers;
+    } else {
+      console.log('ℹ️ No global browsers to close');
+    }
+  } catch (err) {
+    console.warn('⚠️ Failed to close browsers after all tests:', err);
+  }
+});
+
+// ---------- API Evidence Helpers ----------
 async function safeAttach(world: World, label: string, content: string) {
-  const redacted = redactSecrets(content);
   if (typeof world.attach === 'function') {
-    await world.attach(redacted, 'text/markdown');
+    await world.attach(content, 'text/markdown');
   } else {
-    
     const dir = path.join(process.cwd(), 'reports', 'attachments');
     fs.mkdirSync(dir, { recursive: true });
     const file = path.join(dir, `${Date.now()}.${label}.md`);
-    fs.writeFileSync(file, redacted, 'utf8');
-    console.warn(` wrote attachment to ${file}`);
+    fs.writeFileSync(file, content, 'utf8');
+    console.warn(`⚠️ wrote attachment to ${file}`);
   }
 }
 
-// ---------- attach on failing API step ----------
+// ---------- Attach API Failure Evidence ----------
 AfterStep({ tags: '@api' }, async function (this: World, step: ITestStepHookParameter) {
   if (step.result?.status !== Status.FAILED) return;
 
   const payloadBlock = this.requestBody
-    ? `### Request Payload\n\`\`\`json\n${JSON.stringify(this.requestBody, null, 2)}\n\`\`\`\n\n`
-    : '### Request Payload\n(none)\n\n';
-
-  const authLine = this.getAuthToken ? (this.getAuthToken() ? 'Authorization: Bearer ***REDACTED***' : '(no Authorization)') : '(no Authorization)';
+      ? `### Request Payload\n\`\`\`json\n${JSON.stringify(this.requestBody, null, 2)}\n\`\`\`\n\n`
+      : '### Request Payload\n(none)\n\n';
 
   const responseBlock = this.response
-    ? `### Response\n- Status: ${this.response.status}\n- Body:\n\`\`\`json\n${JSON.stringify(this.response.data, null, 2)}\n\`\`\`\n`
-    : '### Response\n(none)\n';
+      ? `### Response\n- Status: ${this.response.status}\n- Body:\n\`\`\`json\n${JSON.stringify(this.response.data, null, 2)}\n\`\`\`\n`
+      : '### Response\n(none)\n';
 
-  const content = `## API Failure Context
-
-### Request
-- ${authLine}
-
-${payloadBlock}${responseBlock}`;
-
-  await safeAttach(this, 'api-failure', content);
+  await safeAttach(this, 'api-failure', `## API Failure Context\n\n${payloadBlock}${responseBlock}`);
 });
 
-// ---------- attach at end of failing API scenario (backup) ----------
+// ---------- Attach API Evidence at Scenario End ----------
 After({ tags: '@api' }, async function (this: World, scenario: ITestCaseHookParameter) {
-  if (scenario.result?.status !== Status.FAILED) return; // only on failure
+  if (scenario.result?.status == Status.FAILED) return;
 
   const payloadBlock = this.requestBody
-    ? `### Request Payload\n\`\`\`json\n${JSON.stringify(this.requestBody, null, 2)}\n\`\`\`\n\n`
-    : '### Request Payload\n(none)\n\n';
-
-  const authLine = this.getAuthToken ? (this.getAuthToken() ? 'Authorization: Bearer ***REDACTED***' : '(no Authorization)') : '(no Authorization)';
+      ? `### Request Payload\n\`\`\`json\n${JSON.stringify(this.requestBody, null, 2)}\n\`\`\`\n\n`
+      : '### Request Payload\n(none)\n\n';
 
   const responseBlock = this.response
-    ? `### Response\n- Status: ${this.response.status}\n- Body:\n\`\`\`json\n${JSON.stringify(this.response.data, null, 2)}\n\`\`\`\n`
-    : '### Response\n(none)\n';
+      ? `### Response\n- Status: ${this.response.status}\n- Body:\n\`\`\`json\n${JSON.stringify(this.response.data, null, 2)}\n\`\`\`\n`
+      : '### Response\n(none)\n';
 
-  const content = `## API Failure Context (After Scenario)
-
-### Request
-- ${authLine}
-
-${payloadBlock}${responseBlock}`;
-
-  await safeAttach(this, 'api-failure-scenario', content);
+  await safeAttach(this, 'api-test-evidence', `## API Test Evidence\n\n${payloadBlock}${responseBlock}`);
 });

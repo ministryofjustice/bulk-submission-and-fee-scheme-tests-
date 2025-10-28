@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<submission xmlns="http://www.legalservices.gov.uk/sms/ActivityManagement/XMLSchema/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.legalservices.gov.uk/sms/ActivityManagement/XMLSchema/LSCSMSBulkLoadSchemaV3.xsd">
+  <office account="0P322F">
+    <schedule submissionPeriod="SEP-2022" areaOfLaw="MEDIATION" scheduleNum="0P322F/MEDISEP22/01"/>
+  </office>
+</submission>
