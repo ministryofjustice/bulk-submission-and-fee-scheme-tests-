@@ -1,7 +1,7 @@
 import fs from 'fs';
-import { create } from 'xmlbuilder2';
 
 export async function convertFileToXml(inputFile: string, outputFile: string) {
+    const { create } = await import('xmlbuilder2');
     const content = fs.readFileSync(inputFile, 'utf-8');
     const lines = content.split('\n').map(line => line.trim()).filter(Boolean);
 
