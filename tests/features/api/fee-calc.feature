@@ -4,23 +4,31 @@ Feature: Fee Calculation API
   Scenario Outline: Calculate fee total for a given payload
     Given I have an initialized API client
     And a fee calculation payload with:
-      | feeCode                   | <feeCode>                   |
-      | startDate                 | <startDate>                 |
-      | netDisbursementAmount     | <netDisbursementAmount>     |
-      | disbursementVatAmount     | <disbursementVatAmount>     |
-      | vatIndicator              | <vatIndicator>              |
-      | numberOfMediationSessions | <numberOfMediationSessions> |
-      | boltOnAdjournedHearing    | <boltOnAdjournedHearing>    |
-      | netProfitCosts            | <netProfitCosts>            |
-      | netCostOfCounsel          | <netCostOfCounsel>          |
-      | travelAndWaitingCosts     | <travelAndWaitingCosts>     |
-      | uniqueFileNumber          | <uniqueFileNumber>          |
-      | policeStationId           | <policeStationId>           |
-      | policeStationSchemeId     | <policeStationSchemeId>     |
-      | representationOrderDate   | <representationOrderDate>   |
-      | netTravelCosts            | <netTravelCosts>            |
-      | netWaitingCosts           | <netWaitingCosts>           |
-      | londonRate                | <londonRate>                |
+      | feeCode                           | <feeCode>                          |
+      | startDate                         | <startDate>                        |
+      | netDisbursementAmount             | <netDisbursementAmount>            |
+      | disbursementVatAmount             | <disbursementVatAmount>            |
+      | vatIndicator                      | <vatIndicator>                     |
+      | numberOfMediationSessions         | <numberOfMediationSessions>        |
+      | boltOnHomeOfficeInterview         | <boltOnHomeOfficeInterview>        |
+      | boltOnAdjournedHearing            | <boltOnAdjournedHearing>           |
+      | boltOnCrmhOral                    | <boltOnCrmhOral>                   |
+      | boltOnCrmhTelephone               | <boltOnCrmhTelephone>              |
+      | boltOnSubstantiveHearing          | <boltOnSubstantiveHearing>         |
+      | netProfitCosts                    | <netProfitCosts>                   |
+      | netCostOfCounsel                  | <netCostOfCounsel>                 |
+      | travelAndWaitingCosts             | <travelAndWaitingCosts>            |
+      | uniqueFileNumber                  | <uniqueFileNumber>                 |
+      | policeStationId                   | <policeStationId>                  |
+      | policeStationSchemeId             | <policeStationSchemeId>            |
+      | representationOrderDate           | <representationOrderDate>          |
+      | netTravelCosts                    | <netTravelCosts>                   |
+      | netWaitingCosts                   | <netWaitingCosts>                  |
+      | londonRate                        | <londonRate>                       |
+      | immigrationPriorAuthorityNumber   | <immigrationPriorAuthorityNumber>  |
+      | detentionTravelAndWaitingCosts    | <detentionTravelAndWaitingCosts>   |
+      | jrFormFilling                     | <jrFormFilling>                    |
+
     When I POST "/api/v1/fee-calculation" with the payload
     Then the response status should be 200
     And the JSON path "feeCalculation.totalAmount" should equal number <expectedTotal>
@@ -62,7 +70,7 @@ Feature: Fee Calculation API
       | MHL10   | 2013-06-22 | 1111.89               | 20.11                 | false        | 0                         | 0                      | 1261.00       |
 
     @discrimination
-    Examples:
+    Examples: Discrimination
       | feeCode | startDate  | netProfitCosts | netCostOfCounsel | travelAndWaitingCosts | netDisbursementAmount | disbursementVatAmount | vatIndicator | expectedTotal|
       | DISC    | 2013-06-15 | 100.16         | 200.18           | 999.12                | 100                   | 20                    | true         | 960          |
       | DISC    | 2013-06-16 | 30.23          | 12.34            | 10.12                 | 100                   | 20                    | false        | 172.69       |
@@ -86,8 +94,8 @@ Feature: Fee Calculation API
       | INVC     | 2016-04-01 | 110516/001        | NE001           | 1001                   | 20                    | 10.50                 | true         | 0                         | 0                      | 188.18        |
       | INVC     | 2016-04-01 | 110516/002        | NE003           | 1001                   | 20                    | 10.50                 | false        | 0                         | 0                      | 166.46        |
       | INVC     | 2022-09-30 | 121022/003        | NE016           | 1004                   | 20                    | 15.50                 | true         | 0                         | 0                      | 245.80        |
-      | INVC     | 2022-09-30 | 121022/004        | NE041           | 1010                   | 20                    | 15.50                 | false        | 0                         | 0                      | 199.84        |
-      | INVC     | 2024-12-06 | 131224/005        | RD052           | 1141                   | 20                    | 15.50                 | true         | 0                         | 0                      | 323.86        |
+      | INVC     | 2022-09-30 | 121022/004        | NE041           | 1010                   | 20                    | 15.50                 | false        | 0                         | 0                      | 197.11        |
+      | INVC     | 2024-12-06 | 131224/005        | RD052           | 1141                   | 20                    | 15.50                 | true         | 0                         | 0                      | 325.94        |
       | INVC     | 2024-12-06 | 131224/006        | RD091           | 1142                   | 20                    | 15.50                 | false        | 0                         | 0                      | 259.02        |
 
 
@@ -228,3 +236,120 @@ Feature: Fee Calculation API
       | PRID2    | 2016-04-01 | 110516/001        | 0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 712.49        |
       | PRIE1    | 2016-04-01 | 010416/002        | 0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 472.71        |
       | PRIE2    | 2016-04-01 | 020416/003        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 1775.83       |
+
+    @appeals_and_reviews
+    Examples: Appeals and Reviews
+      | feeCode  | startDate  | uniqueFileNumber  | representationOrderDate |netTravelCosts| netWaitingCosts  | netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal |
+      | PRIA     | 2022-09-30 | 110516/001        | 2022-10-01              |0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 1919.37       |
+      | PRIB1    | 2016-04-01 | 110516/002        |                         |0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 1399.25       |
+      | PRIB2    | 2016-04-01 | 121019/003        |                         |0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 364.00        |
+      | PRIC1    | 2022-09-30 | 121022/004        |                         |0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 350.31        |
+      | PRIC2    | 2022-09-30 | 131224/005        |                         |0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 660.13        |
+      | PRID1    | 2016-04-01 | 020416/006        |                         |0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 486.75        |
+
+    @immigration_and_asylum_fixed_fee
+    Examples: Immigration and Asylum Fixed Fee
+      | feeCode | startDate  | immigrationPriorAuthorityNumber| detentionTravelAndWaitingCosts | jrFormFilling | boltOnHomeOfficeInterview | boltOnAdjournedHearing | boltOnCrmhOral | boltOnCrmhTelephone | boltOnSubstantiveHearing| vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
+      | IACA    | 2013-04-01 |                                | 50                             | 100           |                           |                        | 664            | 450                 |                         | Yes          | 20                    | 10.5                  | 1823.70       |
+      | IACA    | 2020-06-08 | 111                            | 50                             | 100           |                           |                        | 1494           | 90                  |                         | No           | 601                   | 10.5                  | 2572.50       |
+      | IACA    | 2023-03-31 |                                | 50                             | 100           |                           |                        | 332            | 360                 |                         | Yes          | 599                   | 15.5                  | 2017.10       |
+      | IACB    | 2013-04-01 |                                | 50                             | 100           |                           | 483                    | 996            | 720                 | 906                     | No           | 20                    | 15.5                  | 4159.50       |
+      | IACB    | 2020-06-08 |                                | 50                             | 100           |                           | 161                    | 332            | 270                 | 1510                    | Yes          | 600                   | 10.5                  | 4680.90       |
+      | IACB    | 2023-03-31 |                                | 50                             | 100           |                           | 644                    | 664            | 630                 | 1510                    | No           | 599                   | 10.5                  | 5076.50       |
+      | IACC    | 2020-06-08 |                                | 50                             | 100           |                           | 644                    | 498            | 180                 | 302                     | Yes          | 20                    | 15.5                  | 3283.10       |
+      | IACC    | 2023-03-31 | 111                            | 50                             | 100           |                           | 805                    | 996            | 630                 | 2416                    | No           | 601                   | 15.5                  | 6542.50       |
+      | IACC    | 2021-01-01 |                                | 50                             | 100           |                           | 483                    | 1162           | 360                 | 2718                    | Yes          | 599                   | 10.5                  | 7691.70       |
+      | IACE    | 2023-04-01 |                                | 50                             | 100           |                           |                        | 166            | 180                 |                         | No           | 20                    | 10.5                  | 1195.50       |
+      | IACE    | 2023-04-02 |                                | 50                             | 100           |                           |                        | 664            | 270                 |                         | Yes          | 600                   | 15.5                  | 2839.10       |
+      | IACE    | 2025-04-02 |                                | 50                             | 100           |                           |                        | 830            | 540                 |                         | No           | 599                   | 15.5                  | 2803.50       |
+      | IACF    | 2023-04-01 | 111                            | 50                             | 100           |                           | 1127                   | 996            | 450                 | 1510                    | Yes          | 20                    | 10.5                  | 6687.30       |
+      | IACF    | 2023-04-02 |                                | 50                             | 100           |                           | 1288                   | 1494           | 90                  | 1812                    | No           | 601                   | 10.5                  | 6756.50       |
+      | IACF    | 2025-04-02 |                                | 50                             | 100           |                           | 322                    | 498            | 360                 | 2114                    | Yes          | 599                   | 15.5                  | 6440.30       |
+      | IALB    | 2013-04-01 |                                | 50                             | 100           | 266                       |                        |                |                     |                         | No           | 20                    | 15.5                  | 864.50        |
+      | IALB    | 2020-06-08 |                                | 50                             | 100           | 532                       |                        |                |                     |                         | Yes          | 400                   | 10.5                  | 1804.50       |
+      | IALB    | 2023-04-01 |                                | 50                             | 100           | 798                       |                        |                |                     |                         | No           | 399                   | 10.5                  | 1770.50       |
+      | IMCA    | 2013-04-01 |                                | 50                             | 100           |                           |                        | 664            | 360                 |                         | Yes          | 20                    | 15.5                  | 1720.70       |
+      | IMCA    | 2020-06-08 | 111                            | 50                             | 100           |                           |                        | 830            | 540                 |                         | No           | 601                   | 15.5                  | 2363.50       |
+      | IMCA    | 2023-03-31 |                                | 50                             | 100           |                           |                        | 1162           | 720                 |                         | Yes          | 599                   | 10.5                  | 3440.10       |
+      | IMCB    | 2013-04-01 |                                | 50                             | 100           |                           | 161                    | 1494           | 810                 | 237                     | No           | 20                    | 10.5                  | 3573.50       |
+      | IMCB    | 2020-06-08 |                                | 50                             | 100           |                           | 322                    | 1328           | 90                  | 474                     | Yes          | 600                   | 15.5                  | 4401.50       |
+      | IMCB    | 2023-03-31 |                                | 50                             | 100           |                           | 483                    | 1328           | 180                 | 711                     | No           | 599                   | 15.5                  | 4157.50       |
+      | IMCC    | 2020-06-08 |                                | 50                             | 100           |                           | 644                    | 1328           | 270                 | 948                     | Yes          | 20                    | 10.5                  | 4959.30       |
+      | IMCC    | 2023-03-31 | 111                            | 50                             | 100           |                           | 805                    | 1328           | 360                 | 1185                    | No           | 601                   | 10.5                  | 5203.50       |
+      | IMCC    | 2021-01-01 |                                | 50                             | 100           |                           | 966                    | 1162           | 450                 | 1422                    | Yes          | 599                   | 15.5                  | 6631.10       |
+      | IMCE    | 2023-04-01 |                                | 50                             | 100           |                           |                        | 996            | 540                 |                         | No           | 20                    | 15.5                  | 2349.50       |
+      | IMCE    | 2023-04-02 |                                | 50                             | 100           |                           |                        | 830            | 630                 |                         | Yes          | 600                   | 10.5                  | 3416.10       |
+      | IMCE    | 2025-04-02 |                                | 50                             | 100           |                           |                        | 664            | 720                 |                         | No           | 599                   | 10.5                  | 2771.50       |
+      | IMCF    | 2023-04-01 |                                | 50                             | 100           |                           | 1127                   | 498            | 810                 | 1659                    | Yes          | 20                    | 15.5                  | 6442.70       |
+      | IMCF    | 2023-04-02 | 111                            | 50                             | 100           |                           | 1288                   | 332            | 630                 | 1896                    | No           | 601                   | 15.5                  | 6004.50       |
+      | IMCF    | 2025-04-02 |                                | 50                             | 100           |                           | 1449                   | 166            | 450                 | 2133                    | Yes          | 599                   | 10.5                  | 7257.30       |
+      | IMLB    | 2013-04-01 |                                | 50                             | 100           | 266                       |                        |                |                     |                         | No           | 20                    | 10.5                  | 680.50        |
+      | IMLB    | 2020-06-08 | 111                            | 50                             | 100           | 532                       |                        |                |                     |                         | Yes          | 401                   | 15.5                  | 1595.90       |
+      | IMLB    | 2023-04-01 |                                | 50                             | 100           | 798                       |                        |                |                     |                         | No           | 399                   | 15.5                  | 1596.50       |
+      | IDAS1   | 2013-04-01 |                                | 50                             | 100           |                           |                        |                |                     |                         | Yes          | 20                    | 10.5                  | 430.50        |
+      | IDAS1   | 2020-06-08 |                                | 50                             | 100           |                           |                        |                |                     |                         | No           | 20                    | 10.5                  | 360.50        |
+      | IDAS1   | 2023-04-01 |                                | 50                             | 100           |                           |                        |                |                     |                         | Yes          | 20                    | 15.5                  | 435.50        |
+      | IDAS2   | 2013-04-01 |                                | 50                             | 100           |                           |                        |                |                     |                         | No           | 20                    | 15.5                  | 545.50        |
+      | IDAS2   | 2020-06-08 |                                | 50                             | 100           |                           |                        |                |                     |                         | Yes          | 20                    | 10.5                  | 646.50        |
+      | IDAS2   | 2023-04-01 |                                | 50                             | 100           |                           |                        |                |                     |                         | No           | 20                    | 10.5                  | 540.50        |
+
+    @immigration_and_asylum_hourly_rate_LH
+    Examples: Immigration and Asylum Hourly Rate Legal Help
+      | feeCode | startDate  | netProfitCosts | immigrationPriorAuthorityNumber  | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
+      | IAXL    | 2013-04-01 | 799            |                                  | Yes          | 399                   | 10.5                  | 1368.30       |
+      | IAXL    | 2013-04-02 | 800            |                                  | No           | 400                   | 10.5                  | 1210.50       |
+      | IAXL    | 2025-04-03 | 801            | 111                              | Yes          | 401                   | 15.5                  | 1377.70       |
+      | IAXL    | 2013-04-01 | 900            | 111                              | No           | 500                   | 15.5                  | 1415.50       |
+      | IMXL    | 2013-04-01 | 499            |                                  | Yes          | 399                   | 10.5                  | 1008.30       |
+      | IMXL    | 2013-04-02 | 500            |                                  | No           | 400                   | 10.5                  | 910.50        |
+      | IMXL    | 2025-04-03 | 501            | 111                              | Yes          | 401                   | 15.5                  | 1017.70       |
+      | IMXL    | 2013-04-01 | 700            | 111                              | No           | 500                   | 15.5                  | 1215.50       |
+      | IA100   | 2013-04-01 | 99             |                                  | Yes          |                       | 10.5                  | 129.30        |
+      | IA100   | 2013-04-02 | 100            |                                  | No           |                       | 10.5                  | 110.50        |
+
+    @immigration_and_asylum_hourly_rate_CLR
+    Examples: Immigration and Asylum Hourly Rate CLR
+      | feeCode | startDate  | netProfitCosts | immigrationPriorAuthorityNumber | netCostOfCounsel  | detentionTravelAndWaitingCosts | jrFormFilling | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
+      | IAXC    | 2013-04-01 | 500            |                                  | 500              | 50                             | 100           | Yes          | 600                   | 10.5                  | 1810.50       |
+      | IAXC    | 2013-04-02 | 499            |                                  | 500              |                                | 100           | No           | 600                   | 10.5                  | 1609.50       |
+      | IAXC    | 2025-04-03 | 600            | 111                              | 600              | 50                             |               | Yes          | 600                   | 15.5                  | 2055.50       |
+      | IMXC    | 2013-04-01 | 400            |                                  | 400              | 50                             | 100           | No           | 399                   | 15.5                  | 1214.50       |
+      | IMXC    | 2013-04-02 | 400            |                                  | 400              |                                | 100           | Yes          | 400                   | 10.5                  | 1370.50       |
+      | IMXC    | 2025-04-03 | 500            | 111                              | 600              | 50                             |               | No           | 700                   | 10.5                  | 1810.50       |
+      | IRAR    | 2013-04-01 | 10000          |                                  | 1000             | 50                             | 100           | Yes          | 500                   | 15.5                  | 13715.50      |
+      | IRAR    | 2013-04-02 | 100000         |                                  | 20000            | 50                             | 100           | No           | 900                   | 15.5                  | 120915.50     |
+      | IRAR    | 2025-04-03 | 50             |                                  | 100000           |                                | 100           | Yes          | 1000                  | 10.5                  | 121070.50     |
+
+    @immigration_and_asylum_hourly_rate_CLR_interim
+    Examples: Immigration and Asylum Hourly Rate CLR Interim
+      | feeCode | startDate  | netProfitCosts | immigrationPriorAuthorityNumber  | netCostOfCounsel | boltOnHomeOfficeInterview | boltOnAdjournedHearing | boltOnCrmhOral | boltOnCrmhTelephone | boltOnSubstantiveHearing | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
+      | IACD    | 2020-06-08 | 500            |                                  | 500              |                           | 161                    | 664            | 450                 | 1510                     | Yes          | 600                   | 10.5                  | 5152.50       |
+      | IACD    | 2023-03-31 | 499            |                                  | 500              |                           | 322                    | 1494           | 90                  | 2718                     | No           | 600                   | 10.5                  | 6233.50       |
+      | IACD    | 2021-01-01 | 750            | 111                              | 600              |                           | 483                    | 332            | 360                 | 1812                     | Yes          | 600                   | 15.5                  | 5819.90       |
+      | IACD    | 2022-01-01 | 350            |                                  | 400              |                           | 161                    | 332            | 270                 | 1510                     | No           | 399                   | 15.5                  | 3437.50       |
+      | IMCD    | 2020-06-08 | 400            |                                  | 400              |                           | 644                    | 1328           | 630                 | 1185                     | Yes          | 400                   | 10.5                  | 5914.90       |
+      | IMCD    | 2023-03-31 | 399            |                                  | 600              |                           | 644                    | 498            | 180                 | 237                      | No           | 700                   | 10.5                  | 3268.50       |
+      | IMCD    | 2021-01-01 | 601            | 111                              | 100              |                           | 483                    | 1162           | 360                 | 2133                     | Yes          | 500                   | 15.5                  | 6322.30       |
+      | IMCD    | 2022-01-01 | 150            |                                  | 100              |                           | 644                    | 166            | 180                 | 1659                     | No           | 900                   | 15.5                  | 3814.50       |
+
+    @disbursements_only
+    Examples: Disbursements Only
+      | feeCode | startDate  | immigrationPriorAuthorityNumber| netDisbursementAmount | disbursementVatAmount | expectedTotal |
+      | ICASD   | 2020-10-08 |                                | 1600                  | 10.5                  | 1610.50       |
+      | ICASD   | 2020-10-09 |                                | 1599                  | 10.5                  | 1609.50       |
+      | ICASD   | 2025-10-10 | 111                            | 2500                  | 15.5                  | 2515.50       |
+      | ICISD   | 2020-10-08 |                                | 1200                  | 15.5                  | 1215.50       |
+      | ICISD   | 2020-10-09 |                                | 1199                  | 10.5                  | 1209.50       |
+      | ICISD   | 2025-10-10 | 111                            | 1800                  | 10.5                  | 1810.50       |
+      | ICSSD   | 2020-10-08 |                                | 600                   | 15.5                  | 615.50        |
+      | ICSSD   | 2020-10-09 |                                | 599                   | 15.5                  | 614.50        |
+      | ICSSD   | 2025-10-10 | 111                            | 900                   | 10.5                  | 910.50        |
+      | ILHSD   | 2020-10-08 |                                | 400                   | 10.5                  | 410.50        |
+      | ILHSD   | 2020-10-09 |                                | 399                   | 15.5                  | 414.50        |
+      | ILHSD   | 2025-10-10 | 111                            | 700                   | 15.5                  | 715.50        |
+      | MHLDIS  | 2020-10-08 |                                | 4000                  | 10.5                  | 4010.50       |
+      | MHLDIS  | 2020-10-09 |                                | 10000                 | 10.5                  | 10010.50      |
+      | MHLDIS  | 2025-10-10 |                                | 70000                 | 15.5                  | 70015.50      |
+      | EDUDIS  | 2020-10-08 |                                | 500                   | 6000                  | 6500.00       |
+      | EDUDIS  | 2020-10-09 |                                | 200                   | 890                   | 1090.00       |
+      | EDUDIS  | 2025-10-10 |                                | 56000                 | 10.5                  | 56010.50      |

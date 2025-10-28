@@ -50,6 +50,7 @@ Given('a fee calculation payload with:', function (this: World, table: DataTable
   const policeStationId = maybeStr(rows, 'policeStationId');
   const policeStationSchemeId = maybeStr(rows, 'policeStationSchemeId');
   const representationOrderDate = maybeStr(rows, 'representationOrderDate');
+  const immigrationPriorAuthorityNumber = maybeStr(rows, 'immigrationPriorAuthorityNumber');
 
   if (feeCode !== undefined) payload.feeCode = feeCode;
   if (startDate !== undefined) payload.startDate = startDate;
@@ -57,6 +58,7 @@ Given('a fee calculation payload with:', function (this: World, table: DataTable
   if (policeStationId !== undefined) payload.policeStationId = policeStationId;
   if (policeStationSchemeId !== undefined) payload.policeStationSchemeId = policeStationSchemeId;
   if (representationOrderDate !== undefined) payload.representationOrderDate = representationOrderDate;
+  if (immigrationPriorAuthorityNumber !== undefined) payload.immigrationPriorAuthorityNumber = immigrationPriorAuthorityNumber;
 
   // Numbers (preserve 0, omit when row absent/blank/placeholder)
   const netProfitCosts = maybeNum(rows, 'netProfitCosts');
@@ -67,6 +69,8 @@ Given('a fee calculation payload with:', function (this: World, table: DataTable
   const numberOfMediationSessions = maybeNum(rows, 'numberOfMediationSessions');
   const netTravelCosts = maybeNum(rows, 'netTravelCosts');
   const netWaitingCosts = maybeNum(rows, 'netWaitingCosts');
+  const detentionTravelAndWaitingCosts = maybeNum(rows, 'detentionTravelAndWaitingCosts');
+  const jrFormFilling = maybeNum(rows, 'jrFormFilling');
 
   if (netProfitCosts !== undefined) payload.netProfitCosts = netProfitCosts;
   if (netCostOfCounsel !== undefined) payload.netCostOfCounsel = netCostOfCounsel;
@@ -76,6 +80,8 @@ Given('a fee calculation payload with:', function (this: World, table: DataTable
   if (numberOfMediationSessions !== undefined) payload.numberOfMediationSessions = numberOfMediationSessions;
   if (netTravelCosts !== undefined) payload.netTravelCosts = netTravelCosts;
   if (netWaitingCosts !== undefined) payload.netWaitingCosts = netWaitingCosts;
+  if (detentionTravelAndWaitingCosts !== undefined) payload.detentionTravelAndWaitingCosts = detentionTravelAndWaitingCosts;
+  if (jrFormFilling !== undefined) payload.jrFormFilling = jrFormFilling;
 
   // Booleans (only include if present; false is preserved)
   const vatIndicator = maybeBool(rows, 'vatIndicator');
@@ -85,11 +91,26 @@ Given('a fee calculation payload with:', function (this: World, table: DataTable
 
   // boltOns: include only fields that appear in the feature (and preserve 0)
   const boltOnAdjournedHearing = maybeNum(rows, 'boltOnAdjournedHearing');
+  const boltOnHomeOfficeInterview = maybeNum(rows, 'boltOnHomeOfficeInterview');
+  const boltOnCrmhOral = maybeNum(rows, 'boltOnCrmhOral');
+  const boltOnCrmhTelephone = maybeNum(rows, 'boltOnCrmhTelephone');
+  const boltOnSubstantiveHearing = maybeNum(rows, 'boltOnSubstantiveHearing');
   // Add further bolt-on keys here if you ever expose them in the feature table
   if (boltOnAdjournedHearing !== undefined) {
     payload.boltOns = { boltOnAdjournedHearing };
   }
-
+  if (boltOnHomeOfficeInterview !== undefined) {
+    payload.boltOns = { boltOnHomeOfficeInterview };
+  }
+  if (boltOnCrmhOral !== undefined) {
+    payload.boltOns = { boltOnCrmhTelephone };
+  }
+  if (boltOnCrmhTelephone !== undefined) {
+    payload.boltOns = { boltOnCrmhTelephone };
+  }
+  if (boltOnSubstantiveHearing === undefined) {
+    payload.boltOns = {boltOnSubstantiveHearing};
+  }
   this.setPayload(payload);
 });
 
