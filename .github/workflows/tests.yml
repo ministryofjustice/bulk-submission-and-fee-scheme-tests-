@@ -145,6 +145,12 @@ jobs:
           PASSWORD=${{ secrets.PASSWORD }}
           UI_BASE_URL=${{ secrets.UI_BASE_URL }}
           USERNAME=${{ secrets.USERNAME }}
+          DB_HOST=${{ secrets.DB_HOST }}
+          DB_PORT=${{ secrets.DB_PORT }}
+          DB_USER=${{ secrets.DB_USER }}
+          DB_PASS=${{ secrets.DB_PASS }}
+          DB_NAME=${{ secrets.DB_NAME }}
+          DB_SSL=${{ secrets.DB_SSL }}
           HEADLESS=true
           EOF
 
