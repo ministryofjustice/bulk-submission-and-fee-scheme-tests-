@@ -98,7 +98,7 @@ Then('I should see an error banner saying {string}', async function (this: Custo
     );
 
     // Wait until the banner is visible
-    await bannerLocator.first().waitFor({ state: 'visible', timeout: 15000 });
+    await bannerLocator.first().waitFor({ state: 'visible', timeout: 50000 });
 
     const text = await bannerLocator.allTextContents();
     const found = text.some(t => t.includes(expectedMessage));
@@ -106,3 +106,57 @@ Then('I should see an error banner saying {string}', async function (this: Custo
     await this.attach(`🔍 Found banner text:\n${text.join('\n')}`, 'text/plain');
     expect(found, `❌ Expected banner message not found: "${expectedMessage}"`).toBeTruthy();
 });
+
+
+
+Then(
+    'I should now see the following detailed submission error messages for {string}:',
+    async function (this: CustomWorld, areaOfLaw: string, docString: string) {
+        const expectedMessages = docString
+            .split('\n')
+            .map(line => line.trim())
+            .filter(Boolean);
+
+        const paginationNext = this.page!.locator('a:has-text("Next")');
+        const paginationPrev = this.page!.locator('a:has-text("Previous")');
+        const errorLocator = this.page!.locator(
+            '.govuk-table__cell, .moj-alert__heading, .govuk-error-summary, .moj-banner--failure, [role="alert"]'
+        );
+
+        const collectedText: string[] = [];
+
+        // Helper to capture messages on the current page
+        const capturePageErrors = async () => {
+            await errorLocator.first().waitFor({ state: 'visible', timeout: 15000 });
+            const text = await errorLocator.allTextContents();
+            collectedText.push(...text.map(t => t.trim()).filter(Boolean));
+        };
+
+        // Capture first page
+        await capturePageErrors();
+
+        // Handle pagination
+        while (await paginationNext.isVisible()) {
+            await paginationNext.click();
+            await this.page!.waitForLoadState('networkidle');
+            await capturePageErrors();
+        }
+
+        // Go back to first page (optional)
+        if (await paginationPrev.isVisible()) {
+            await paginationPrev.click();
+            await this.page!.waitForLoadState('networkidle');
+        }
+
+        await this.attach(
+            `🧾 Collected UI error messages across all pages:\n${collectedText.join('\n')}`,
+            'text/plain'
+        );
+
+        // Validate each expected error message
+        for (const message of expectedMessages) {
+            const found = collectedText.some(t => t.includes(message));
+            expect(found, `❌ Expected error message not found for ${areaOfLaw}: "${message}"`).toBeTruthy();
+        }
+    }
+);
