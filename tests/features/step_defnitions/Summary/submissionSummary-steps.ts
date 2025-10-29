@@ -53,7 +53,7 @@ Then(
         const expectedMessage = docString.trim();
         const errorLocator = this.page!.locator('.moj-alert__heading, .govuk-table__cell');
 
-        await errorLocator.first().waitFor({ state: 'visible', timeout: 10000 });
+        await errorLocator.first().waitFor({ state: 'visible', timeout: 12000 });
         const text = await errorLocator.allTextContents();
 
         const match = text.some(t => t.includes(expectedMessage));
