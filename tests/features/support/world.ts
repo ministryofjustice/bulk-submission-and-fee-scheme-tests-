@@ -55,8 +55,8 @@ export class World {
       Accept: 'application/json',
     };
 
-    const token = process.env.FSP_API_TOKEN || process.env.API_TOKEN;
-    if (token) headers.Authorization = `Bearer ${token}`;
+    const token = process.env.FSP_API_TOKEN;
+    if (token) headers.Authorization = token;
 
     this.client = axios.create({
       baseURL: process.env.FSP_API_BASE_URL,

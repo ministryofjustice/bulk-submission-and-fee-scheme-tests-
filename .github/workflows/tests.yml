@@ -59,20 +59,23 @@ jobs:
           echo "Port-forward started with PID $PORT_FORWARD_PID"
 
           echo "PORT_FORWARD_PID=$PORT_FORWARD_PID" >> "$GITHUB_ENV"
+          ./scripts/wait-for-port.sh 8085 fsp-api 
 
       - name: Run API Tests
         run: |
           npm run test:api
 
-      - name: Stop port forward to FSP-API pod
+      - name: Publish Cucumber summary
         if: always()
-        run: |
-          if [[ -n "${PORT_FORWARD_PID:-}" ]]; then
-            echo "Stopping port-forward with PID $PORT_FORWARD_PID"
-            kill "$PORT_FORWARD_PID" || true
-          else
-            echo "No port-forward PID recorded"
-          fi
+        run: node scripts/cucumber-summary.js
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cucumber-reports
+          path: reports
+          if-no-files-found: warn
           
   ui-tests:
     environment: uat
