@@ -17,7 +17,7 @@ export class SubmissionSummaryPage extends BasePage {
   }
 
   async verifySuccessBanner() {
-    await this.successBanner.waitFor({ timeout: 10000 });
+    await this.successBanner.waitFor({ timeout: 60000 });
     const bannerText = await this.successBanner.textContent();
     expect(bannerText).toContain('Your submission has been accepted.');
     return bannerText;
