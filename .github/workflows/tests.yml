@@ -176,6 +176,10 @@ jobs:
           npm run login
           npx cucumber-js -p bulksubmission --parallel 4 --retry 1
 
+      - name: Publish Cucumber summary
+        if: always()
+        run: node scripts/cucumber-summary.js
+
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
