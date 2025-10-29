@@ -34,7 +34,7 @@ class BasePage {
   }
 
   async waitForPageToLoad() {
-    await this.page.waitForLoadState('load');
+    await this.page.waitForLoadState('domcontentloaded');
   }
 }
 

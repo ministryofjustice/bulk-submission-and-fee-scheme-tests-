@@ -27,8 +27,13 @@ class LoginPage extends BasePage {
     }
 
     async navigateTo() {
-        await this.page.goto(process.env.UI_BASE_URL ||'/');
+        const targetUrl = process.env.UI_BASE_URL || '/';
+        await this.page.goto(targetUrl, {
+            waitUntil: 'domcontentloaded',
+            timeout: 120_000,
+        });
         await this.waitForPageToLoad();
+        await this.waitForPage();
     }
 
     async waitForPage() {
@@ -52,6 +57,7 @@ class LoginPage extends BasePage {
     }
 
     async login() {
+        await this.waitForPage();
         await this.enterEmail(`${process.env.USERNAME}`);
         await this.clickNext();
 
