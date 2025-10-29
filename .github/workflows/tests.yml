@@ -13,65 +13,66 @@ on:
         default: 'main'
 
 jobs:
-  # api-tests:
-  #   environment: uat
-  #   runs-on: ubuntu-latest
-  #   container:
-  #     image: mcr.microsoft.com/playwright:v1.54.2-jammy 
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
+  api-tests:
+    environment: uat
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.54.2-jammy 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  #     - name: Install kubectl
-  #       uses: azure/setup-kubectl@v3
-  #       with:
-  #         version: v1.29.4
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: v1.29.4
 
-  #     - name: Authenticate to the EKS cluster
-  #       uses: ./.github/actions/authenticate-to-eks-cluster
-  #       with:
-  #         kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
-  #         kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
-  #         kube_token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
-  #         kube_cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
+      - name: Authenticate to the EKS cluster
+        uses: ./.github/actions/authenticate-to-eks-cluster
+        with:
+          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          kube_token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
+          kube_cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
 
-  #     - name: Create .env file
-  #       shell: bash
-  #       run: |
-  #         cat <<EOF > .env
-  #         API_BASE_URL=${{ secrets.API_BASE_URL }}
-  #         API_TOKEN=${{ secrets.API_TOKEN }}
-  #         EOF
+      - name: Create .env file
+        shell: bash
+        run: |
+          cat <<EOF > .env
+          FSP_API_BASE_URL=${{ secrets.FSP_API_BASE_URL }}
+          FSP_API_TOKEN=${{ secrets.FSP_API_TOKEN }}
+          HEADLESS=true
+          EOF
 
-  #     - name: Install dependencies
-  #       run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-  #     - name: Port forward to FPS-API pod
-  #       env:
-  #         KUBE_NAMESPACE: ${{ secrets.kube_namespace }}
-  #       run: |
-  #         POD_LABEL="app.kubernetes.io/name=laa-fee-scheme-api"
-  #         POD_NAME=$(kubectl get pod -n "$KUBE_NAMESPACE" -l "$POD_LABEL" -o jsonpath='{.items[0].metadata.name}')
-  #         echo "Port forwarding pod: $POD_NAME"
-  #         kubectl port-forward -n "$KUBE_NAMESPACE" pod/"$POD_NAME" 8085:8085 > pf.log 2>&1 &
-  #         PORT_FORWARD_PID=$!
-  #         echo "Port-forward started with PID $PORT_FORWARD_PID"
+      - name: Port forward to FPS-API pod
+        env:
+          KUBE_NAMESPACE: ${{ secrets.kube_namespace }}
+        run: |
+          POD_LABEL="app.kubernetes.io/name=laa-fee-scheme-api"
+          POD_NAME=$(kubectl get pod -n "$KUBE_NAMESPACE" -l "$POD_LABEL" -o jsonpath='{.items[0].metadata.name}')
+          echo "Port forwarding pod: $POD_NAME"
+          kubectl port-forward -n "$KUBE_NAMESPACE" pod/"$POD_NAME" 8085:8085 > pf.log 2>&1 &
+          PORT_FORWARD_PID=$!
+          echo "Port-forward started with PID $PORT_FORWARD_PID"
 
-  #         echo "PORT_FORWARD_PID=$PORT_FORWARD_PID" >> "$GITHUB_ENV"
+          echo "PORT_FORWARD_PID=$PORT_FORWARD_PID" >> "$GITHUB_ENV"
 
-  #     - name: Run API Tests
-  #       run: |
-  #         npm run test:api
+      - name: Run API Tests
+        run: |
+          npm run test:api
 
-  #     - name: Stop port forward to FSP-API pod
-  #       if: always()
-  #       run: |
-  #         if [[ -n "${PORT_FORWARD_PID:-}" ]]; then
-  #           echo "Stopping port-forward with PID $PORT_FORWARD_PID"
-  #           kill "$PORT_FORWARD_PID" || true
-  #         else
-  #           echo "No port-forward PID recorded"
-  #         fi
+      - name: Stop port forward to FSP-API pod
+        if: always()
+        run: |
+          if [[ -n "${PORT_FORWARD_PID:-}" ]]; then
+            echo "Stopping port-forward with PID $PORT_FORWARD_PID"
+            kill "$PORT_FORWARD_PID" || true
+          else
+            echo "No port-forward PID recorded"
+          fi
           
   ui-tests:
     environment: uat
