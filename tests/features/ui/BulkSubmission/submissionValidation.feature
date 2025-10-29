@@ -32,10 +32,7 @@ Feature: Invalid submission level validation
 
   Scenario: Invalid Area of Law
     When I upload "tests/data/invalid/invalidAreaOfLaw.csv"
-    Then I should see an error banner saying "1 error was found with your submission"
-    And I should see the following submission error messages for "LEGAL HELP":
-      | Error Message                                                                                                                                |
-      | area_of_law: does not have a value in the enumeration ["CIVIL", "CRIME", "MEDIATION", "CRIME LOWER", "LEGAL HELP"] (provided value: Invalid) |
+    Then the user sees an error message "Area of Law must be one of: MEDIATION, CRIME LOWER, or LEGAL HELP"
 
 
   Scenario: Validate multiple paginated claim errors
