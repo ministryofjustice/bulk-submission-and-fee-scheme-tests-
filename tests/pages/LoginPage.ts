@@ -73,7 +73,19 @@ class LoginPage extends BasePage {
         await this.otcInput.fill(code)
         await this.verifyButton.click()
 
-        await this.page.waitForURL('**/', { timeout: 60000 });
+        const expectedBaseUrl = process.env.UI_BASE_URL;
+        if (expectedBaseUrl) {
+            const normalizedExpected = expectedBaseUrl.replace(/\/$/, '');
+            await this.page.waitForURL(
+                (url: URL) => {
+                    const normalizedActual = `${url.origin}${url.pathname}`.replace(/\/$/, '');
+                    return normalizedActual.startsWith(normalizedExpected);
+                },
+                {timeout: 60000}
+            );
+        } else {
+            await this.page.waitForLoadState('networkidle');
+        }
         await this.page.waitForSelector('h1:has-text("Submit a bulk claim")', { timeout: 60000 });
 
         const title = await this.page.title();
