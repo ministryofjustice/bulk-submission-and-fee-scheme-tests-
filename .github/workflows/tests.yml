@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run tests against'
+        required: false
+        default: 'main'
 
 jobs:
   # api-tests:
@@ -76,6 +81,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch || github.ref }}
 
       - name: Install kubectl
         uses: azure/setup-kubectl@v3
@@ -155,6 +162,8 @@ jobs:
           EOF
 
       - name: Run UI Tests
+        env:
+          CUCUMBER_TAGS: ${{ inputs.tags }}
         run: |
           npm run login
           npx cucumber-js -p bulksubmission --parallel 4 --retry 1
@@ -166,23 +175,3 @@ jobs:
           name: cucumber-reports
           path: reports
           if-no-files-found: warn
-
-      - name: Stop port forward to SaBC pod
-        if: always()
-        run: |
-          if [[ -n "${PORT_FORWARD_PID_SABC:-}" ]]; then
-            echo "Stopping port-forward with PID $PORT_FORWARD_PID_SABC"
-            kill "$PORT_FORWARD_PID_SABC" || true
-          else
-            echo "No port-forward PID recorded"
-          fi
-
-      - name: Stop port forward to DSTEW pod
-        if: always()
-        run: |
-          if [[ -n "${PORT_FORWARD_PID_DSTEW:-}" ]]; then
-            echo "Stopping port-forward with PID $PORT_FORWARD_PID_DSTEW"
-            kill "$PORT_FORWARD_PID_DSTEW" || true
-          else
-            echo "No port-forward PID recorded"
-          fi

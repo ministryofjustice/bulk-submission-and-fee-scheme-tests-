@@ -106,8 +106,8 @@ const fetchProviderSchedules = async (office: string, caseStartDate: Date) => {
 };
 
 const generateOutcome = async (office: string, caseNum: number) => {
-    const firstName = faker.name.firstName();
-    const lastName = faker.name.lastName();
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
 
     // Restrict caseStartDate between 2014 and 2020
     const minCaseStart = new Date('2014-01-01');

@@ -119,8 +119,8 @@ const fetchProviderSchedules = async (office: string, caseStartDate: Date) => {
 
 // ---------- 6️⃣ Outcome Generator ----------
 const generateOutcome = async (office: string, caseNum: number, submissionYear: number) => {
-    const firstName = faker.name.firstName();
-    const lastName = faker.name.lastName();
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
     const dob = faker.date.between({ from: new Date('1960-01-01'), to: new Date('2005-12-31') });
 
     const minCaseStart = new Date(Math.max(dob.getFullYear() + 18, 2018), 0, 1);

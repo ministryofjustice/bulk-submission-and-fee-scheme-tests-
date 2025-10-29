@@ -64,7 +64,14 @@ After({ tags: 'not @api' }, async function (this: World) {
 
 AfterStep({ tags: 'not @api' }, async function (this: World, step) {
   if (step.result?.status === Status.FAILED && this.page) {
-    const screenshotPath = `reports/attachments/${Date.now()}-${step.pickle.name}.png`;
+    const rawName = step.pickle?.name ?? 'failed-step';
+    const sanitizedStepName =
+        rawName
+            .trim()
+            .replace(/[^A-Za-z0-9-_]+/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '') || 'failed-step';
+    const screenshotPath = `reports/attachments/${Date.now()}-${sanitizedStepName}.png`;
     await this.page.screenshot({ path: screenshotPath, fullPage: true });
     await this.attach(fs.readFileSync(screenshotPath), 'image/png');
     console.log(`📸 Screenshot captured for failed step: ${screenshotPath}`);

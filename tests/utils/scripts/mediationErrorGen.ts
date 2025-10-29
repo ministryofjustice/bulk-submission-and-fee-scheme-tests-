@@ -95,10 +95,10 @@ const fetchProviderSchedules = async (office: string, caseStartDate: Date) => {
 
 // ---------- 6️⃣ Outcome Generator ----------
 const generateOutcome = async (office: string, caseNum: number) => {
-    const client1First = faker.name.firstName();
-    const client1Last = faker.name.lastName();
-    const client2First = faker.name.firstName();
-    const client2Last = faker.name.lastName();
+    const client1First = faker.person.firstName();
+    const client1Last = faker.person.lastName();
+    const client2First = faker.person.firstName();
+    const client2Last = faker.person.lastName();
     const dob1 = faker.date.between({ from: new Date('1950-01-01'), to: new Date('2000-12-31') });
     const dob2 = faker.date.between({ from: new Date('1950-01-01'), to: new Date('2000-12-31') });
 
