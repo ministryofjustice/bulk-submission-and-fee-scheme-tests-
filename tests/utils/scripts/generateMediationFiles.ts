@@ -6,22 +6,15 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
 import 'reflect-metadata';
-import { DataSource } from 'typeorm';
 import dotenv from 'dotenv';
 import {convertFileToXml} from "./converter";
+import { createDataSourceManager } from '../db/dataSourceManager';
 dotenv.config();
 
 // ---------- 1️⃣ Database Setup ----------
-const AppDataSource = new DataSource({
-    type: 'postgres',
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT || 5432),
-    username: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-    ssl: { rejectUnauthorized: false },
-    synchronize: false,
-});
+const dataSourceManager = createDataSourceManager({ label: 'generateMediationFiles' });
+
+let providerApiAvailable = true;
 
 // ---------- 2️⃣ Config ----------
 const offices = ['0P322F'];
@@ -47,7 +40,10 @@ const generateUFN = (date: Date, caseNum: number) => {
 
 // ---------- 4️⃣ DB Submission Check ----------
 async function isSubmissionPeriodUsed(areaOfLaw: string, submissionPeriod: string, office: string): Promise<boolean> {
-    const result = await AppDataSource.query(
+    const dataSource = dataSourceManager.getDataSource();
+    if (!dataSource.isInitialized) return false;
+
+    const result = await dataSource.query(
         `SELECT 1 
          FROM claims.submission 
          WHERE area_of_law = $1 
@@ -77,6 +73,8 @@ const generateUniqueSubmissionPeriod = async (office: string): Promise<string> =
 
 // ---------- 5️⃣ Provider API Check ----------
 const fetchProviderSchedules = async (office: string, caseStartDate: Date) => {
+    if (!providerApiAvailable) return undefined;
+
     const formattedDate = caseStartDate.toISOString().split('T')[0];
     try {
         const response = await axios.get(`${PROVIDER_API}/${office}/schedules?effectiveDate=${formattedDate}&areaOfLaw=MEDIATION`, {
@@ -86,11 +84,13 @@ const fetchProviderSchedules = async (office: string, caseStartDate: Date) => {
             },
             validateStatus: () => true
         });
-        if (response.status === 204) return null;
+        if (response.status === 204) return [];
         return response.data.schedules;
     } catch (err) {
-        console.error('Error fetching provider schedules:', err);
-        return null;
+        providerApiAvailable = false;
+        const message = err instanceof Error ? err.message : String(err);
+        console.warn('⚠️ Unable to reach provider schedules API. Falling back to local date generation.', message);
+        return undefined;
     }
 };
 
@@ -107,6 +107,10 @@ const generateOutcome = async (office: string, caseNum: number) => {
     for (let attempt = 0; attempt < 50; attempt++) {
         const candidateDate = faker.date.between({ from: MIN_CASE_START, to: MAX_CASE_START });
         const schedules = await fetchProviderSchedules(office, candidateDate);
+        if (schedules === undefined) {
+            caseStartDate = candidateDate;
+            break;
+        }
         if (!schedules || schedules.length === 0) continue;
         const validSchedule = schedules.find((s: any) => {
             const start = new Date(s.scheduleStartDate);
@@ -120,7 +124,10 @@ const generateOutcome = async (office: string, caseNum: number) => {
     }
 
 
-    if (!caseStartDate) throw new Error(`Unable to generate valid case start date for office ${office}`);
+    if (!caseStartDate) {
+        caseStartDate = faker.date.between({ from: MIN_CASE_START, to: MAX_CASE_START });
+        console.warn(`ℹ️ Using locally generated case start date for office ${office}`);
+    }
 
 
     const medConcluded = faker.date.between({ from: caseStartDate, to: new Date() });
@@ -235,10 +242,9 @@ export async function GenerateMediationFiles(
 ): Promise<string[]> {
     const generatedFiles: string[] = [];
 
-    try {
-        await AppDataSource.initialize();
-        console.log('✅ Database connection established');
+    await dataSourceManager.ensureInitialized();
 
+    try {
         for (let i = 1; i <= files; i++) {
             const baseName = `mediation_submission_${i}`;
             const intermediateFormat = format === 'xml' ? 'csv' : format;
@@ -275,7 +281,6 @@ export async function GenerateMediationFiles(
         console.error('❌ Error:', err);
         throw err;
     } finally {
-        await AppDataSource.destroy();
-        console.log('🔒 Database connection closed');
+        await dataSourceManager.destroy();
     }
 }
