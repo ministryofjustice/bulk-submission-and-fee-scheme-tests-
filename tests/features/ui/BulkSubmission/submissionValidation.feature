@@ -43,17 +43,18 @@ Feature: Invalid submission level validation
     Then I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should now see the following detailed submission error messages for "LEGAL HELP":
       """
-      case_reference_number: does not match the regex pattern ^[a-zA-Z0-9/.\-\s]+$ (provided value: @)
-      procurement_area_code: does not match the regex pattern ^[A-Z]{2}[0-9]{5}$ (provided value: .)
-      client_forename: does not match the regex pattern ^[\p{L}\p{N}\p{Zs}\-’'&]{1,30}$ (provided value: @)
-      client_surname: does not match the regex pattern ^[\p{L}\p{N}\p{Zs}\-’'&]{1,30}$ (provided value: @)
-      client_postcode: does not match the regex pattern ^NFA|[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$ (provided value: ju)
-      gender_code: does not match the regex pattern ^([MFU])$ (provided value: J)
-      ethnicity_code: does not match the regex pattern ^(0[0-9]|1[0-6]|99)$ (provided value: J)
-      ethnicity_code: must be at least 2 characters long (provided value: J)
-      disability_code: does not match the regex pattern ^(NCD|MOB|DEA|HEA|VIS|BLI|MHC|LDD|COG|ILL|OTH|UKN|PHY|SEN)$ (provided value: lpo)
-      case_stage_code: does not match the regex pattern ^(FPL(0[1-9]|1[0-9]|20|21)|FPC0[1-3]|MHL(0[1-9]|10))$ (provided value: 89)
-      case_stage_code: must be at least 5 characters long (provided value: 89)
+      Case Reference Number must contain only letters, numbers, forward slashes, periods, hyphens, and spaces, and be a maximum of 30 characters
+      Procurement Area Code must be 2 uppercase letters followed by 5 digits
+      Client Forename must contain only letters, numbers, spaces, hyphens, apostrophes, ampersands, and be a maximum of 30 characters
+      Client Surname must contain only letters, numbers, spaces, hyphens, apostrophes, ampersands, and be a maximum of 30 characters
+      Client Postcode must be a valid UK postcode or NFA
+      Gender code must be valid
+      Ethnicity Code must be valid
+      Ethnicity Code must be valid
+      Disability Code must be valid
+      Case Stage/Level Code must be valid
+      Case Stage/Level Code must be valid
+      Schedule Reference must be a maximum of 20 characters and contain only letters, numbers, forward slashes, periods, and hyphens
       Unique file ID must be in the format DDMMYY/NNN with a date in the past
       The provider is not contracted for the category of law associated with the fee code
       """
@@ -63,13 +64,13 @@ Feature: Invalid submission level validation
     Then I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should now see the following detailed submission error messages for "MEDIATION":
       """
-      case_reference_number: does not match the regex pattern ^[a-zA-Z0-9/.\-\s]+$ (provided value: @@9143)
-      mediation_sessions_count: must have a maximum value of 99 (provided value: 999)
-      mediation_time_minutes: must have a minimum value of 0 (provided value: -10)
-      client_postcode: does not match the regex pattern ^NFA|[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$ (provided value: INVALID)
-      ethnicity_code: does not match the regex pattern ^(0[0-9]|1[0-6]|99)$ (provided value: ZZ)
-      disability_code: does not match the regex pattern ^(NCD|MOB|DEA|HEA|VIS|BLI|MHC|LDD|COG|ILL|OTH|UKN|PHY|SEN)$ (provided value: FOO)
-      client_2_gender_code: does not match the regex pattern ^([MFU])$ (provided value: X)
+      Case Reference Number must contain only letters, numbers, forward slashes, periods, hyphens, and spaces, and be a maximum of 30 characters
+      Mediation Sessions Count must be between 1 and 99
+      Mediation Time Minutes must be between 0 and 99999
+      Client Postcode must be a valid UK postcode or NFA
+      Ethnicity Code must be valid
+      Disability Code must be valid
+      Client 2 Gender code must be valid
       Invalid date value for Client2 Date of Birth (Must be between 1900-01-01 and today): 2050-04-15
       """
 
