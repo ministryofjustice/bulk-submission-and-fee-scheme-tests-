@@ -89,9 +89,59 @@ jobs:
         with:
           version: v1.29.4
 
+      - name: Authenticate to the EKS cluster
+        uses: ./.github/actions/authenticate-to-eks-cluster
+        with:
+          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube_token: ${{ secrets.KUBE_TOKEN_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube_cert: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+
       - name: Install dependencies
         run: npm ci
 
+      - name: Authenticate to the SaBC EKS cluster
+        uses: ./.github/actions/authenticate-to-eks-cluster
+        with:
+          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube_token: ${{ secrets.KUBE_TOKEN_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube_cert: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+
+      - name: Port forward to SaBC pod
+        env:
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+        run: |
+          POD_LABEL="app.kubernetes.io/name=uat-submit-a-bulk-claim"
+          POD_NAME=$(kubectl get pod -n "$KUBE_NAMESPACE" -l "$POD_LABEL" -o jsonpath='{.items[0].metadata.name}')
+          echo "Port forwarding pod: $POD_NAME"
+          kubectl port-forward -n "$KUBE_NAMESPACE" pod/"$POD_NAME" 8082:8082 > pf.log 2>&1 &
+          PORT_FORWARD_PID=$!
+          echo "Port-forward started with PID $PORT_FORWARD_PID"
+
+          echo "PORT_FORWARD_PID_SABC=$PORT_FORWARD_PID" >> "$GITHUB_ENV"
+      
+      - name: Authenticate to the DSTEW EKS cluster
+        uses: ./.github/actions/authenticate-to-eks-cluster
+        with:
+          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_DATA_CLAIMS_API_UAT }}
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
+          kube_token: ${{ secrets.KUBE_TOKEN_LAA_DATA_CLAIMS_API_UAT }}
+          kube_cert: ${{ secrets.KUBE_CERT_LAA_DATA_CLAIMS_API_UAT }}
+
+      - name: Port forward to data claims db
+        env:
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
+        run: |
+          POD_LABEL="run=port-forward-pod"
+          POD_NAME=$(kubectl get pod -n "$KUBE_NAMESPACE" -l "$POD_LABEL" -o jsonpath='{.items[0].metadata.name}')
+          echo "Port forwarding pod: $POD_NAME"
+          kubectl port-forward -n "$KUBE_NAMESPACE" pod/"$POD_NAME" 5432:5432 > pf.log 2>&1 &
+          PORT_FORWARD_PID=$!
+          echo "Port-forward started with PID $PORT_FORWARD_PID"
+
+          echo "PORT_FORWARD_PID_DSTEW=$PORT_FORWARD_PID" >> "$GITHUB_ENV"
+      
       - name: Create .env file
         shell: bash
         run: |
@@ -113,40 +163,10 @@ jobs:
 
       - name: Run UI Tests
         env:
-          KUBE_CLUSTER_SABC: ${{ secrets.KUBE_CLUSTER_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
-          KUBE_NAMESPACE_SABC: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
-          KUBE_TOKEN_SABC: ${{ secrets.KUBE_TOKEN_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
-          KUBE_CERT_SABC: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
-          KUBE_CLUSTER_DSTEW: ${{ secrets.KUBE_CLUSTER_LAA_DATA_CLAIMS_API_UAT }}
-          KUBE_NAMESPACE_DSTEW: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
-          KUBE_TOKEN_DSTEW: ${{ secrets.KUBE_TOKEN_LAA_DATA_CLAIMS_API_UAT }}
-          KUBE_CERT_DSTEW: ${{ secrets.KUBE_CERT_LAA_DATA_CLAIMS_API_UAT }}
           CUCUMBER_TAGS: ${{ inputs.tags }}
         run: |
-
-          ./scripts/authenticate-eks.sh "$KUBE_CLUSTER_SABC" "$KUBE_NAMESPACE_SABC" "$KUBE_TOKEN_SABC" "$KUBE_CERT_SABC"
-
-          POD_LABEL_SABC="app.kubernetes.io/name=uat-submit-a-bulk-claim"
-          POD_NAME_SABC=$(kubectl get pod -n "$KUBE_NAMESPACE_SABC" -l "$POD_LABEL_SABC" -o jsonpath='{.items[0].metadata.name}')
-          echo "Port forwarding SaBC pod: $POD_NAME_SABC"
-          kubectl port-forward -n "$KUBE_NAMESPACE_SABC" pod/"$POD_NAME_SABC" 8082:8082 > sabc-port-forward.log 2>&1 &
-          PORT_FORWARD_PID_SABC=$!
-          echo "Port-forward started for SaBC with PID $PORT_FORWARD_PID_SABC"
-
-          ./scripts/authenticate-eks.sh "$KUBE_CLUSTER_DSTEW" "$KUBE_NAMESPACE_DSTEW" "$KUBE_TOKEN_DSTEW" "$KUBE_CERT_DSTEW"
-
-          POD_LABEL_DSTEW="run=port-forward-pod"
-          POD_NAME_DSTEW=$(kubectl get pod -n "$KUBE_NAMESPACE_DSTEW" -l "$POD_LABEL_DSTEW" -o jsonpath='{.items[0].metadata.name}')
-          echo "Port forwarding data claims pod: $POD_NAME_DSTEW"
-          kubectl port-forward -n "$KUBE_NAMESPACE_DSTEW" pod/"$POD_NAME_DSTEW" 5432:5432 > data-claims-port-forward.log 2>&1 &
-          PORT_FORWARD_PID_DSTEW=$!
-          echo "Port-forward started for data claims with PID $PORT_FORWARD_PID_DSTEW"
-
-          node scripts/wait-for-port.js 8082
-          node scripts/wait-for-port.js 5432
-
-          # npm run login
-          # npx cucumber-js -p bulksubmission --parallel 4 --retry 1
+          npm run login
+          npx cucumber-js -p bulksubmission --parallel 4 --retry 1
 
       - name: Upload test reports
         if: always()
