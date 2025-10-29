@@ -37,7 +37,7 @@ class LoginPage extends BasePage {
     }
 
     async waitForPage() {
-        await this.emailInput.waitFor({state: 'visible'});
+        await this.emailInput.waitFor({state: 'visible', timeout: 120_000});
     }
 
     async enterEmail(email: string) {
@@ -62,7 +62,7 @@ class LoginPage extends BasePage {
         await this.clickNext();
 
         // Microsoft login often has a short delay before showing password
-        await this.passwordInput.waitFor({state: 'visible'});
+        await this.passwordInput.waitFor({state: 'visible', timeout: 120_000});
 
         await this.enterPassword(`${process.env.PASSWORD}`);
         await this.clickSignIn();

@@ -48,18 +48,13 @@ jobs:
         run: npm ci
 
       - name: Port forward to FPS-API pod
-        env:
-          KUBE_NAMESPACE: ${{ secrets.kube_namespace }}
-        run: |
-          POD_LABEL="app.kubernetes.io/name=laa-fee-scheme-api"
-          POD_NAME=$(kubectl get pod -n "$KUBE_NAMESPACE" -l "$POD_LABEL" -o jsonpath='{.items[0].metadata.name}')
-          echo "Port forwarding pod: $POD_NAME"
-          kubectl port-forward -n "$KUBE_NAMESPACE" pod/"$POD_NAME" 8085:8085 > pf.log 2>&1 &
-          PORT_FORWARD_PID=$!
-          echo "Port-forward started with PID $PORT_FORWARD_PID"
-
-          echo "PORT_FORWARD_PID=$PORT_FORWARD_PID" >> "$GITHUB_ENV"
-          ./scripts/wait-for-port.sh 8085 fsp-api 
+        uses: ./.github/actions/port-forward
+        with:
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          pod_selector: app.kubernetes.io/name=laa-fee-scheme-api
+          local_port: "8085"
+          pid_env_var: PORT_FORWARD_PID
+          wait_label: fsp-api
 
       - name: Run API Tests
         run: |
@@ -105,34 +100,22 @@ jobs:
           kube_cert: ${{ secrets.KUBE_CERT_LAA_DATA_CLAIMS_API_UAT }}
 
       - name: Port forward to data claims db
-        env:
-          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
-        run: |
-          POD_LABEL="run=port-forward-pod"
-          POD_NAME=$(kubectl get pod -n "$KUBE_NAMESPACE" -l "$POD_LABEL" -o jsonpath='{.items[0].metadata.name}')
-          echo "Port forwarding pod: $POD_NAME"
-          kubectl port-forward -n "$KUBE_NAMESPACE" pod/"$POD_NAME" 5432:5432 > pf.log 2>&1 &
-          PORT_FORWARD_PID_DSTEW_DB=$!
-          echo "Port-forward started with PID $PORT_FORWARD_PID_DSTEW_DB"
-
-          echo "PORT_FORWARD_PID_DSTEW_DB=$PORT_FORWARD_PID_DSTEW_DB" >> "$GITHUB_ENV"
-          ./scripts/wait-for-port.sh 5432 dstew-db 
+        uses: ./.github/actions/port-forward
+        with:
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
+          pod_selector: run=port-forward-pod
+          local_port: "5432"
+          pid_env_var: PORT_FORWARD_PID_DSTEW_DB
+          wait_label: dstew-db
 
       - name: Port forward to data claims api
-        env:
-          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
-        run: |
-          POD_LABEL1="app.kubernetes.io/name=data-claims-api"
-          POD_LABEL2="app.kubernetes.io/instance=main"
-          POD_NAME=$(kubectl get pod -n "$KUBE_NAMESPACE" -l "$POD_LABEL1,$POD_LABEL2" -o jsonpath='{.items[0].metadata.name}')
-          echo "Port forwarding pod: $POD_NAME"
-          kubectl port-forward -n "$KUBE_NAMESPACE" pod/"$POD_NAME" 8080:8080 > pf.log 2>&1 &
-          PORT_FORWARD_PID_DSTEW_API=$!
-          echo "Port-forward started with PID $PORT_FORWARD_PID_DSTEW_API"
-
-          echo "PORT_FORWARD_PID_DSTEW_API=$PORT_FORWARD_PID_DSTEW_API" >> "$GITHUB_ENV"
-          ./scripts/wait-for-port.sh 5432 dstew-db 
-          ./scripts/wait-for-port.sh 8080 dstew-api 
+        uses: ./.github/actions/port-forward
+        with:
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
+          pod_selector: app.kubernetes.io/name=data-claims-api,app.kubernetes.io/instance=main
+          local_port: "8080"
+          pid_env_var: PORT_FORWARD_PID_DSTEW_API
+          wait_label: dstew-api
       
       - name: Authenticate to the SaBC EKS cluster
         uses: ./.github/actions/authenticate-to-eks-cluster
@@ -143,20 +126,13 @@ jobs:
           kube_cert: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
 
       - name: Port forward to SaBC pod
-        env:
-          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
-        run: |
-          POD_LABEL="app.kubernetes.io/name=uat-submit-a-bulk-claim"
-          POD_NAME=$(kubectl get pod -n "$KUBE_NAMESPACE" -l "$POD_LABEL" -o jsonpath='{.items[0].metadata.name}')
-          echo "Port forwarding pod: $POD_NAME"
-          kubectl port-forward -n "$KUBE_NAMESPACE" pod/"$POD_NAME" 8082:8082 > pf.log 2>&1 &
-          PORT_FORWARD_PID_SABC=$!
-          echo "Port-forward started with PID $PORT_FORWARD_PID_SABC"
-
-          echo "PORT_FORWARD_PID_SABC=$PORT_FORWARD_PID_SABC" >> "$GITHUB_ENV"
-          ./scripts/wait-for-port.sh 5432 dstew-db 
-          ./scripts/wait-for-port.sh 8080 dstew-api 
-          ./scripts/wait-for-port.sh 8082 sabc
+        uses: ./.github/actions/port-forward
+        with:
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          pod_selector: app.kubernetes.io/name=uat-submit-a-bulk-claim
+          local_port: "8082"
+          pid_env_var: PORT_FORWARD_PID_SABC
+          wait_label: sabc
       
       - name: Create .env file
         shell: bash
