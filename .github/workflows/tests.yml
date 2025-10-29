@@ -108,10 +108,11 @@ jobs:
           POD_NAME=$(kubectl get pod -n "$KUBE_NAMESPACE" -l "$POD_LABEL" -o jsonpath='{.items[0].metadata.name}')
           echo "Port forwarding pod: $POD_NAME"
           kubectl port-forward -n "$KUBE_NAMESPACE" pod/"$POD_NAME" 5432:5432 > pf.log 2>&1 &
-          PORT_FORWARD_PID=$!
-          echo "Port-forward started with PID $PORT_FORWARD_PID"
+          PORT_FORWARD_PID_DSTEW_DB=$!
+          echo "Port-forward started with PID $PORT_FORWARD_PID_DSTEW_DB"
 
-          echo "PORT_FORWARD_PID_DSTEW_DB=$PORT_FORWARD_PID" >> "$GITHUB_ENV"
+          echo "PORT_FORWARD_PID_DSTEW_DB=$PORT_FORWARD_PID_DSTEW_DB" >> "$GITHUB_ENV"
+          ./scripts/wait-for-port.sh 5432 dstew-db 
 
       - name: Port forward to data claims api
         env:
@@ -122,10 +123,12 @@ jobs:
           POD_NAME=$(kubectl get pod -n "$KUBE_NAMESPACE" -l "$POD_LABEL1,$POD_LABEL2" -o jsonpath='{.items[0].metadata.name}')
           echo "Port forwarding pod: $POD_NAME"
           kubectl port-forward -n "$KUBE_NAMESPACE" pod/"$POD_NAME" 8080:8080 > pf.log 2>&1 &
-          PORT_FORWARD_PID=$!
-          echo "Port-forward started with PID $PORT_FORWARD_PID"
+          PORT_FORWARD_PID_DSTEW_API=$!
+          echo "Port-forward started with PID $PORT_FORWARD_PID_DSTEW_API"
 
-          echo "PORT_FORWARD_PID_DSTEW_API=$PORT_FORWARD_PID" >> "$GITHUB_ENV"
+          echo "PORT_FORWARD_PID_DSTEW_API=$PORT_FORWARD_PID_DSTEW_API" >> "$GITHUB_ENV"
+          ./scripts/wait-for-port.sh 5432 dstew-db 
+          ./scripts/wait-for-port.sh 8080 dstew-api 
       
       - name: Authenticate to the SaBC EKS cluster
         uses: ./.github/actions/authenticate-to-eks-cluster
@@ -143,10 +146,13 @@ jobs:
           POD_NAME=$(kubectl get pod -n "$KUBE_NAMESPACE" -l "$POD_LABEL" -o jsonpath='{.items[0].metadata.name}')
           echo "Port forwarding pod: $POD_NAME"
           kubectl port-forward -n "$KUBE_NAMESPACE" pod/"$POD_NAME" 8082:8082 > pf.log 2>&1 &
-          PORT_FORWARD_PID=$!
-          echo "Port-forward started with PID $PORT_FORWARD_PID"
+          PORT_FORWARD_PID_SABC=$!
+          echo "Port-forward started with PID $PORT_FORWARD_PID_SABC"
 
-          echo "PORT_FORWARD_PID_SABC=$PORT_FORWARD_PID" >> "$GITHUB_ENV"
+          echo "PORT_FORWARD_PID_SABC=$PORT_FORWARD_PID_SABC" >> "$GITHUB_ENV"
+          ./scripts/wait-for-port.sh 5432 dstew-db 
+          ./scripts/wait-for-port.sh 8080 dstew-api 
+          ./scripts/wait-for-port.sh 8082 sabc
       
       - name: Create .env file
         shell: bash
@@ -173,6 +179,10 @@ jobs:
         env:
           CUCUMBER_TAGS: ${{ inputs.tags }}
         run: |
+          ./scripts/wait-for-port.sh 5432 dstew-db 
+          ./scripts/wait-for-port.sh 8080 dstew-api 
+          ./scripts/wait-for-port.sh 8082 sabc
+
           npm run login
           npx cucumber-js -p bulksubmission --parallel 4 --retry 1
 
