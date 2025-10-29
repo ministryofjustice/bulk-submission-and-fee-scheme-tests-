@@ -111,7 +111,21 @@ jobs:
           PORT_FORWARD_PID=$!
           echo "Port-forward started with PID $PORT_FORWARD_PID"
 
-          echo "PORT_FORWARD_PID_DSTEW=$PORT_FORWARD_PID" >> "$GITHUB_ENV"
+          echo "PORT_FORWARD_PID_DSTEW_DB=$PORT_FORWARD_PID" >> "$GITHUB_ENV"
+
+      - name: Port forward to data claims api
+        env:
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
+        run: |
+          POD_LABEL1="app.kubernetes.io/name=data-claims-api"
+          POD_LABEL2="app.kubernetes.io/instance=main"
+          POD_NAME=$(kubectl get pod -n "$KUBE_NAMESPACE" -l "$POD_LABEL1,$POD_LABEL2" -o jsonpath='{.items[0].metadata.name}')
+          echo "Port forwarding pod: $POD_NAME"
+          kubectl port-forward -n "$KUBE_NAMESPACE" pod/"$POD_NAME" 8080:8080 > pf.log 2>&1 &
+          PORT_FORWARD_PID=$!
+          echo "Port-forward started with PID $PORT_FORWARD_PID"
+
+          echo "PORT_FORWARD_PID_DSTEW_API=$PORT_FORWARD_PID" >> "$GITHUB_ENV"
       
       - name: Authenticate to the SaBC EKS cluster
         uses: ./.github/actions/authenticate-to-eks-cluster
@@ -138,8 +152,10 @@ jobs:
         shell: bash
         run: |
           cat <<EOF > .env
-          API_BASE_URL=${{ secrets.API_BASE_URL }}
-          API_TOKEN=${{ secrets.API_TOKEN }}
+          FSP_API_BASE_URL=${{ secrets.FSP_API_BASE_URL }}
+          FSP_API_TOKEN=${{ secrets.FSP_API_TOKEN }}
+          DSTEW_API_BASE_URL=${{ secrets.DSTEW_API_BASE_URL }}
+          DSTEW_API_TOKEN=${{ secrets.DSTEW_API_TOKEN }}
           MFA_SECRET=${{ secrets.MFA_SECRET }}
           PASSWORD=${{ secrets.PASSWORD }}
           UI_BASE_URL=${{ secrets.UI_BASE_URL }}

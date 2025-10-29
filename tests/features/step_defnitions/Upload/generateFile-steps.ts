@@ -106,15 +106,18 @@ When(
                 contentType: 'text/csv',
             });
 
+            const dstewbaseUrl = this.client.defaults.baseURL || process.env.DSTEW_API_BASE_URL;
+            const dstewToken = process.env.DSTEW_API_TOKEN;
+
             const uploadUrl =
-                'https://main-laa-data-claims-api-uat.cloud-platform.service.justice.gov.uk/api/v0/bulk-submissions' +
+                `${dstewbaseUrl}/api/v0/bulk-submissions` +
                 '?userId=Test.User-submit-a-bulk-claim-auto-test%40devl.justice.gov.uk&offices=0P322F';
 
             const uploadResp = await this.client.post(uploadUrl, form, {
                 headers: {
                     ...form.getHeaders(),
                     accept: 'application/json',
-                    Authorization: process.env.API_KEY,
+                    Authorization: dstewToken,
                 },
             });
 
@@ -135,11 +138,11 @@ When(
 
             for (let attempt = 1; attempt <= maxRetries; attempt++) {
                 const resp = await this.client.get(
-                    `https://main-laa-data-claims-api-uat.cloud-platform.service.justice.gov.uk/api/v0/submissions?offices=0P322F&submission_id=${submissionId}&page=0&size=20`,
+                    `${dstewbaseUrl}/api/v0/submissions?offices=0P322F&submission_id=${submissionId}&page=0&size=20`,
                     {
                         headers: {
                             accept: 'application/json',
-                            Authorization: process.env.API_KEY,
+                            Authorization: dstewToken,
                         },
                     }
                 );

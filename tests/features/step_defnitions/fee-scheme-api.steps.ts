@@ -7,7 +7,7 @@ import axios from 'axios';
 
 When('I GET {string}', async function (this: CustomWorld, path: string) {
   // Derive the full URL for debugging
-  const baseUrl = this.client.defaults.baseURL || process.env.API_BASE_URL;
+  const baseUrl = this.client.defaults.baseURL || process.env.FSP_API_BASE_URL;
   const fullUrl = `${baseUrl}${path}`;
   console.log(`Calling GET ${fullUrl}`);
   

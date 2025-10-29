@@ -50,13 +50,18 @@ export class World {
   constructor(options: IWorldOptions) {
     // @ts-ignore
     this.attach = options.attach;
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    };
+
+    const token = process.env.FSP_API_TOKEN || process.env.API_TOKEN;
+    if (token) headers.Authorization = `Bearer ${token}`;
+
     this.client = axios.create({
-      baseURL: process.env.API_BASE_URL,
+      baseURL: process.env.FSP_API_BASE_URL,
       timeout: 10000,
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
+      headers,
       validateStatus: () => true, // allow manual status inspection
     });
   }
@@ -176,7 +181,7 @@ export type CustomWorld = World;
 //     // @ts-ignore
 //     this.attach = options.attach;
 //     this.client = axios.create({
-//       baseURL: process.env.API_BASE_URL,
+//       baseURL: process.env.FSP_API_BASE_URL,
 //       timeout: 10000,
 //       headers: {
 //         'Content-Type': 'application/json',
