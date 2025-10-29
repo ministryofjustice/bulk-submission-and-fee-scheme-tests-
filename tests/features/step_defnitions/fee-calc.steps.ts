@@ -90,32 +90,28 @@ Given('a fee calculation payload with:', function (this: World, table: DataTable
   if (londonRate !== undefined) payload.londonRate = londonRate;
 
   // boltOns: include only fields that appear in the feature (and preserve 0)
-  const boltOnAdjournedHearing = maybeNum(rows, 'boltOnAdjournedHearing');
-  const boltOnHomeOfficeInterview = maybeNum(rows, 'boltOnHomeOfficeInterview');
-  const boltOnCrmhOral = maybeNum(rows, 'boltOnCrmhOral');
-  const boltOnCrmhTelephone = maybeNum(rows, 'boltOnCrmhTelephone');
+  const boltOns: Record<string, number> = {};
+
+  const boltOnAdjournedHearing   = maybeNum(rows, 'boltOnAdjournedHearing');
+  const boltOnHomeOfficeInterview= maybeNum(rows, 'boltOnHomeOfficeInterview');
+  const boltOnCmrhOral           = maybeNum(rows, 'boltOnCmrhOral');
+  const boltOnCmrhTelephone      = maybeNum(rows, 'boltOnCmrhTelephone');
   const boltOnSubstantiveHearing = maybeNum(rows, 'boltOnSubstantiveHearing');
-  // Add further bolt-on keys here if you ever expose them in the feature table
-  if (boltOnAdjournedHearing !== undefined) {
-    payload.boltOns = { boltOnAdjournedHearing };
+
+  if (boltOnAdjournedHearing !== undefined)   boltOns.boltOnAdjournedHearing = boltOnAdjournedHearing;
+  if (boltOnHomeOfficeInterview !== undefined)boltOns.boltOnHomeOfficeInterview = boltOnHomeOfficeInterview;
+  if (boltOnCmrhOral !== undefined)           boltOns.boltOnCmrhOral = boltOnCmrhOral;
+  if (boltOnCmrhTelephone !== undefined)      boltOns.boltOnCmrhTelephone = boltOnCmrhTelephone;
+  if (boltOnSubstantiveHearing !== undefined) boltOns.boltOnSubstantiveHearing = boltOnSubstantiveHearing;
+
+  if (Object.keys(boltOns).length > 0) {
+    payload.boltOns = boltOns;
   }
-  if (boltOnHomeOfficeInterview !== undefined) {
-    payload.boltOns = { boltOnHomeOfficeInterview };
-  }
-  if (boltOnCrmhOral !== undefined) {
-    payload.boltOns = { boltOnCrmhTelephone };
-  }
-  if (boltOnCrmhTelephone !== undefined) {
-    payload.boltOns = { boltOnCrmhTelephone };
-  }
-  if (boltOnSubstantiveHearing === undefined) {
-    payload.boltOns = {boltOnSubstantiveHearing};
-  }
+
   this.setPayload(payload);
 });
 
 When('I POST {string} with the payload', async function (this: World, endpoint: string) {
-  // For visibility while debugging:
   console.log(JSON.stringify(this.requestBody, null, 2));
   await this.post(endpoint, this.requestBody);
 });
