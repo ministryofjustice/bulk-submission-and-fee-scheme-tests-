@@ -133,6 +133,23 @@ jobs:
           local_port: "8082"
           pid_env_var: PORT_FORWARD_PID_SABC
           wait_label: sabc
+
+      - name: Authenticate to the FSP EKS cluster
+        uses: ./.github/actions/authenticate-to-eks-cluster
+        with:
+          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          kube_token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
+          kube_cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
+
+      - name: Port forward to FPS-API pod
+        uses: ./.github/actions/port-forward
+        with:
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          pod_selector: app.kubernetes.io/name=laa-fee-scheme-api
+          local_port: "8085"
+          pid_env_var: PORT_FORWARD_PID
+          wait_label: fsp-api
       
       - name: Create .env file
         shell: bash
@@ -162,6 +179,7 @@ jobs:
           ./scripts/wait-for-port.sh 5432 dstew-db 
           ./scripts/wait-for-port.sh 8080 dstew-api 
           ./scripts/wait-for-port.sh 8082 sabc
+          ./scripts/wait-for-port.sh 8085 fsp-api
 
           npm run login
           npx cucumber-js -p bulksubmission --parallel 4 --retry 1

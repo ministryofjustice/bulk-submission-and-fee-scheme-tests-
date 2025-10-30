@@ -89,7 +89,7 @@ Given(
                 filename: generatedFilePath.split('/').pop(),
                 contentType: 'text/csv',
             });
-            const dstewbaseUrl = this.client.defaults.baseURL || process.env.DSTEW_API_BASE_URL;
+            const dstewbaseUrl = process.env.DSTEW_API_BASE_URL;
             const dstewToken = process.env.DSTEW_API_TOKEN;
 
             const uploadUrl =

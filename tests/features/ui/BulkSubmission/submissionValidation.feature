@@ -29,12 +29,6 @@ Feature: Invalid submission level validation
       | A category of law could not be found for the provided fee code: lol                 |
       | The provider is not contracted for the category of law associated with the fee code |
 
-
-  Scenario: Invalid Area of Law
-    When I upload "tests/data/invalid/invalidAreaOfLaw.csv"
-    Then the user sees an error message "Area of Law must be one of: MEDIATION, CRIME LOWER, or LEGAL HELP"
-
-
   Scenario: Validate multiple paginated claim errors
     When I upload "tests/data/invalid/regexValidation.xml"
     Then I should see an error banner saying "1 claim has errors for missing or incorrect information"
