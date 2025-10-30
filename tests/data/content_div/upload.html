@@ -1,0 +1,30 @@
+<main class="govuk-main-wrapper" id="main-content">
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+
+      
+      <form class="form" action="/upload" method="post" enctype="multipart/form-data"><input type="hidden" name="_csrf" value="3M4BalBfxH1LwMmcMatgXqSTM4kl4tw5SFtPgTvsBlMKCAhx5f03C2I9pxxm8__4BIZUPMDxHrAS1-gUe28rtAuONWVvaj9H">
+
+        
+
+        <h1 class="govuk-heading-xl">Upload a bulk claim file</h1>
+        <p class="govuk-body-l">The maximum size is 10MB.</p>
+        <p class="govuk-body govuk-!-margin-bottom-6">We will check your file on the next screen. If it is accepted, we will then calculate your claim.</p>
+
+        <div class="govuk-form-group">
+          <label class="govuk-label govuk-!-font-weight-bold" for="file-input" id="file-input-label">Upload an XML, CSV, or TXT file</label>
+          
+          <div class="govuk-drop-zone" data-module="govuk-file-upload" data-govuk-file-upload-init=""><button class="govuk-file-upload-button govuk-file-upload-button--empty" type="button" id="file-input" aria-labelledby="file-input-label file-input-comma file-input"><span class="govuk-body govuk-file-upload-button__status" aria-live="polite">No file chosen</span><span class="govuk-visually-hidden" id="file-input-comma">, </span><span class="govuk-file-upload-button__pseudo-button-container"><span class="govuk-button govuk-button--secondary govuk-file-upload-button__pseudo-button">Choose file</span> <span class="govuk-body govuk-file-upload-button__instruction">or drop file</span></span></button>
+            <input class="govuk-file-upload" id="file-input-input" type="file" name="file" hidden="true" tabindex="-1" aria-hidden="true">
+          </div><span class="govuk-file-upload-announcements govuk-visually-hidden" aria-live="assertive"></span>
+        </div>
+
+        <button type="submit" class="govuk-button" data-module="govuk-button" data-govuk-button-init="">Continue</button>
+
+      </form>
+
+    </div>
+  </div>
+
+</main>

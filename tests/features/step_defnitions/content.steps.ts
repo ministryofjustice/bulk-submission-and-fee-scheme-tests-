@@ -1,0 +1,91 @@
+import { Given, Then, When } from '@cucumber/cucumber';
+import { expect } from '@playwright/test';
+import { promises as fs } from 'fs';
+import path from 'path';
+import type { CustomWorld } from '../support/world';
+import { BulkImportPage } from '../../pages/bulkImportPage';
+
+const normalizeHtml = (html: string): string => {
+  const withoutCsrfToken = html.replace(
+    /(<input\b[^>]*name=["']?_csrf["'][^>]*?)\s+value="[^"]*"/gi,
+    '$1'
+  );
+
+  return withoutCsrfToken
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .join('');
+};
+
+Given('I am on the bulk submission landing page', async function (this: CustomWorld) {
+  await this.page!.goto('/', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await this.attach('🌐 Navigated to bulk submission landing page', 'text/plain');
+});
+
+Then('the page content matches {string}', async function (this: CustomWorld, fixtureName: string) {
+  const fixturePath = path.resolve('tests/data/content_div', fixtureName);
+  const expectedHtml = await fs.readFile(fixturePath, 'utf8');
+
+  const mainContent = this.page!.locator('main#main-content');
+  await mainContent.waitFor({ state: 'visible', timeout: 30000 });
+  const actualHtml = await mainContent.evaluate((node) => node.outerHTML);
+
+  expect(normalizeHtml(actualHtml)).toBe(normalizeHtml(expectedHtml));
+  await this.attach(`✅ Page content matches ${fixtureName}`, 'text/plain');
+});
+
+When('I upload the generated file and wait for import in progress', async function (this: CustomWorld) {
+  if (!this.generatedFilePath) {
+    throw new Error('No generated file available for upload');
+  }
+
+  if (!this.bulkImportPage) {
+    this.bulkImportPage = new BulkImportPage(this.page!);
+  }
+
+  await this.bulkImportPage.uploadFile(this.generatedFilePath);
+  await this.bulkImportPage.clickUpload();
+
+  const inProgressHeading = this.page!.locator('h1.moj-interruption-card__heading');
+  await inProgressHeading.waitFor({ state: 'visible', timeout: 60000 });
+
+  await this.attach('✅ Import in progress screen displayed', 'text/plain');
+});
+
+Then('the search results table matches the expected layout', async function (this: CustomWorld) {
+    const table = this.page!.locator('table.govuk-table').first();
+    await table.waitFor({ state: 'visible', timeout: 15000 });
+
+    const headerTexts = await table.locator('thead tr th').allTextContents();
+    const normalizedHeaders = headerTexts.map((text) => text.trim().replace(/\s+/g, ' '));
+
+    const expectedHeaders = ['Date submitted', 'Office account', 'Area of law', 'Status'];
+    expect(normalizedHeaders).toEqual(expectedHeaders);
+
+    const rows = table.locator('tbody tr');
+    const rowCount = await rows.count();
+    expect(rowCount).toBeGreaterThan(0);
+
+    const allowedAreas = new Set(['Legal help', 'Mediation', 'Crime lower']);
+    const datePattern = /^\d{1,2} [A-Z][a-z]{2} \d{4} at \d{2}:\d{2}:\d{2}$/;
+
+    for (let i = 0; i < rowCount; i++) {
+        const cells = rows.nth(i).locator('td');
+        const cellCount = await cells.count();
+        expect(cellCount).toBeGreaterThanOrEqual(4);
+
+        const dateSubmitted = (await cells.nth(0).innerText()).trim();
+        const officeAccount = (await cells.nth(1).innerText()).trim();
+        const areaOfLaw = (await cells.nth(2).innerText()).trim();
+        const status = (await cells.nth(3).innerText()).trim();
+
+        expect(datePattern.test(dateSubmitted)).toBeTruthy();
+        expect(officeAccount.length).toBeGreaterThan(0);
+        expect(status.length).toBeGreaterThan(0);
+        expect(allowedAreas.has(areaOfLaw)).toBeTruthy();
+    }
+
+    await this.attach(`✅ Verified search results table with ${rowCount} row(s).`, 'text/plain');
+});
