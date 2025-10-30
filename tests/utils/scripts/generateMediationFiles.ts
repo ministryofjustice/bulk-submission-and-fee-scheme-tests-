@@ -9,8 +9,32 @@ import 'reflect-metadata';
 import dotenv from 'dotenv';
 import {convertFileToXml} from "./converter";
 import { createDataSourceManager } from '../db/dataSourceManager';
+import os from "os";
 dotenv.config();
 
+const AREA_OF_LAW = 'MEDIATION';
+
+const USED_PERIODS_FILE = path.join(os.tmpdir(), 'mediation_used_submission_periods.json');
+
+console.log(`🧠 ${AREA_OF_LAW} cache file: ${USED_PERIODS_FILE}`);
+
+// Ensure cache file exists
+if (!fs.existsSync(USED_PERIODS_FILE)) {
+    fs.writeFileSync(USED_PERIODS_FILE, JSON.stringify([]), 'utf-8');
+}
+
+const readUsedPeriods = (): string[] => {
+    try {
+        return JSON.parse(fs.readFileSync(USED_PERIODS_FILE, 'utf-8')) || [];
+    } catch {
+        return [];
+    }
+};
+
+const writeUsedPeriods = (periods: string[]) => {
+    fs.writeFileSync(USED_PERIODS_FILE, JSON.stringify(periods, null, 2), 'utf-8');
+    console.log(`✅ Updated ${AREA_OF_LAW} cache: ${USED_PERIODS_FILE}`);
+};
 // ---------- 1️⃣ Database Setup ----------
 const dataSourceManager = createDataSourceManager({ label: 'generateMediationFiles' });
 
@@ -56,19 +80,33 @@ async function isSubmissionPeriodUsed(areaOfLaw: string, submissionPeriod: strin
     return result.length > 0;
 }
 
-const generateUniqueSubmissionPeriod = async (office: string): Promise<string> => {
-    const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+const generateUniqueSubmissionPeriod = async (office: string, areaOfLaw = AREA_OF_LAW): Promise<string> => {
+    const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
     let period: string;
     let attempts = 0;
+
+    const usedPeriods = readUsedPeriods();
 
     do {
         const submissionDate = faker.date.between({ from: MIN_CASE_START, to: MAX_CASE_START });
         period = `${months[submissionDate.getMonth()]}-${submissionDate.getFullYear()}`;
         attempts++;
-        if (attempts > 50) throw new Error(`Cannot find unique submission period for office ${office}`);
-    } while (await isSubmissionPeriodUsed('MEDIATION', period, office));
 
-    return period;
+        if (attempts > 50) throw new Error(`Cannot find unique submission period for ${areaOfLaw} (${office})`);
+
+        const key = `${areaOfLaw}_${office}_${period}`;
+        const alreadyUsed = usedPeriods.includes(key);
+        const dbUsed = await isSubmissionPeriodUsed(areaOfLaw.toUpperCase(), period, office);
+
+        if (alreadyUsed || dbUsed) continue;
+
+        usedPeriods.push(key);
+        writeUsedPeriods(usedPeriods);
+        console.log(`🧩 Using new unique period for ${areaOfLaw}: ${period}`);
+        return period;
+    } while (attempts <= 50);
+
+    throw new Error(`Cannot find unique submission period for ${areaOfLaw} (${office})`);
 };
 
 // ---------- 5️⃣ Provider API Check ----------
@@ -209,36 +247,11 @@ const generateFile = async (fileName: string, outcomesCount: number, fileType: '
     console.log(`✅ Generated ${fileName}.${fileType} with ${outcomesCount} outcomes for office ${office}`);
 };
 
-// export async function GenerateMediationFiles(files: number, outcomes: number, format: 'txt' | 'csv'): Promise<string[]> {
-//     const generatedFiles: string[] = [];
-//
-//     try {
-//         await AppDataSource.initialize();
-//         console.log('✅ Database connection established');
-//
-//         for (let i = 1; i <= files; i++) {
-//             const fileName = `mediation_submission_${i}.${format}`;
-//             const fullPath = path.join(OUTPUT_DIR, fileName);
-//
-//             await generateFile(`mediation_submission_${i}`, outcomes, format);
-//             generatedFiles.push(fullPath);
-//         }
-//
-//         console.log(`\n🎉 Completed. Files saved in: ${OUTPUT_DIR}/`);
-//         return generatedFiles;
-//     } catch (err) {
-//         console.error('❌ Error:', err);
-//         throw err;
-//     } finally {
-//         await AppDataSource.destroy();
-//         console.log('🔒 Database connection closed');
-//     }
-// }
-
 export async function GenerateMediationFiles(
     files: number,
     outcomes: number,
-    format: 'txt' | 'csv' | 'xml'
+    format: 'txt' | 'csv' | 'xml',
+    suffix?: string
 ): Promise<string[]> {
     const generatedFiles: string[] = [];
 
@@ -246,7 +259,8 @@ export async function GenerateMediationFiles(
 
     try {
         for (let i = 1; i <= files; i++) {
-            const baseName = `mediation_submission_${i}`;
+            const uniquePart = suffix || `${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+            const baseName = `mediation_${uniquePart}_${i}`;
             const intermediateFormat = format === 'xml' ? 'csv' : format;
 
             const inputFile = path.join(OUTPUT_DIR, `${baseName}.${intermediateFormat}`);

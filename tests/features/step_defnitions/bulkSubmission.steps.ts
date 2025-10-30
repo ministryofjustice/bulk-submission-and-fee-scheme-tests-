@@ -51,7 +51,7 @@ Given(/^I have generated a?n "([^"]+)" bulk submission file named "([^"]+)"$/, a
             await generateInvalidFile(filePath);
             break;
         case 'large':
-            await generateLargeFile(filePath, 20);
+            await generateLargeFile(filePath, 11);
             break;
         case 'restricted':
             await generateCSVFromFilename(filename);

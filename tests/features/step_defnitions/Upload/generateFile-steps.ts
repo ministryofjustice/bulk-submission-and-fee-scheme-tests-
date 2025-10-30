@@ -11,17 +11,27 @@ import fs from "fs";
 Given('I generate {string} {string} file with {string} outcomes', async function (this: CustomWorld, areaOfLaw, format, outcomes) {
     let files
     let generatedFiles: string[] = [];
+
+
+    // 🔹 Safe scenario name fallback
+    const safeScenario = (this.currentScenarioName || 'Scenario')
+        .replace(/\s+/g, '_')
+        .replace(/[^a-zA-Z0-9_]/g, '');
+
+    const uniqueSuffix = `${safeScenario}_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    console.log(`🧩 Unique suffix for file: ${uniqueSuffix}`);
+
     switch (areaOfLaw) {
         case "Legal help" : {
-            generatedFiles = await GenerateCivilFile(files = 1, outcomes, format)
+            generatedFiles = await GenerateCivilFile(files = 1, outcomes, format,uniqueSuffix)
         }
             break
         case "Mediation" : {
-            generatedFiles = await GenerateMediationFiles(files = 1, outcomes, format)
+            generatedFiles = await GenerateMediationFiles(files = 1, outcomes, format,uniqueSuffix)
         }
             break
         case "Crime lower" : {
-            generatedFiles = await GenerateCrimeFiles(files = 1, outcomes, format)
+            generatedFiles = await GenerateCrimeFiles(files = 1, outcomes, format,uniqueSuffix)
         }
             break
         default : {
@@ -29,7 +39,7 @@ Given('I generate {string} {string} file with {string} outcomes', async function
         }
     }
 
-    const filePath = generatedFiles[0];
+    const filePath = generatedFiles.find(f => f.includes(uniqueSuffix)) || generatedFiles[0];
     const fileName = path.basename(filePath);
     this.fileName = fileName;
     this.generatedFilePath = filePath;
@@ -79,22 +89,30 @@ When(
         try {
             let generatedFiles: string[] = [];
 
+            // 🔹 Safe scenario name fallback
+            const safeScenario = (this.currentScenarioName || 'Scenario')
+                .replace(/\s+/g, '_')
+                .replace(/[^a-zA-Z0-9_]/g, '');
+
+            const uniqueSuffix = `${safeScenario}_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+
             // 🧩 Step 1: Generate the file dynamically
             switch (areaOfLaw.toLowerCase()) {
                 case 'legal help':
-                    generatedFiles = await GenerateCivilFile(1, outcomes, format);
+                    generatedFiles = await GenerateCivilFile(1, outcomes, format,uniqueSuffix);
                     break;
                 case 'mediation':
-                    generatedFiles = await GenerateMediationFiles(1, outcomes, format);
+                    generatedFiles = await GenerateMediationFiles(1, outcomes, format,uniqueSuffix);
                     break;
                 case 'crime lower':
-                    generatedFiles = await GenerateCrimeFiles(1, outcomes, format);
+                    generatedFiles = await GenerateCrimeFiles(1, outcomes, format,uniqueSuffix);
                     break;
                 default:
                     throw new Error(`Invalid area of law: ${areaOfLaw}`);
             }
 
-            const generatedFilePath = generatedFiles[0];
+
+            const generatedFilePath = generatedFiles.find(f => f.includes(uniqueSuffix)) || generatedFiles[0];
             const fileName = path.basename(generatedFilePath);
             this.generatedFilePath = generatedFilePath;
             await this.attach(`📝 Generated ${areaOfLaw} file (${outcomes} outcomes): ${fileName}`, 'text/plain');

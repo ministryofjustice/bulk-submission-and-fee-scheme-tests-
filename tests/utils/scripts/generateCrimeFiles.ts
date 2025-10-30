@@ -6,7 +6,26 @@ import 'reflect-metadata';
 import dotenv from 'dotenv';
 import {convertFileToXml} from "./converter";
 import { createDataSourceManager } from '../db/dataSourceManager';
+import os from "os";
 dotenv.config();
+
+const USED_PERIODS_FILE = path.join(os.tmpdir(), 'crime_used_submission_periods.json');
+console.log(`🧠 Crime cache file: ${USED_PERIODS_FILE}`);
+
+if (!fs.existsSync(USED_PERIODS_FILE)) fs.writeFileSync(USED_PERIODS_FILE, JSON.stringify([]), 'utf-8');
+
+const readUsedPeriods = (): string[] => {
+    try {
+        return JSON.parse(fs.readFileSync(USED_PERIODS_FILE, 'utf-8')) || [];
+    } catch {
+        return [];
+    }
+};
+
+const writeUsedPeriods = (periods: string[]) => {
+    fs.writeFileSync(USED_PERIODS_FILE, JSON.stringify(periods, null, 2), 'utf-8');
+    console.log(`✅ Updated used periods cache: ${USED_PERIODS_FILE}`);
+};
 
 // ---------- 1️⃣ Database Setup ----------
 const dataSourceManager = createDataSourceManager({ label: 'generateCrimeFiles' });
@@ -64,19 +83,35 @@ async function isSubmissionPeriodUsed(areaOfLaw: string, submissionPeriod: strin
     return result.length > 0;
 }
 
-const generateUniqueSubmissionPeriod = async (office: string): Promise<string> => {
-    const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+const generateUniqueSubmissionPeriod = async (office: string,areaOfLaw="CRIME LOWER"): Promise<string> => {
+    const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
     let period: string;
     let attempts = 0;
+
+    const usedPeriods = readUsedPeriods();
 
     do {
         const submissionDate = faker.date.between({ from: new Date('2022-01-01'), to: new Date() });
         period = `${months[submissionDate.getMonth()]}-${submissionDate.getFullYear()}`;
         attempts++;
         if (attempts > 50) throw new Error(`Cannot find unique submission period for office ${office}`);
-    } while (await isSubmissionPeriodUsed('CRIME LOWER', period, office));
 
-    return period;
+        // 🔑 Combine area + office + period
+        const key = `${areaOfLaw}_${office}_${period}`;
+        const alreadyUsed = usedPeriods.includes(key);
+        const dbUsed = await isSubmissionPeriodUsed(areaOfLaw.toUpperCase(), period, office);
+
+        if (alreadyUsed || dbUsed) continue;
+
+        // ✅ Mark as used immediately to prevent parallel reuse
+        usedPeriods.push(key);
+        writeUsedPeriods(usedPeriods);
+        console.log(`🧩 Using new unique period for ${areaOfLaw}: ${period}`);
+
+        return period;
+    } while (attempts <= 50);
+
+    throw new Error(`Cannot find unique submission period for ${areaOfLaw} (${office})`);
 };
 
 const fetchProviderSchedules = async (office: string, caseStartDate: Date) => {
@@ -180,7 +215,7 @@ const generateOutcome = async (office: string, caseNum: number) => {
 // ---------- 7️⃣ File Generator ----------
 const generateFile = async (fileName: string, outcomesCount: number, fileType: 'txt' | 'csv') => {
     const office = randomFrom(offices);
-    const submissionPeriod = await generateUniqueSubmissionPeriod(office);
+    const submissionPeriod = await generateUniqueSubmissionPeriod(office,'CRIME LOWER');
 
     let content = `OFFICE,account=${office}\n`;
     content += `SCHEDULE,submissionPeriod=${submissionPeriod},areaOfLaw=CRIME LOWER,scheduleNum=${office}/CRM\n`;
@@ -201,7 +236,8 @@ const generateFile = async (fileName: string, outcomesCount: number, fileType: '
 export async function GenerateCrimeFiles(
     files: number,
     outcomes: number,
-    format: 'txt' | 'csv' | 'xml'
+    format: 'txt' | 'csv' | 'xml',
+    suffix?: string
 ): Promise<string[]> {
     const generatedFiles: string[] = [];
 
@@ -209,7 +245,8 @@ export async function GenerateCrimeFiles(
 
     try {
         for (let i = 1; i <= files; i++) {
-            const baseName = `crime_submission_${i}`;
+            const uniquePart = suffix || `${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+            const baseName = `crime_${uniquePart}_${i}`;
             const intermediateFormat = format === 'xml' ? 'csv' : format;
 
             const inputFile = path.join(OUTPUT_DIR, `${baseName}.${intermediateFormat}`);

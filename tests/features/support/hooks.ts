@@ -29,6 +29,7 @@ BeforeAll(function () {
 });
 
 Before({ tags: 'not @api' }, async function (this: World, scenario) {
+  this.currentScenarioName = scenario.pickle.name || 'UnnamedScenario';
   if (!this.browser) {
     await this.openBrowser();
     await this.attach('🌐 Browser launched for worker', 'text/plain');
@@ -80,6 +81,13 @@ AfterStep({ tags: 'not @api' }, async function (this: World, step) {
 
 AfterAll(async function () {
   try {
+    const files = fs.readdirSync(os.tmpdir());
+    files
+        .filter(f => f.endsWith('_used_submission_periods.json'))
+        .forEach(f => {
+          fs.unlinkSync(path.join(os.tmpdir(), f));
+          console.log(`🧹 Deleted cache file: ${f}`);
+        });
     const globalBrowsers = (global as any).__browsers;
     if (globalBrowsers) {
       for (const [pid, browser] of Object.entries(globalBrowsers)) {

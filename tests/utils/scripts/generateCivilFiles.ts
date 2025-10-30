@@ -2,14 +2,32 @@ import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
 import { faker } from '@faker-js/faker';
-import yargs from 'yargs';
-import { hideBin } from 'yargs/helpers';
 
 import { convertFileToXml } from './converter';
 import 'reflect-metadata';
 import dotenv from 'dotenv';
+import os from "os";
 import { createDataSourceManager } from '../db/dataSourceManager';
 dotenv.config();
+
+// 🔒 Cache file to track used submission periods during test runs
+const USED_PERIODS_FILE = path.join(os.tmpdir(), 'legal_used_submission_periods.json');
+
+// Ensure cache exists
+if (!fs.existsSync(USED_PERIODS_FILE)) fs.writeFileSync(USED_PERIODS_FILE, JSON.stringify([]), 'utf-8');
+
+const readUsedPeriods = (): string[] => {
+    try {
+        return JSON.parse(fs.readFileSync(USED_PERIODS_FILE, 'utf-8'));
+    } catch {
+        return [];
+    }
+};
+
+const writeUsedPeriods = (periods: string[]) => {
+    fs.writeFileSync(USED_PERIODS_FILE, JSON.stringify(periods), 'utf-8');
+    console.log(`✅ Updated used periods cache: ${USED_PERIODS_FILE}`);
+};
 
 // ---------- 1️⃣ Database Setup ----------
 const dataSourceManager = createDataSourceManager({ label: 'generateCivilFiles' });
@@ -62,8 +80,7 @@ async function isSubmissionPeriodUsed(areaOfLaw: string, submissionPeriod: strin
     return result.length > 0;
 }
 
-// ---------- UPDATED: Exclude Current Month ----------
-const generateUniqueSubmissionPeriod = async (office: string): Promise<string> => {
+const generateUniqueSubmissionPeriod = async (office: string,areaOfLaw="LEGAL HELP"): Promise<string> => {
     const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
     let period: string;
     let attempts = 0;
@@ -71,6 +88,8 @@ const generateUniqueSubmissionPeriod = async (office: string): Promise<string> =
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
+
+    const usedPeriods = readUsedPeriods();
 
     do {
         const submissionDate = faker.date.between({ from: new Date('2023-01-01'), to: new Date() });
@@ -83,15 +102,25 @@ const generateUniqueSubmissionPeriod = async (office: string): Promise<string> =
         period = `${months[month]}-${year}`;
         attempts++;
 
-        if (await isSubmissionPeriodUsed('LEGAL HELP', period, office)) continue;
+        // const key = `${areaOfLaw}_${office}_${period}`;
 
-        // ✅ Found a valid unique non-current-month period
+        const key = `${areaOfLaw}_${office}_${period}`;
+        const alreadyUsed = usedPeriods.includes(key);
+
+// 🧠 Also check DB for duplicates for this area of law
+        if (alreadyUsed || await isSubmissionPeriodUsed(areaOfLaw.toUpperCase(), period, office)) continue;
+
+// ✅ Mark as used immediately to prevent reuse in parallel runs
+        usedPeriods.push(key);
+        writeUsedPeriods(usedPeriods);
+
         return period;
 
     } while (attempts <= 50);
 
     throw new Error(`Cannot find unique submission period for office ${office}`);
 };
+
 
 // ---------- 5️⃣ Provider API Check ----------
 const fetchProviderSchedules = async (office: string, caseStartDate: Date) => {
@@ -214,7 +243,8 @@ const generateFile = async (fileName: string, outcomesCount: number, fileType: '
 export async function GenerateCivilFile(
     files: number,
     outcomes: number,
-    format: 'txt' | 'csv' | 'xml'
+    format: 'txt' | 'csv' | 'xml',
+    suffix?: string
 ) {
     const generatedFiles: string[] = [];
 
@@ -222,7 +252,8 @@ export async function GenerateCivilFile(
 
     try {
         for (let i = 1; i <= files; i++) {
-            const baseName = `legal_submission_${i}`;
+            const uniquePart = suffix || `${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+            const baseName = `legal_${uniquePart}_${i}`;
             const intermediateFormat = format === 'xml' ? 'csv' : format;
 
             const inputFile = path.join(OUTPUT_DIR, `${baseName}.${intermediateFormat}`);

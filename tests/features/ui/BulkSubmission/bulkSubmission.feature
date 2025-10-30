@@ -31,5 +31,12 @@ Feature: Bulk Submission via UI
     Examples:
       | AreaOfLaw   | Format | Outcomes |
       | LEGAL HELP  | txt    | 2        |
-      | MEDIATION   | txt    | 1        |
-      | CRIME LOWER | txt    | 0        |
+      | MEDIATION   | csv    | 1        |
+      | CRIME LOWER | csv    | 1        |
+
+    Examples:
+      | AreaOfLaw   | Format | Outcomes |
+      | CRIME LOWER | txt    | 1        |
+      | LEGAL HELP  | txt    | 0        |
+      | MEDIATION   | txt    | 0        |
+
