@@ -43,8 +43,78 @@ on:
         type: string
 
 jobs:
+  prepare-auth-context:
+    name: Prepare UI auth context
+    runs-on: ubuntu-latest
+    environment: uat
+    container:
+      image: mcr.microsoft.com/playwright:v1.54.2-jammy
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch != '' && inputs.branch || github.ref }}
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: v1.29.4
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Authenticate to the SaBC EKS cluster
+        uses: ./.github/actions/authenticate-to-eks-cluster
+        with:
+          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube_token: ${{ secrets.KUBE_TOKEN_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube_cert: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+
+      - name: Port forward to SaBC pod
+        uses: ./.github/actions/port-forward
+        with:
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          pod_selector: app.kubernetes.io/name=uat-submit-a-bulk-claim
+          local_port: '8082'
+          pid_env_var: PORT_FORWARD_PID_SABC
+          wait_label: sabc
+
+      - name: Create .env file
+        shell: bash
+        run: |
+          cat <<EOF > .env
+          FSP_API_BASE_URL=${{ secrets.FSP_API_BASE_URL }}
+          FSP_API_TOKEN=${{ secrets.FSP_API_TOKEN }}
+          DSTEW_API_BASE_URL=${{ secrets.DSTEW_API_BASE_URL }}
+          DSTEW_API_TOKEN=${{ secrets.DSTEW_API_TOKEN }}
+          MFA_SECRET=${{ secrets.MFA_SECRET }}
+          PASSWORD=${{ secrets.PASSWORD }}
+          UI_BASE_URL=${{ secrets.UI_BASE_URL }}
+          USERNAME=${{ secrets.USERNAME }}
+          DB_HOST=${{ secrets.DB_HOST }}
+          DB_PORT=${{ secrets.DB_PORT }}
+          DB_USER=${{ secrets.DB_USER }}
+          DB_PASS=${{ secrets.DB_PASS }}
+          DB_NAME=${{ secrets.DB_NAME }}
+          DB_SSL=${{ secrets.DB_SSL }}
+          HEADLESS=true
+          EOF
+
+      - name: Generate Playwright storage state
+        run: npm run login
+
+      - name: Upload storage state
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-auth-context
+          path: storageState.json
+          if-no-files-found: error
+          retention-days: 1
+
   run-ui-feature:
     name: UI feature - ${{ matrix.feature }}
+    needs: prepare-auth-context
     runs-on: ubuntu-latest
     environment: uat
     container:
@@ -66,6 +136,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Download auth context
+        uses: actions/download-artifact@v4
+        with:
+          name: ui-auth-context
+          path: .
 
       - name: Authenticate to the DSTEW EKS cluster
         uses: ./.github/actions/authenticate-to-eks-cluster
@@ -173,8 +249,6 @@ jobs:
           ./scripts/wait-for-port.sh 8080 dstew-api
           ./scripts/wait-for-port.sh 8082 sabc
           ./scripts/wait-for-port.sh 8085 fsp-api
-
-          npm run login
 
           mkdir -p "reports/$FEATURE"
 
