@@ -8,7 +8,7 @@ class BasePage {
   private signOutLink: Locator;
   private serviceNavigationImportClaims: Locator;
   private serviceNavigationSearch: Locator;
-  private errorSummary: Locator;
+  protected errorSummary: Locator;
   private footer: Locator;
 
 
@@ -34,9 +34,7 @@ class BasePage {
   }
 
   async waitForPageToLoad() {
-    await this.page.waitForLoadState('load');
-    // Footer is the last element on the page
-    // await this.footer.waitFor();
+    await this.page.waitForLoadState('domcontentloaded');
   }
 }
 

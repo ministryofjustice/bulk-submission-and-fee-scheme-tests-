@@ -3,23 +3,38 @@
   "description": "Playwright tests for UI and API",
   "version": "1.0.0",
   "scripts": {
-     "test": "cucumber-js --require-module ts-node/register --require \"tests/features/**/*.ts\" --format json:reports/cucumber.json --format html:reports/cucumber.html \"tests/features/**/*.feature\"",
+    "test": "cucumber-js --require-module ts-node/register --require \"tests/features/**/*.ts\" --format json:reports/cucumber.json --format html:reports/cucumber.html \"tests/features/**/*.feature\"",
     "test:smoke": "cucumber-js --require-module ts-node/register   --require \"tests/features/**/*.ts\" --format json:reports/cucumber.json  --format html:reports/cucumber.html --tags \"@smoke\" \"tests/features/**/*.feature\"",
     "test:api": "cucumber-js --require-module ts-node/register  --require \"tests/features/**/*.ts\" --format json:reports/cucumber.json  --format html:reports/cucumber.html --tags \"@api\" \"tests/features/**/*.feature\"",
     "test:ui": "cucumber-js --require-module ts-node/register  --require \"tests/features/**/*.ts\" --format json:reports/cucumber.json  --format html:reports/cucumber.html --tags \"@ui\" \"tests/features/**/*.feature\"",
     "report:bdd": "node scripts/report.js",
     "test:report": "playwright show-report",
+    "login": "ts-node tests/setup/auth.setup.ts",
+    "teardown": "ts-node tests/utils/scripts/cleanup-submissions.ts",
     "test:tag": "cucumber-js --require-module ts-node/register --require \"tests/features/**/*.ts\" --format json:reports/cucumber.json --format html:reports/cucumber.html tests/features/**/*.feature"
- 
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
     "@cucumber/cucumber": "^12.1.0",
     "@playwright/test": "^1.54.2",
-    "playwright": "^1.54.2",
+    "@types/pg": "^8.15.5",
+    "@types/xml2js": "^0.4.14",
+    "@types/yargs": "^17.0.33",
+    "axe-core": "^4.11.0",
     "axios": "^1.11.0",
+    "cucumber-html-reporter": "^7.2.0",
+    "dotenv": "^17.2.1",
+    "otplib": "^12.0.1",
+    "playwright": "^1.54.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
-    "cucumber-html-reporter": "^7.2.0",
-    "dotenv": "^17.2.1"
+    "yargs": "^17.7.2"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^9.9.0",
+    "pg": "^8.16.3",
+    "typeorm": "^0.3.27",
+    "xml2js": "^0.6.2",
+    "xmlbuilder2": "^4.0.0"
   }
 }

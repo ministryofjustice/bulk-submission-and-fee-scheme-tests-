@@ -2,10 +2,15 @@ name: Run E2E Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, phil/bulkSubmissionAutoTest ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run tests against'
+        required: false
+        default: 'main'
 
 jobs:
   api-tests:
@@ -34,39 +39,38 @@ jobs:
         shell: bash
         run: |
           cat <<EOF > .env
-          API_BASE_URL=${{ secrets.API_BASE_URL }}
-          API_TOKEN=${{ secrets.API_TOKEN }}
+          FSP_API_BASE_URL=${{ secrets.FSP_API_BASE_URL }}
+          FSP_API_TOKEN=${{ secrets.FSP_API_TOKEN }}
+          HEADLESS=true
           EOF
 
       - name: Install dependencies
         run: npm ci
 
       - name: Port forward to FPS-API pod
-        env:
-          KUBE_NAMESPACE: ${{ secrets.kube_namespace }}
-        run: |
-          POD_LABEL="app.kubernetes.io/name=laa-fee-scheme-api"
-          POD_NAME=$(kubectl get pod -n "$KUBE_NAMESPACE" -l "$POD_LABEL" -o jsonpath='{.items[0].metadata.name}')
-          echo "Port forwarding pod: $POD_NAME"
-          kubectl port-forward -n "$KUBE_NAMESPACE" pod/"$POD_NAME" 8085:8085 > pf.log 2>&1 &
-          PORT_FORWARD_PID=$!
-          echo "Port-forward started with PID $PORT_FORWARD_PID"
-
-          echo "PORT_FORWARD_PID=$PORT_FORWARD_PID" >> "$GITHUB_ENV"
+        uses: ./.github/actions/port-forward
+        with:
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          pod_selector: app.kubernetes.io/name=laa-fee-scheme-api
+          local_port: "8085"
+          pid_env_var: PORT_FORWARD_PID
+          wait_label: fsp-api
 
       - name: Run API Tests
         run: |
           npm run test:api
 
-      - name: Stop port forward to FSP-API pod
+      - name: Publish Cucumber summary
         if: always()
-        run: |
-          if [[ -n "${PORT_FORWARD_PID:-}" ]]; then
-            echo "Stopping port-forward with PID $PORT_FORWARD_PID"
-            kill "$PORT_FORWARD_PID" || true
-          else
-            echo "No port-forward PID recorded"
-          fi
+        run: node scripts/cucumber-summary.js
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fsp-api-reports
+          path: reports
+          if-no-files-found: warn
           
   ui-tests:
     environment: uat
@@ -76,13 +80,44 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch || github.ref }}
 
       - name: Install kubectl
         uses: azure/setup-kubectl@v3
         with:
           version: v1.29.4
 
-      - name: Authenticate to the EKS cluster
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Authenticate to the DSTEW EKS cluster
+        uses: ./.github/actions/authenticate-to-eks-cluster
+        with:
+          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_DATA_CLAIMS_API_UAT }}
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
+          kube_token: ${{ secrets.KUBE_TOKEN_LAA_DATA_CLAIMS_API_UAT }}
+          kube_cert: ${{ secrets.KUBE_CERT_LAA_DATA_CLAIMS_API_UAT }}
+
+      - name: Port forward to data claims db
+        uses: ./.github/actions/port-forward
+        with:
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
+          pod_selector: run=port-forward-pod
+          local_port: "5432"
+          pid_env_var: PORT_FORWARD_PID_DSTEW_DB
+          wait_label: dstew-db
+
+      - name: Port forward to data claims api
+        uses: ./.github/actions/port-forward
+        with:
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
+          pod_selector: app.kubernetes.io/name=data-claims-api,app.kubernetes.io/instance=main
+          local_port: "8080"
+          pid_env_var: PORT_FORWARD_PID_DSTEW_API
+          wait_label: dstew-api
+      
+      - name: Authenticate to the SaBC EKS cluster
         uses: ./.github/actions/authenticate-to-eks-cluster
         with:
           kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
@@ -90,45 +125,73 @@ jobs:
           kube_token: ${{ secrets.KUBE_TOKEN_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
           kube_cert: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
 
+      - name: Port forward to SaBC pod
+        uses: ./.github/actions/port-forward
+        with:
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          pod_selector: app.kubernetes.io/name=uat-submit-a-bulk-claim
+          local_port: "8082"
+          pid_env_var: PORT_FORWARD_PID_SABC
+          wait_label: sabc
+
+      - name: Authenticate to the FSP EKS cluster
+        uses: ./.github/actions/authenticate-to-eks-cluster
+        with:
+          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          kube_token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
+          kube_cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
+
+      - name: Port forward to FPS-API pod
+        uses: ./.github/actions/port-forward
+        with:
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          pod_selector: app.kubernetes.io/name=laa-fee-scheme-api
+          local_port: "8085"
+          pid_env_var: PORT_FORWARD_PID
+          wait_label: fsp-api
+      
       - name: Create .env file
         shell: bash
         run: |
           cat <<EOF > .env
-          API_BASE_URL=${{ secrets.API_BASE_URL }}
-          API_TOKEN=${{ secrets.API_TOKEN }}
+          FSP_API_BASE_URL=${{ secrets.FSP_API_BASE_URL }}
+          FSP_API_TOKEN=${{ secrets.FSP_API_TOKEN }}
+          DSTEW_API_BASE_URL=${{ secrets.DSTEW_API_BASE_URL }}
+          DSTEW_API_TOKEN=${{ secrets.DSTEW_API_TOKEN }}
           MFA_SECRET=${{ secrets.MFA_SECRET }}
           PASSWORD=${{ secrets.PASSWORD }}
           UI_BASE_URL=${{ secrets.UI_BASE_URL }}
           USERNAME=${{ secrets.USERNAME }}
+          DB_HOST=${{ secrets.DB_HOST }}
+          DB_PORT=${{ secrets.DB_PORT }}
+          DB_USER=${{ secrets.DB_USER }}
+          DB_PASS=${{ secrets.DB_PASS }}
+          DB_NAME=${{ secrets.DB_NAME }}
+          DB_SSL=${{ secrets.DB_SSL }}
           HEADLESS=true
           EOF
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Port forward to SaBC pod
-        env:
-          KUBE_NAMESPACE: ${{ secrets.kube_namespace }}
-        run: |
-          POD_LABEL="app.kubernetes.io/name=uat-submit-a-bulk-claim"
-          POD_NAME=$(kubectl get pod -n "$KUBE_NAMESPACE" -l "$POD_LABEL" -o jsonpath='{.items[0].metadata.name}')
-          echo "Port forwarding pod: $POD_NAME"
-          kubectl port-forward -n "$KUBE_NAMESPACE" pod/"$POD_NAME" 8082:8082 > pf.log 2>&1 &
-          PORT_FORWARD_PID=$!
-          echo "Port-forward started with PID $PORT_FORWARD_PID"
-
-          echo "PORT_FORWARD_PID=$PORT_FORWARD_PID" >> "$GITHUB_ENV"
-
       - name: Run UI Tests
+        env:
+          CUCUMBER_TAGS: ${{ inputs.tags }}
         run: |
-          npm run test:ui
+          ./scripts/wait-for-port.sh 5432 dstew-db 
+          ./scripts/wait-for-port.sh 8080 dstew-api 
+          ./scripts/wait-for-port.sh 8082 sabc
+          ./scripts/wait-for-port.sh 8085 fsp-api
 
-      - name: Stop port forward to SaBC pod
+          npm run login
+          npx cucumber-js -p bulksubmission --parallel 4 --retry 1
+
+      - name: Publish Cucumber summary
         if: always()
-        run: |
-          if [[ -n "${PORT_FORWARD_PID:-}" ]]; then
-            echo "Stopping port-forward with PID $PORT_FORWARD_PID"
-            kill "$PORT_FORWARD_PID" || true
-          else
-            echo "No port-forward PID recorded"
-          fi
+        run: node scripts/cucumber-summary.js
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-e2e-reports
+          path: reports
+          if-no-files-found: warn
