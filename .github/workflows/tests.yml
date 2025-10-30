@@ -75,14 +75,5 @@ jobs:
   ui-tests:
     uses: ./.github/workflows/ui-tests.yml
     secrets: inherit
-    strategy:
-      matrix:
-        feature:
-          - bulkSubmission
-          - content
-          - fileUploadValidation
-          - search
-          - submissionValidation
     with:
       branch: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref }}
-      feature: ${{ matrix.feature }}

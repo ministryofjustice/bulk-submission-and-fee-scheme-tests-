@@ -67,17 +67,14 @@ class LoginPage extends BasePage {
         await this.enterPassword(`${process.env.PASSWORD}`);
         await this.clickSignIn();
 
-        await this.otcInput.waitFor({state: 'visible'})
-
         const secret = process.env.MFA_SECRET;
         if (!secret) {
             console.error('Missing MFA_SECRET in .env');
             process.exit(1);
         }
 
-        const code = authenticator.generate(secret);
-        await this.otcInput.fill(code)
-        await this.verifyButton.click()
+        await this.otcInput.waitFor({state: 'visible'});
+        await this.resolveOneTimeCode(secret);
 
         const expectedBaseUrl = process.env.UI_BASE_URL;
         if (expectedBaseUrl) {
@@ -96,6 +93,48 @@ class LoginPage extends BasePage {
 
         const title = await this.page.title();
         await expect(title).toContain('Submit a bulk claim');
+    }
+
+    private async resolveOneTimeCode(secret: string) {
+        const maxAttempts = 5;
+        const errorBanner = this.page.locator('#idSpan_SAOTCC_Error_OTC');
+
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            const code = authenticator.generate(secret);
+            await this.otcInput.fill(code);
+            await this.verifyButton.click();
+
+            try {
+                await this.otcInput.waitFor({state: 'hidden', timeout: 10_000});
+                return;
+            } catch {
+                await this.page.waitForTimeout(750);
+
+                const hasError = await errorBanner.isVisible().catch(() => false);
+                const stillOnOtpPage = this.page.url().includes('login.microsoftonline');
+
+                if (!hasError && !stillOnOtpPage) {
+                    return;
+                }
+
+                if (attempt === maxAttempts) {
+                    throw new Error('MFA verification failed after multiple attempts');
+                }
+
+                await this.waitForNextOtpWindow();
+            }
+        }
+    }
+
+    private async waitForNextOtpWindow() {
+        if (typeof authenticator.timeRemaining === 'function') {
+            const remaining = authenticator.timeRemaining();
+            const waitMs = remaining > 1 ? (remaining + 1) * 1_000 : 1_500;
+            await this.page.waitForTimeout(waitMs);
+            return;
+        }
+
+        await this.page.waitForTimeout(1_500);
     }
 }
 
