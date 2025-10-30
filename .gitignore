@@ -26,7 +26,7 @@ yarn-error.log*
 
 # local env files
 .env*.local
-.env
+tests/utils/.env
 
 # vercel
 .vercel
@@ -40,7 +40,7 @@ next-env.d.ts
 /reports
 
 # local env
-.env
+tests/utils/.env
 
 generated_submissions_crime
 generated_submissions_legal
