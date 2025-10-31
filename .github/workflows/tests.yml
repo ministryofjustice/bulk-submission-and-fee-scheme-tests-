@@ -183,7 +183,7 @@ jobs:
 
           npm run login
           npm run teardown
-          npx cucumber-js -p bulksubmission --parallel 4 --retry 1
+          npx cucumber-js -p bulksubmission --retry 1
 
       - name: Publish Cucumber summary
         if: always()
