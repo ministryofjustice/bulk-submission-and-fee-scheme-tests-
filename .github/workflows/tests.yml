@@ -73,7 +73,126 @@ jobs:
           if-no-files-found: warn
 
   ui-tests:
-    uses: ./.github/workflows/ui-tests.yml
-    secrets: inherit
-    with:
-      branch: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref }}
+    environment: uat
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.54.2-jammy 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch || github.ref }}
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: v1.29.4
+
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Authenticate to the DSTEW EKS cluster
+        uses: ./.github/actions/authenticate-to-eks-cluster
+        with:
+          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_DATA_CLAIMS_API_UAT }}
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
+          kube_token: ${{ secrets.KUBE_TOKEN_LAA_DATA_CLAIMS_API_UAT }}
+          kube_cert: ${{ secrets.KUBE_CERT_LAA_DATA_CLAIMS_API_UAT }}
+
+      - name: Port forward to data claims db
+        uses: ./.github/actions/port-forward
+        with:
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
+          pod_selector: run=port-forward-pod
+          local_port: "5432"
+          pid_env_var: PORT_FORWARD_PID_DSTEW_DB
+          wait_label: dstew-db
+
+      - name: Port forward to data claims api
+        uses: ./.github/actions/port-forward
+        with:
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
+          pod_selector: app.kubernetes.io/name=data-claims-api,app.kubernetes.io/instance=main
+          local_port: "8080"
+          pid_env_var: PORT_FORWARD_PID_DSTEW_API
+          wait_label: dstew-api
+      
+      - name: Authenticate to the SaBC EKS cluster
+        uses: ./.github/actions/authenticate-to-eks-cluster
+        with:
+          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube_token: ${{ secrets.KUBE_TOKEN_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube_cert: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+
+      - name: Port forward to SaBC pod
+        uses: ./.github/actions/port-forward
+        with:
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          pod_selector: app.kubernetes.io/name=uat-submit-a-bulk-claim
+          local_port: "8082"
+          pid_env_var: PORT_FORWARD_PID_SABC
+          wait_label: sabc
+
+      - name: Authenticate to the FSP EKS cluster
+        uses: ./.github/actions/authenticate-to-eks-cluster
+        with:
+          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          kube_token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
+          kube_cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
+
+      - name: Port forward to FPS-API pod
+        uses: ./.github/actions/port-forward
+        with:
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          pod_selector: app.kubernetes.io/name=laa-fee-scheme-api
+          local_port: "8085"
+          pid_env_var: PORT_FORWARD_PID
+          wait_label: fsp-api
+      
+      - name: Create .env file
+        shell: bash
+        run: |
+          cat <<EOF > .env
+          FSP_API_BASE_URL=${{ secrets.FSP_API_BASE_URL }}
+          FSP_API_TOKEN=${{ secrets.FSP_API_TOKEN }}
+          DSTEW_API_BASE_URL=${{ secrets.DSTEW_API_BASE_URL }}
+          DSTEW_API_TOKEN=${{ secrets.DSTEW_API_TOKEN }}
+          MFA_SECRET=${{ secrets.MFA_SECRET }}
+          PASSWORD=${{ secrets.PASSWORD }}
+          UI_BASE_URL=${{ secrets.UI_BASE_URL }}
+          USERNAME=${{ secrets.USERNAME }}
+          DB_HOST=${{ secrets.DB_HOST }}
+          DB_PORT=${{ secrets.DB_PORT }}
+          DB_USER=${{ secrets.DB_USER }}
+          DB_PASS=${{ secrets.DB_PASS }}
+          DB_NAME=${{ secrets.DB_NAME }}
+          DB_SSL=${{ secrets.DB_SSL }}
+          HEADLESS=true
+          EOF
+
+      - name: Run UI Tests
+        env:
+          CUCUMBER_TAGS: ${{ inputs.tags }}
+        run: |
+          ./scripts/wait-for-port.sh 5432 dstew-db 
+          ./scripts/wait-for-port.sh 8080 dstew-api 
+          ./scripts/wait-for-port.sh 8082 sabc
+          ./scripts/wait-for-port.sh 8085 fsp-api
+
+          npm run login
+#          npm run teardown
+          npx cucumber-js -p bulksubmission --retry 1 --parallel 4
+
+      - name: Publish Cucumber summary
+        if: always()
+        run: node scripts/cucumber-summary.js
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-e2e-reports
+          path: reports
+          if-no-files-found: warn
