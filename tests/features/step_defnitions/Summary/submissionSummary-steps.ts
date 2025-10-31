@@ -4,35 +4,52 @@ import { SubmissionSummaryPage } from '../../../pages/SubmissionSummaryPage';
 import {expect} from "@playwright/test";
 
 Then(
-    'I should see the submission summary for {string} with {string} claims',
-    async function (this: CustomWorld, areaOfLaw: string, claimCount: string) {
+    'I should see the submission summary for {string}',
+    async function (this: CustomWorld, areaOfLaw: string) {
         const summaryPage = new SubmissionSummaryPage(this.page!);
 
         await summaryPage.verifySuccessBanner();
 
         const summary = await summaryPage.validateSummary(areaOfLaw);
-        const claims = await summaryPage.validateClaimsCount(Number(claimCount));
 
         await this.attach(`✅ Summary validated:\n${JSON.stringify(summary, null, 2)}`, 'text/plain');
-        await this.attach(`✅ Claims validated (${claims.length} found)`, 'text/plain');
     }
 );
 
 Then(
-    'I should have {int} submission error for {string}',
-    async function (this: CustomWorld, expectedErrorCount: number, areaOfLaw:string, dataTable) {
+    'I should see the submission summary for {string} with {string} claims',
+    async function (this: CustomWorld, areaOfLaw: string, claimCount: string) {
+      const summaryPage = new SubmissionSummaryPage(this.page!);
+
+      await summaryPage.verifySuccessBanner();
+
+      const summary = await summaryPage.validateSummary(areaOfLaw);
+      const claims = await summaryPage.validateClaimsCount(Number(claimCount));
+
+      await this.attach(`✅ Summary validated:\n${JSON.stringify(summary, null, 2)}`, 'text/plain');
+      await this.attach(`✅ Claims validated (${claims.length} found)`, 'text/plain');
+    }
+);
+
+
+Then(
+    'I should have duplicate submission error for {string} {string}',
+    async function (this: CustomWorld, office:string, areaOfLaw:string) {
             this.submissionSummaryPage = new SubmissionSummaryPage(this.page!);
+
+            await this.submissionSummaryPage.verifyErrorBanner(1);
 
             const errors = await this.submissionSummaryPage.getSubmissionErrors();
             await this.attach(`📋 Found ${errors.length} submission error(s).`, 'text/plain');
-            expect(errors.length).toBe(expectedErrorCount);
+            expect(errors.length).toBe(1);
 
             // 🧠 Extract the stored period and area of law for precise validation
             const submissionPeriod = this.submissionPeriod;
 
             // 🧩 Expected composite message structure
-            const expectedMessage = `Submission already exists for Office (0P322F), Area of Law (${areaOfLaw}),  Period (${submissionPeriod})`;
-            console.log(expectedMessage)
+            const expectedMessage = `Submission already exists for Office (${office}), Area of Law (${areaOfLaw.toUpperCase()}), Period (${submissionPeriod})`;
+            await this.attach(`Expecting: ${expectedMessage}`, 'text/plain');
+            await this.attach(`Actual: ${errors[0]}`, 'text/plain');
 
             await this.attach(`🔎 Expecting to find message:\n${expectedMessage}`, 'text/plain');
 

@@ -21,6 +21,8 @@ const offices = ['0P322F'];
 const feeCodes = ['CAPA','COM'];
 const OUTPUT_DIR = "generated_submissions_legal";
 const PROVIDER_API = process.env.PROVIDER_API || 'https://laa-provider-details-api-uat.apps.live.cloud-platform.service.justice.gov.uk/api/v1/provider-offices';
+const MIN_CASE_START = new Date( '2025-05-01');
+const MAX_CASE_START = new Date('2025-10-31');
 
 // ---------- 3️⃣ Helpers ----------
 const pad = (num: number, len = 2) => num.toString().padStart(len, "0");
@@ -73,7 +75,7 @@ const generateUniqueSubmissionPeriod = async (office: string): Promise<string> =
     const currentYear = now.getFullYear();
 
     do {
-        const submissionDate = faker.date.between({ from: new Date('2023-01-01'), to: new Date() });
+      const submissionDate = faker.date.between({ from: MIN_CASE_START, to: MAX_CASE_START });
         const month = submissionDate.getMonth();
         const year = submissionDate.getFullYear();
 
@@ -86,7 +88,9 @@ const generateUniqueSubmissionPeriod = async (office: string): Promise<string> =
         if (await isSubmissionPeriodUsed('LEGAL HELP', period, office)) continue;
 
         // ✅ Found a valid unique non-current-month period
-        return period;
+      console.log(`\n🚀 Found valid unique period: ${period}`);
+
+      return period;
 
     } while (attempts <= 50);
 
@@ -190,31 +194,39 @@ const generateOutcome = async (office: string, caseNum: number, submissionYear: 
 };
 
 // ---------- 7️⃣ File Generator ----------
-const generateFile = async (fileName: string, outcomesCount: number, fileType: 'txt' | 'csv') => {
-    const office = randomFrom(offices);
-    const submissionPeriod = await generateUniqueSubmissionPeriod(office);
+interface GenerateFileOptions {
+  office?: string;
+  ucn?: string;
+}
+
+const generateFile = async (fileName: string, outcomesCount: number, fileType: 'txt' | 'csv',
+                            options: GenerateFileOptions = {}) => {
+  const { office, ucn } = options;
+    const officeInput = office || randomFrom(offices);
+    const submissionPeriod = await generateUniqueSubmissionPeriod(officeInput);
     const submissionYear = parseInt(submissionPeriod.split('-')[1]);
 
     let content = `OFFICE,account=${office}\n`;
     content += `SCHEDULE,submissionPeriod=${submissionPeriod},areaOfLaw=LEGAL HELP,scheduleNum=${office}/CIVIL\n`;
 
     for (let i = 1; i <= outcomesCount; i++) {
-        const o = await generateOutcome(office, i, submissionYear);
+        const o = await generateOutcome(officeInput, i, submissionYear);
         const feeCode = randomFrom(feeCodes);
-
-        content += `OUTCOME,FEE_CODE=${feeCode},matterType=FAMX:FAPP,CASE_REF_NUMBER=${o.case_ref_number},CASE_START_DATE=${o.case_start_date},CASE_ID=${o.case_id},UFN=${o.ufn},PROCUREMENT_AREA=PA00120,ACCESS_POINT=AP00000,CLIENT_FORENAME=${o.client_forename},CLIENT_SURNAME=${o.client_surname},CLIENT_DATE_OF_BIRTH=${o.client_date_of_birth},UCN=${o.ucn},GENDER=${o.gender},ETHNICITY=${o.ethnicity},DISABILITY=${o.disability},CLIENT_POST_CODE=${o.client_post_code},WORK_CONCLUDED_DATE=${o.work_concluded_date},CASE_STAGE_LEVEL=FPC01,ADVICE_TIME=${o.advice_time},TRAVEL_TIME=${o.travel_time},WAITING_TIME=${o.waiting_time},PROFIT_COST=${o.profit_cost},DISBURSEMENTS_AMOUNT=${o.disbursements_amount},COUNSEL_COST=${o.counsel_cost},DISBURSEMENTS_VAT=${o.disbursements_vat},TRAVEL_WAITING_COSTS=0.00,VAT_INDICATOR=${o.vat_indicator},LONDON_NONLONDON_RATE=${o.london_nonlondon_rate},TRAVEL_COSTS=${o.travel_costs},OUTCOME_CODE=${o.outcome_code},POSTAL_APPL_ACCP=N,SCHEDULE_REF=${o.schedule_ref}\n`;
+        let ucnInput = ucn || o.ucn;
+        content += `OUTCOME,FEE_CODE=${feeCode},matterType=FAMX:FAPP,CASE_REF_NUMBER=${o.case_ref_number},CASE_START_DATE=${o.case_start_date},CASE_ID=${o.case_id},UFN=${o.ufn},PROCUREMENT_AREA=PA00120,ACCESS_POINT=AP00000,CLIENT_FORENAME=${o.client_forename},CLIENT_SURNAME=${o.client_surname},CLIENT_DATE_OF_BIRTH=${o.client_date_of_birth},UCN=${ucnInput},GENDER=${o.gender},ETHNICITY=${o.ethnicity},DISABILITY=${o.disability},CLIENT_POST_CODE=${o.client_post_code},WORK_CONCLUDED_DATE=${o.work_concluded_date},CASE_STAGE_LEVEL=FPC01,ADVICE_TIME=${o.advice_time},TRAVEL_TIME=${o.travel_time},WAITING_TIME=${o.waiting_time},PROFIT_COST=${o.profit_cost},DISBURSEMENTS_AMOUNT=${o.disbursements_amount},COUNSEL_COST=${o.counsel_cost},DISBURSEMENTS_VAT=${o.disbursements_vat},TRAVEL_WAITING_COSTS=0.00,VAT_INDICATOR=${o.vat_indicator},LONDON_NONLONDON_RATE=${o.london_nonlondon_rate},TRAVEL_COSTS=${o.travel_costs},OUTCOME_CODE=${o.outcome_code},POSTAL_APPL_ACCP=N,SCHEDULE_REF=${o.schedule_ref}\n`;
     }
 
     if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);
     fs.writeFileSync(path.join(OUTPUT_DIR, `${fileName}.${fileType}`), content, 'utf-8');
-    console.log(`✅ Generated ${fileName}.${fileType} with ${outcomesCount} outcomes for office ${office}`);
+    console.log(`✅ Generated ${fileName}.${fileType} with ${outcomesCount} outcomes for office ${officeInput}`);
 };
 
 
 export async function GenerateCivilFile(
     files: number,
     outcomes: number,
-    format: 'txt' | 'csv' | 'xml'
+    format: 'txt' | 'csv' | 'xml',
+    options: GenerateFileOptions = {},
 ) {
     const generatedFiles: string[] = [];
 
@@ -229,7 +241,7 @@ export async function GenerateCivilFile(
             const outputFile = path.join(OUTPUT_DIR, `${baseName}.xml`);
 
             // Generate the base file
-            await generateFile(baseName, outcomes, intermediateFormat);
+            await generateFile(baseName, outcomes, intermediateFormat, options);
             console.log(`🧾 File generated: ${inputFile}`);
 
             if (format === 'xml') {
