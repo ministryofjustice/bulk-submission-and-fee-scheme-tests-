@@ -3,10 +3,12 @@ import type {CustomWorld} from '../../support/world';
 import {GenerateCivilFile} from "../../../utils/scripts/generateCivilFiles";
 import {GenerateMediationFiles} from "../../../utils/scripts/generateMediationFiles";
 import {GenerateCrimeFiles} from "../../../utils/scripts/generateCrimeFiles";
+import { generateMatterStartsFile } from "../../../utils/scripts/generateMatterStartsFile";
 import path from "path";
 import {BulkImportPage} from "../../../pages/bulkImportPage";
 import FormData from "form-data";
 import fs from "fs";
+import { getUniqueSubmissionPeriod, generateScheduleRef } from "../../../utils/scripts/submissionPeriodHelper";
 
 Given('I generate {string} {string} file with {string} outcomes', async function (this: CustomWorld, areaOfLaw, format, outcomes) {
     let files
@@ -45,6 +47,28 @@ Given('I generate {string} {string} file with {string} outcomes', async function
     this.generatedFilePath = filePath;
     await this.attach(`📁 Generated file for upload: ${fileName}`, 'text/plain');
 });
+
+When(
+    'I generate {string} {string} with all matter type file',
+    async function (this: CustomWorld, areaOfLaw: string, format: string) {
+        const result = await generateMatterStartsFile(areaOfLaw, format, '', 1, { includeAllCodes: true });
+
+        this.fileName = result.fileName;
+        this.generatedFilePath = result.filePath;
+        this.matterStartCounts = result.counts;
+        this.submissionPeriod = result.submissionPeriod;
+        this.officeAccount = result.officeAccount;
+
+        await this.attach(
+            `📝 Generated matter starts file (all codes): ${result.fileName}`,
+            'text/plain'
+        );
+        await this.attach(
+            `🗓 Submission period: ${result.submissionPeriod}\n📄 Schedule ref: ${result.scheduleRef}`,
+            'text/plain'
+        );
+    }
+);
 
 
 When('I upload the generated file', async function (this: CustomWorld) {

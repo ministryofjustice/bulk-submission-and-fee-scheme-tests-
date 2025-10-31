@@ -12,7 +12,7 @@ const AppDataSource = new DataSource({
     username: process.env.DB_USER,
     password: process.env.DB_PASS,
     database: process.env.DB_NAME,
-    ssl: { rejectUnauthorized: false },
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
     synchronize: false,
 });
 
@@ -144,27 +144,29 @@ async function getRecentSubmissionIdsForUser(
 }
 
 // ---------- 4️⃣ Execute Automatically ----------
-(async () => {
-    const providerUser = 'Test.User-submit-a-bulk-claim-auto-test@devl.justice.gov.uk';
+if (require.main === module) {
+    (async () => {
+        const providerUser = 'Test.User-submit-a-bulk-claim-auto-test@devl.justice.gov.uk';
 
-    try {
-        await AppDataSource.initialize();
-        console.log('✅ Database connection established');
+        try {
+            await AppDataSource.initialize();
+            console.log('✅ Database connection established');
 
-        const submissionIdsToDelete = await getRecentSubmissionIdsForUser(AppDataSource, providerUser);
+            const submissionIdsToDelete = await getRecentSubmissionIdsForUser(AppDataSource, providerUser);
 
-        if (submissionIdsToDelete.length === 0) {
-            console.log(`⚠️ No submissions found for ${providerUser} in the past 4 days.`);
-        } else {
-            console.log(`🧾 Found ${submissionIdsToDelete.length} submission(s) for ${providerUser} in the past 4 days.`);
-            await cleanSubmissionData(AppDataSource, submissionIdsToDelete);
+            if (submissionIdsToDelete.length === 0) {
+                console.log(`⚠️ No submissions found for ${providerUser} in the past 4 days.`);
+            } else {
+                console.log(`🧾 Found ${submissionIdsToDelete.length} submission(s) for ${providerUser} in the past 4 days.`);
+                await cleanSubmissionData(AppDataSource, submissionIdsToDelete);
+            }
+        } catch (error) {
+            console.error('❌ Cleanup failed:', error);
+        } finally {
+            if (AppDataSource.isInitialized) {
+                await AppDataSource.destroy();
+                console.log('🔒 Database connection closed');
+            }
         }
-    } catch (error) {
-        console.error('❌ Cleanup failed:', error);
-    } finally {
-        if (AppDataSource.isInitialized) {
-            await AppDataSource.destroy();
-            console.log('🔒 Database connection closed');
-        }
-    }
-})();
+    })();
+}

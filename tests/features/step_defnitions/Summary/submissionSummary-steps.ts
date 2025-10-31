@@ -11,10 +11,64 @@ Then(
         await summaryPage.verifySuccessBanner();
 
         const summary = await summaryPage.validateSummary(areaOfLaw);
+        const reference = summary['Reference'];
+        if (reference) {
+            this.cleanupSubmissionIds.add(reference);
+            this.submissionReference = reference;
+        }
+        this.officeAccount = summary['Account'];
+        this.submissionPeriod = summary['Submission period'];
+
         const claims = await summaryPage.validateClaimsCount(Number(claimCount));
 
         await this.attach(`✅ Summary validated:\n${JSON.stringify(summary, null, 2)}`, 'text/plain');
         await this.attach(`✅ Claims validated (${claims.length} found)`, 'text/plain');
+    }
+);
+
+Then(
+    'I should see the submission summary for {string} with matter starts matching the generated file',
+    async function (this: CustomWorld, areaOfLaw: string) {
+        const summaryPage = new SubmissionSummaryPage(this.page!);
+
+        await summaryPage.verifySuccessBanner();
+        const summary = await summaryPage.validateSummary(areaOfLaw);
+        const reference = summary['Reference'];
+        if (reference) {
+            this.cleanupSubmissionIds.add(reference);
+            this.submissionReference = reference;
+        }
+        this.officeAccount = summary['Account'];
+        this.submissionPeriod = summary['Submission period'];
+
+        const expectedMatterStarts = this.matterStartCounts || {};
+        const areaKey = areaOfLaw.trim().toLowerCase();
+
+        let validationMessage = '';
+        if (areaKey === 'mediation') {
+            const totalExpected = Object.values(expectedMatterStarts).reduce((acc, value) => acc + value, 0);
+            const matterStarts = await summaryPage.getMatterStartsData();
+            const totalRow = matterStarts.find((row) => row.code.toLowerCase().includes('new matter starts')) ?? matterStarts[0];
+
+            expect(totalRow, 'Expected to find a "New matter starts" total row').toBeTruthy();
+            expect(totalRow?.count).toBe(totalExpected);
+
+            validationMessage = `✅ Mediation matter starts total matched: expected ${totalExpected}, UI ${totalRow?.count}`;
+            await this.attach(
+                `📋 UI matter starts rows:\n${JSON.stringify(matterStarts, null, 2)}`,
+                'text/plain'
+            );
+        } else {
+            const matterStarts = await summaryPage.validateMatterStarts(expectedMatterStarts);
+            validationMessage = `✅ Matter starts per code matched (${Object.keys(expectedMatterStarts).length} codes)`;
+            await this.attach(
+                `📋 UI matter starts rows:\n${JSON.stringify(matterStarts, null, 2)}`,
+                'text/plain'
+            );
+        }
+
+        await this.attach(`✅ Summary validated:\n${JSON.stringify(summary, null, 2)}`, 'text/plain');
+        await this.attach(validationMessage, 'text/plain');
     }
 );
 

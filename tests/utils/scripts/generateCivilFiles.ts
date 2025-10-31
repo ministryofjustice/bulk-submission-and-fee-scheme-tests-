@@ -1,3 +1,4 @@
+import { getUniqueSubmissionPeriod } from './submissionPeriodHelper';
 import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
@@ -6,32 +7,9 @@ import { faker } from '@faker-js/faker';
 import { convertFileToXml } from './converter';
 import 'reflect-metadata';
 import dotenv from 'dotenv';
-import os from "os";
-import { createDataSourceManager } from '../db/dataSourceManager';
 dotenv.config();
 
-// 🔒 Cache file to track used submission periods during test runs
-const USED_PERIODS_FILE = path.join(os.tmpdir(), 'legal_used_submission_periods.json');
-
-// Ensure cache exists
-if (!fs.existsSync(USED_PERIODS_FILE)) fs.writeFileSync(USED_PERIODS_FILE, JSON.stringify([]), 'utf-8');
-
-const readUsedPeriods = (): string[] => {
-    try {
-        return JSON.parse(fs.readFileSync(USED_PERIODS_FILE, 'utf-8'));
-    } catch {
-        return [];
-    }
-};
-
-const writeUsedPeriods = (periods: string[]) => {
-    fs.writeFileSync(USED_PERIODS_FILE, JSON.stringify(periods), 'utf-8');
-    console.log(`✅ Updated used periods cache: ${USED_PERIODS_FILE}`);
-};
-
-// ---------- 1️⃣ Database Setup ----------
-const dataSourceManager = createDataSourceManager({ label: 'generateCivilFiles' });
-
+// ---------- 1️⃣ Setup ----------
 let providerApiAvailable = true;
 
 // ---------- 2️⃣ Config ----------
@@ -61,66 +39,6 @@ const generateUCN = (dob: Date, surname: string, initial: string) => {
     const yyyy = dob.getFullYear();
     return `${dd}${mm}${yyyy}/${initial}/${sanitizeForCode(surname.slice(0, 3))}`;
 };
-
-// ---------- 4️⃣ DB Submission Check ----------
-async function isSubmissionPeriodUsed(areaOfLaw: string, submissionPeriod: string, office: string): Promise<boolean> {
-    const dataSource = dataSourceManager.getDataSource();
-    if (!dataSource.isInitialized) return false;
-
-    const result = await dataSource.query(
-        `SELECT 1 
-         FROM claims.submission 
-         WHERE area_of_law = $1 
-           AND submission_period = $2 
-           AND office_account_number = $3 
-           AND status = 'VALIDATION_SUCCEEDED'
-         LIMIT 1`,
-        [areaOfLaw, submissionPeriod, office]
-    );
-    return result.length > 0;
-}
-
-const generateUniqueSubmissionPeriod = async (office: string,areaOfLaw="LEGAL HELP"): Promise<string> => {
-    const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
-    let period: string;
-    let attempts = 0;
-
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    const usedPeriods = readUsedPeriods();
-
-    do {
-        const submissionDate = faker.date.between({ from: new Date('2023-01-01'), to: new Date() });
-        const month = submissionDate.getMonth();
-        const year = submissionDate.getFullYear();
-
-        // ✅ Skip if it's the current month and year
-        if (month === currentMonth && year === currentYear) continue;
-
-        period = `${months[month]}-${year}`;
-        attempts++;
-
-        // const key = `${areaOfLaw}_${office}_${period}`;
-
-        const key = `${areaOfLaw}_${office}_${period}`;
-        const alreadyUsed = usedPeriods.includes(key);
-
-// 🧠 Also check DB for duplicates for this area of law
-        if (alreadyUsed || await isSubmissionPeriodUsed(areaOfLaw.toUpperCase(), period, office)) continue;
-
-// ✅ Mark as used immediately to prevent reuse in parallel runs
-        usedPeriods.push(key);
-        writeUsedPeriods(usedPeriods);
-
-        return period;
-
-    } while (attempts <= 50);
-
-    throw new Error(`Cannot find unique submission period for office ${office}`);
-};
-
 
 // ---------- 5️⃣ Provider API Check ----------
 const fetchProviderSchedules = async (office: string, caseStartDate: Date) => {
@@ -221,7 +139,7 @@ const generateOutcome = async (office: string, caseNum: number, submissionYear: 
 // ---------- 7️⃣ File Generator ----------
 const generateFile = async (fileName: string, outcomesCount: number, fileType: 'txt' | 'csv') => {
     const office = randomFrom(offices);
-    const submissionPeriod = await generateUniqueSubmissionPeriod(office);
+    const submissionPeriod = await getUniqueSubmissionPeriod(office, 'LEGAL HELP');
     const submissionYear = parseInt(submissionPeriod.split('-')[1]);
 
     let content = `OFFICE,account=${office}\n`;
@@ -247,8 +165,6 @@ export async function GenerateCivilFile(
     suffix?: string
 ) {
     const generatedFiles: string[] = [];
-
-    await dataSourceManager.ensureInitialized();
 
     try {
         for (let i = 1; i <= files; i++) {
@@ -288,6 +204,6 @@ export async function GenerateCivilFile(
         console.error('❌ Error:', err);
         throw err;
     } finally {
-        await dataSourceManager.destroy();
+        // No shared DB connection to close here
     }
 }

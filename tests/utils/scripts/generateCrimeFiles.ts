@@ -5,31 +5,10 @@ import { faker } from '@faker-js/faker';
 import 'reflect-metadata';
 import dotenv from 'dotenv';
 import {convertFileToXml} from "./converter";
-import { createDataSourceManager } from '../db/dataSourceManager';
-import os from "os";
+import { getUniqueSubmissionPeriod } from './submissionPeriodHelper';
 dotenv.config();
 
-const USED_PERIODS_FILE = path.join(os.tmpdir(), 'crime_used_submission_periods.json');
-console.log(`🧠 Crime cache file: ${USED_PERIODS_FILE}`);
-
-if (!fs.existsSync(USED_PERIODS_FILE)) fs.writeFileSync(USED_PERIODS_FILE, JSON.stringify([]), 'utf-8');
-
-const readUsedPeriods = (): string[] => {
-    try {
-        return JSON.parse(fs.readFileSync(USED_PERIODS_FILE, 'utf-8')) || [];
-    } catch {
-        return [];
-    }
-};
-
-const writeUsedPeriods = (periods: string[]) => {
-    fs.writeFileSync(USED_PERIODS_FILE, JSON.stringify(periods, null, 2), 'utf-8');
-    console.log(`✅ Updated used periods cache: ${USED_PERIODS_FILE}`);
-};
-
-// ---------- 1️⃣ Database Setup ----------
-const dataSourceManager = createDataSourceManager({ label: 'generateCrimeFiles' });
-
+// ---------- 1️⃣ Setup ----------
 let providerApiAvailable = true;
 
 // ---------- 2️⃣ Config ----------
@@ -65,55 +44,8 @@ const generateUFN = (date: Date, caseNum: number) => {
     return `${dd}${mm}${yy}/${nnn}`;
 };
 
-// ---------- 4️⃣ DB Submission Check ----------
-async function isSubmissionPeriodUsed(areaOfLaw: string, submissionPeriod: string, office: string): Promise<boolean> {
-    const dataSource = dataSourceManager.getDataSource();
-    if (!dataSource.isInitialized) return false;
-
-    const result = await dataSource.query(
-        `SELECT 1 
-         FROM claims.submission 
-         WHERE area_of_law = $1 
-           AND submission_period = $2 
-           AND office_account_number = $3 
-           AND status = 'VALIDATION_SUCCEEDED'
-         LIMIT 1`,
-        [areaOfLaw, submissionPeriod, office]
-    );
-    return result.length > 0;
-}
-
-const generateUniqueSubmissionPeriod = async (office: string,areaOfLaw="CRIME LOWER"): Promise<string> => {
-    const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-    let period: string;
-    let attempts = 0;
-
-    const usedPeriods = readUsedPeriods();
-
-    do {
-        const submissionDate = faker.date.between({ from: new Date('2022-01-01'), to: new Date() });
-        period = `${months[submissionDate.getMonth()]}-${submissionDate.getFullYear()}`;
-        attempts++;
-        if (attempts > 50) throw new Error(`Cannot find unique submission period for office ${office}`);
-
-        // 🔑 Combine area + office + period
-        const key = `${areaOfLaw}_${office}_${period}`;
-        const alreadyUsed = usedPeriods.includes(key);
-        const dbUsed = await isSubmissionPeriodUsed(areaOfLaw.toUpperCase(), period, office);
-
-        if (alreadyUsed || dbUsed) continue;
-
-        // ✅ Mark as used immediately to prevent parallel reuse
-        usedPeriods.push(key);
-        writeUsedPeriods(usedPeriods);
-        console.log(`🧩 Using new unique period for ${areaOfLaw}: ${period}`);
-
-        return period;
-    } while (attempts <= 50);
-
-    throw new Error(`Cannot find unique submission period for ${areaOfLaw} (${office})`);
-};
-
+// ---------- 4️⃣ Provider API Check ----------
+// ---------- 4️⃣ Provider API Check ----------
 const fetchProviderSchedules = async (office: string, caseStartDate: Date) => {
     if (!providerApiAvailable) return undefined;
 
@@ -215,7 +147,7 @@ const generateOutcome = async (office: string, caseNum: number) => {
 // ---------- 7️⃣ File Generator ----------
 const generateFile = async (fileName: string, outcomesCount: number, fileType: 'txt' | 'csv') => {
     const office = randomFrom(offices);
-    const submissionPeriod = await generateUniqueSubmissionPeriod(office,'CRIME LOWER');
+    const submissionPeriod = await getUniqueSubmissionPeriod(office, 'CRIME LOWER');
 
     let content = `OFFICE,account=${office}\n`;
     content += `SCHEDULE,submissionPeriod=${submissionPeriod},areaOfLaw=CRIME LOWER,scheduleNum=${office}/CRM\n`;
@@ -240,8 +172,6 @@ export async function GenerateCrimeFiles(
     suffix?: string
 ): Promise<string[]> {
     const generatedFiles: string[] = [];
-
-    await dataSourceManager.ensureInitialized();
 
     try {
         for (let i = 1; i <= files; i++) {
@@ -281,6 +211,6 @@ export async function GenerateCrimeFiles(
         console.error('❌ Error:', err);
         throw err;
     } finally {
-        await dataSourceManager.destroy();
+        // No shared DB connection to close here
     }
 }
