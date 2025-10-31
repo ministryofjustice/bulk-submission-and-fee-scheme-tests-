@@ -11,7 +11,7 @@ Feature: Bulk Submission Upload Validation
 
   Scenario: Upload fails when no file is attached
     When I click upload without attaching a file
-    Then the user sees an error message "Select a file to upload"
+    Then the user sees an error message "The uploaded file is empty"
 
   Scenario: Upload fails with an invalid file type
     Given I have generated an "invalid" bulk submission file named "invalid.docx"

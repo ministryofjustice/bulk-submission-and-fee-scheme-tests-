@@ -152,6 +152,8 @@
 
 
 // tests/features/support/hooks.ts
+
+
 import {
   BeforeAll,
   Before,
@@ -167,6 +169,7 @@ import World from './world';
 import * as fs from 'fs';
 import * as path from 'path';
 import os from 'os';
+import {runSubmissionCleanup} from "../../utils/scripts/cleanup-submissions";
 
 setDefaultTimeout(60 * 1000);
 
@@ -182,15 +185,14 @@ BeforeAll(function () {
   }
 });
 
-// ---------- UI Hooks (Option 2: fresh browser per scenario) ----------
+// ---------- UI Hooks ----------
 Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHookParameter) {
   this.currentScenarioName = scenario.pickle.name || 'UnnamedScenario';
 
-  // Always launch a brand-new browser for this scenario
+  // Launch a new browser and incognito context per scenario
   await this.openBrowser();
-  await this.attach('🌐 Browser launched for scenario', 'text/plain');
+  await this.attach(`🌐 Browser launched for scenario with PID ${this.pid}`, 'text/plain');
 
-  // Reuse login if storageState.json exists
   const globalStorage = path.resolve('storageState.json');
   const storageState = fs.existsSync(globalStorage) ? globalStorage : undefined;
 
@@ -211,7 +213,7 @@ After({ tags: 'not @api' }, async function (this: World) {
     }
     if (this.browser) {
       await this.browser.close();
-      console.log('🧹 Closed browser after scenario');
+      console.log(`🧹 Closed browser for PID ${this.pid}`);
       this.browser = undefined;
     }
   } catch (err) {
@@ -236,7 +238,7 @@ AfterStep({ tags: 'not @api' }, async function (this: World, step: ITestStepHook
 
 AfterAll(async function () {
   try {
-    // Clean any temp files your tests might have left behind
+    // Clean temp files
     const files = fs.readdirSync(os.tmpdir());
     files
         .filter((f) => f.endsWith('_used_submission_periods.json'))
@@ -244,9 +246,23 @@ AfterAll(async function () {
           fs.unlinkSync(path.join(os.tmpdir(), f));
           console.log(`🧹 Deleted cache file: ${f}`);
         });
+
+    // Print PID registry summary
+    const registry = (global as any).__scenarioRegistry || {};
+    const entries = Object.entries(registry);
+    if (entries.length) {
+      console.log('\n📊 Scenario-to-PID mapping summary:');
+      console.table(entries.map(([pid, name]) => ({ PID: pid, Scenario: name })));
+    } else {
+      console.log('ℹ️ No scenarios were registered.');
+    }
   } catch (err) {
     console.warn('⚠️ Failed to clean up after all tests:', err);
   }
+
+  console.log('\n🧼 Starting database cleanup for test submissions...');
+  await runSubmissionCleanup();
+  console.log('✅ Database cleanup finished.');
 });
 
 // ---------- API Evidence Helpers ----------

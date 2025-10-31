@@ -10,7 +10,7 @@ import os from "os";
 dotenv.config();
 
 const USED_PERIODS_FILE = path.join(os.tmpdir(), 'crime_used_submission_periods.json');
-console.log(`🧠 Crime cache file: ${USED_PERIODS_FILE}`);
+// console.log(`🧠 Crime cache file: ${USED_PERIODS_FILE}`);
 
 if (!fs.existsSync(USED_PERIODS_FILE)) fs.writeFileSync(USED_PERIODS_FILE, JSON.stringify([]), 'utf-8');
 
@@ -88,10 +88,16 @@ const generateUniqueSubmissionPeriod = async (office: string,areaOfLaw="CRIME LO
     let period: string;
     let attempts = 0;
 
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const endOfLastMonth = new Date(currentYear, currentMonth, 0); // ⬅️ end of last month
+
+
     const usedPeriods = readUsedPeriods();
 
     do {
-        const submissionDate = faker.date.between({ from: new Date('2022-01-01'), to: new Date() });
+        const submissionDate = faker.date.between({ from: new Date('2022-01-01'), to: endOfLastMonth  });
         period = `${months[submissionDate.getMonth()]}-${submissionDate.getFullYear()}`;
         attempts++;
         if (attempts > 50) throw new Error(`Cannot find unique submission period for office ${office}`);

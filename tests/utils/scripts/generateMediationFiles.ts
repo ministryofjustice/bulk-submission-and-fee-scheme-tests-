@@ -16,7 +16,7 @@ const AREA_OF_LAW = 'MEDIATION';
 
 const USED_PERIODS_FILE = path.join(os.tmpdir(), 'mediation_used_submission_periods.json');
 
-console.log(`🧠 ${AREA_OF_LAW} cache file: ${USED_PERIODS_FILE}`);
+// console.log(`🧠 ${AREA_OF_LAW} cache file: ${USED_PERIODS_FILE}`);
 
 // Ensure cache file exists
 if (!fs.existsSync(USED_PERIODS_FILE)) {

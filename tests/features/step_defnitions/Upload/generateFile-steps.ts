@@ -62,24 +62,24 @@ When('I upload the generated file', async function (this: CustomWorld) {
     // ✅ Click Upload (Continue)
     await bulkImportPage.clickUpload();
 
-    // ✅ Optional: wait for navigation or confirmation
-    await this.page!.waitForLoadState('networkidle');
+    const inProgressHeading = this.page!.locator('h1.moj-interruption-card__heading');
+    await inProgressHeading.waitFor({ state: 'visible', timeout: 60000 });
+    await inProgressHeading.waitFor({ state: 'hidden', timeout: 240000 });
 
-
-    const successBanner = this.page!.locator('.govuk-notification-banner--success');
-
-    try {
-        await successBanner.waitFor({
-            state: 'visible',
-            timeout: 30000, // up to 60 s to allow for server validation & redirect
-        });
-
-        const bannerText = await successBanner.textContent();
-        await this.attach(`✅ Upload succeeded. Message: ${bannerText}`, 'text/plain');
-    } catch {
-        await this.attach('❌ Submission success banner did not appear within 60 seconds.', 'text/plain');
-        // throw new Error('Submission success banner not found — upload may have failed.');
-    }
+    // const successBanner = this.page!.locator('.govuk-notification-banner--success');
+    //
+    // try {
+    //     await successBanner.waitFor({
+    //         state: 'visible',
+    //         timeout: 30000, // up to 60 s to allow for server validation & redirect
+    //     });
+    //
+    //     const bannerText = await successBanner.textContent();
+    //     await this.attach(`✅ Upload succeeded. Message: ${bannerText}`, 'text/plain');
+    // } catch {
+    //     await this.attach('❌ Submission success banner did not appear within 60 seconds.', 'text/plain');
+    //     // throw new Error('Submission success banner not found — upload may have failed.');
+    // }
 });
 
 
