@@ -23,15 +23,15 @@ Given('I generate {string} {string} file with {string} outcomes', async function
 
     switch (areaOfLaw) {
         case "Legal help" : {
-            generatedFiles = await GenerateCivilFile(files = 1, outcomes, format,uniqueSuffix)
+            generatedFiles = await GenerateCivilFile(files = 1, outcomes, format, uniqueSuffix)
         }
             break
         case "Mediation" : {
-            generatedFiles = await GenerateMediationFiles(files = 1, outcomes, format,uniqueSuffix)
+            generatedFiles = await GenerateMediationFiles(files = 1, outcomes, format, uniqueSuffix)
         }
             break
         case "Crime lower" : {
-            generatedFiles = await GenerateCrimeFiles(files = 1, outcomes, format,uniqueSuffix)
+            generatedFiles = await GenerateCrimeFiles(files = 1, outcomes, format, uniqueSuffix)
         }
             break
         default : {
@@ -99,13 +99,13 @@ When(
             // 🧩 Step 1: Generate the file dynamically
             switch (areaOfLaw.toLowerCase()) {
                 case 'legal help':
-                    generatedFiles = await GenerateCivilFile(1, outcomes, format,uniqueSuffix);
+                    generatedFiles = await GenerateCivilFile(1, outcomes, format, uniqueSuffix);
                     break;
                 case 'mediation':
-                    generatedFiles = await GenerateMediationFiles(1, outcomes, format,uniqueSuffix);
+                    generatedFiles = await GenerateMediationFiles(1, outcomes, format, uniqueSuffix);
                     break;
                 case 'crime lower':
-                    generatedFiles = await GenerateCrimeFiles(1, outcomes, format,uniqueSuffix);
+                    generatedFiles = await GenerateCrimeFiles(1, outcomes, format, uniqueSuffix);
                     break;
                 default:
                     throw new Error(`Invalid area of law: ${areaOfLaw}`);
@@ -139,7 +139,7 @@ When(
                 },
             });
 
-            const { bulk_submission_id, submission_ids } = uploadResp.data;
+            const {bulk_submission_id, submission_ids} = uploadResp.data;
             const submissionId = submission_ids?.[0];
             this.mostRecentSubmissionId = submissionId;
 
@@ -190,3 +190,17 @@ When(
         }
     }
 );
+
+When('I duplicate the last record in the generated file', async function (this: CustomWorld) {
+    const content = fs.readFileSync(this.generatedFilePath!, 'utf-8').trimEnd();
+
+    const lines = content.split('\n').filter(line => line.trim() !== '');
+    if (lines.length === 0) {
+        console.warn('⚠️ File is empty — nothing to duplicate.');
+        return;
+    }
+
+    const lastLine = lines[lines.length - 1];
+    fs.appendFileSync(this.generatedFilePath!, `${lastLine}`, 'utf-8');
+    console.log(`✅ Duplicated last line in ${path.basename(this.generatedFilePath!)}`);
+});

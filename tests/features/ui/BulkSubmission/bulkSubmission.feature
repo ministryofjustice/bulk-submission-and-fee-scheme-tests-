@@ -1,8 +1,10 @@
 @bulkSubmission
 Feature: Bulk Submission via UI
 
-  Scenario Outline: Successful bulk submission for <AreaOfLaw>
+  Background:
     Given I am on the bulk import page
+
+  Scenario Outline: Successful bulk submission for <AreaOfLaw>
     When I generate "<AreaOfLaw>" "<Format>" file with "<Outcomes>" outcomes
     And I upload the generated file
     Then I should see the submission summary for "<AreaOfLaw>" with "<Claims>" claims
@@ -22,7 +24,6 @@ Feature: Bulk Submission via UI
       | Crime lower | xml    | 0        | 0      |
 
   Scenario Outline: Submission Period Validation : Submission already exists for Office" for <AreaOfLaw>
-    Given I am on the bulk import page
     When I upload "<AreaOfLaw>" "<Format>" file with "<Outcomes>" outcomes via the API
     And I upload the generated file
     Then I should have 1 submission error for "<AreaOfLaw>"
@@ -40,3 +41,18 @@ Feature: Bulk Submission via UI
       | LEGAL HELP  | txt    | 0        |
       | MEDIATION   | txt    | 0        |
 
+
+  Scenario Outline: Duplicate Claim within the same submission <AreaOfLaw>
+    When I generate "<AreaOfLaw>" "<Format>" file with "<Outcomes>" outcomes
+    And I duplicate the last record in the generated file
+    And I upload the generated file
+    Then I should see an error banner saying "2 claims have errors for missing or incorrect information"
+    And I should see the following submission error messages for "<AreaOfLaw>":
+      | Error Message                                   |
+      | A duplicate claim was found within the same submission |
+
+    Examples:
+      | AreaOfLaw   | Format | Outcomes |
+      | Legal help  | csv    | 2        |
+      | Mediation   | csv    | 2        |
+      | Crime lower | csv    | 3        |
