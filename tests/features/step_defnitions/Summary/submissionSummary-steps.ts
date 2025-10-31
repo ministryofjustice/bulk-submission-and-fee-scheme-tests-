@@ -65,7 +65,7 @@ Then(
 
 
 Then(
-    'I should see a submission error message for {string} saying',
+    'I should see a submission error message for {string}',
     async function (this: CustomWorld, areaOfLaw: string, docString: string) {
         const expectedMessage = docString.trim();
         const errorLocator = this.page!.locator('.moj-alert__heading, .govuk-table__cell');

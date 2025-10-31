@@ -3,26 +3,56 @@ import type {CustomWorld} from '../../support/world';
 import {GenerateCivilFile} from "../../../utils/scripts/generateCivilFiles";
 import {GenerateMediationFiles} from "../../../utils/scripts/generateMediationFiles";
 import {GenerateCrimeFiles} from "../../../utils/scripts/generateCrimeFiles";
+
 import path from "path";
 import {BulkImportPage} from "../../../pages/bulkImportPage";
 import FormData from "form-data";
 import fs from "fs";
+import {claimOptions} from "../../../utils/scripts/claimOptions";
 
 Given('I generate {string} {string} file with {string} outcomes', async function (this: CustomWorld, areaOfLaw, format, outcomes) {
-  let files
   let generatedFiles: string[] = [];
   switch (areaOfLaw) {
-    case "Legal help" : {
-      generatedFiles = await GenerateCivilFile(files = 1, outcomes, format)
-    }
+    case "Legal help" :
+      generatedFiles = await GenerateCivilFile(1, outcomes, format)
       break
-    case "Mediation" : {
-      generatedFiles = await GenerateMediationFiles(files = 1, outcomes, format)
-    }
+    case "Mediation" :
+      generatedFiles = await GenerateMediationFiles(1, outcomes, format)
       break
-    case "Crime lower" : {
-      generatedFiles = await GenerateCrimeFiles(files = 1, outcomes, format)
-    }
+    case "Crime lower" :
+      generatedFiles = await GenerateCrimeFiles(1, outcomes, format)
+      break
+    default :
+      throw new Error(`Invalid area of law :${areaOfLaw}`)
+
+  }
+
+  const filePath = generatedFiles[0];
+  const fileName = path.basename(filePath);
+  this.fileName = fileName;
+  this.generatedFilePath = filePath;
+  await this.attach(`📁 Generated file for upload: ${fileName}`, 'text/plain');
+});
+
+
+Given('I generate {string} {string} file with the following claims', async function (this: CustomWorld, areaOfLaw, format, dataTable) {
+
+  let claims: claimOptions[] = dataTable.hashes();
+
+  for (let i = 0; i < claims.length; i++) {
+    console.log(`➕Claim to add ${i}: ${claims[i].ucn}, ${claims[i].ufn}, ${claims[i].feeCode}`);
+  }
+
+  let generatedFiles: string[] = [];
+  switch (areaOfLaw) {
+    case "Legal help" :
+      generatedFiles = await GenerateCivilFile(1, claims.length, format, undefined, undefined, claims)
+      break
+    case "Mediation" :
+      generatedFiles = await GenerateMediationFiles(1, claims.length, format)
+      break
+    case "Crime lower" :
+      generatedFiles = await GenerateCrimeFiles(1, claims.length, format)
       break
     default : {
       throw new Error(`Invalid area of law :${areaOfLaw}`)
@@ -36,21 +66,24 @@ Given('I generate {string} {string} file with {string} outcomes', async function
   await this.attach(`📁 Generated file for upload: ${fileName}`, 'text/plain');
 });
 
-Given('I generate {string} {string} file with {string} and {string}', async function (this: CustomWorld, areaOfLaw, format, office, ucn) {
-  let files
+Given('I generate {string} {string} file with the following claims from period {string}', async function (this: CustomWorld, areaOfLaw, format, submissionPeriod, dataTable) {
+
+  let claims: claimOptions[] = dataTable.hashes();
+
+  for (let i = 0; i < claims.length; i++) {
+    console.log(`➕Claim to add ${i}: ${claims[i].ucn}, ${claims[i].ufn}, ${claims[i].feeCode}`);
+  }
+
   let generatedFiles: string[] = [];
   switch (areaOfLaw) {
-    case "Legal help" : {
-      generatedFiles = await GenerateCivilFile(files = 1, 1, format, {office: office, ucn: ucn})
-    }
+    case "Legal help" :
+      generatedFiles = await GenerateCivilFile(1, claims.length, format, submissionPeriod, undefined, claims)
       break
-    case "Mediation" : {
-      generatedFiles = await GenerateMediationFiles(files = 1, 1, format)
-    }
+    case "Mediation" :
+      generatedFiles = await GenerateMediationFiles(1, claims.length, format)
       break
-    case "Crime lower" : {
-      generatedFiles = await GenerateCrimeFiles(files = 1, 1, format)
-    }
+    case "Crime lower" :
+      generatedFiles = await GenerateCrimeFiles(1, claims.length, format)
       break
     default : {
       throw new Error(`Invalid area of law :${areaOfLaw}`)
