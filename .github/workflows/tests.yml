@@ -182,6 +182,7 @@ jobs:
           ./scripts/wait-for-port.sh 8085 fsp-api
 
           npm run login
+          npm run teardown
           npx cucumber-js -p bulksubmission --parallel 4 --retry 1
 
       - name: Publish Cucumber summary
