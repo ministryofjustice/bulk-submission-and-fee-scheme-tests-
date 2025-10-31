@@ -268,7 +268,6 @@ jobs:
             --format "json:reports/$FEATURE/cucumber.json" \
             --format "html:reports/$FEATURE/cucumber.html" \
             --retry 1 \
-            --parallel 4 \
             "${TAG_ARGS[@]}" \
             "${NAME_ARGS[@]}" \
             "$FEATURE_PATH"
