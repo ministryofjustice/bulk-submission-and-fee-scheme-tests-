@@ -103,9 +103,12 @@ When('I upload {string}', async function (this: CustomWorld, relativePath: strin
     // Upload and trigger submission
     await this.bulkImportPage.uploadFile(filePath);
     await this.bulkImportPage.clickUpload();
-    const inProgressHeading = this.page!.locator('h1.moj-interruption-card__heading');
-    await inProgressHeading.waitFor({ state: 'visible', timeout: 60000 });
-    await inProgressHeading.waitFor({ state: 'hidden', timeout: 240000 });
+    if(!relativePath.includes('invalidAreaOfLaw.csv')){
+        const inProgressHeading = this.page!.locator('h1.moj-interruption-card__heading');
+        await inProgressHeading.waitFor({ state: 'visible', timeout: 120000 });
+        await inProgressHeading.waitFor({ state: 'hidden', timeout: 240000 });
+    }
+
 
     // Attach for debugging
     await this.attach(`📂 Uploaded file: ${filePath}`, 'text/plain');

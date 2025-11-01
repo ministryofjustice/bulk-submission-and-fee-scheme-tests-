@@ -17,7 +17,7 @@ jobs:
     environment: uat
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.54.2-jammy 
+      image: mcr.microsoft.com/playwright:v1.54.2-jammy
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -76,7 +76,14 @@ jobs:
     environment: uat
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.54.2-jammy 
+      image: mcr.microsoft.com/playwright:v1.54.2-jammy
+      options: --user root --env HOME=/root --shm-size=2gb --ipc=host
+    env:
+      HOME: /root
+      MOZ_DISABLE_CONTENT_SANDBOX: 1
+      MOZ_FORCE_DISABLE_E10S: 1
+
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -90,7 +97,7 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Authenticate to the DSTEW EKS cluster
         uses: ./.github/actions/authenticate-to-eks-cluster
         with:
@@ -116,7 +123,7 @@ jobs:
           local_port: "8080"
           pid_env_var: PORT_FORWARD_PID_DSTEW_API
           wait_label: dstew-api
-      
+
       - name: Authenticate to the SaBC EKS cluster
         uses: ./.github/actions/authenticate-to-eks-cluster
         with:
@@ -150,7 +157,7 @@ jobs:
           local_port: "8085"
           pid_env_var: PORT_FORWARD_PID
           wait_label: fsp-api
-      
+
       - name: Create .env file
         shell: bash
         run: |
@@ -171,9 +178,34 @@ jobs:
           DB_SSL=${{ secrets.DB_SSL }}
           HEADLESS=true
           EOF
+          
+
+      - name: Start Playwright Grid
+        run: |
+          nohup npx playwright run-server --port=4444 > grid.log 2>&1 &
+          echo "✅ Playwright Grid started in background"
+          sleep 5
+
+      - name: Wait for Playwright Server
+        run: |
+          for i in {1..20}; do
+            if curl -s http://localhost:4444/json/version; then
+              echo "✅ Playwright Server is ready"
+              break
+            fi
+            echo "⏳ Waiting for Playwright Server..."
+            sleep 3
+          done
+
+      - name: Fix permissions for Firefox
+        run: |
+          mkdir -p /root/.cache /root/.mozilla
+          chown -R root:root /root
+          chmod -R 755 /root
 
       - name: Run UI Tests
         env:
+          REMOTE_URL: ws://localhost:4444
           CUCUMBER_TAGS: ${{ inputs.tags }}
         run: |
           ./scripts/wait-for-port.sh 5432 dstew-db 
@@ -182,7 +214,7 @@ jobs:
           ./scripts/wait-for-port.sh 8085 fsp-api
 
           npm run login
-          npx cucumber-js -p bulksubmission --retry 1 
+          npx cucumber-js -p bulksubmission --parallel 4
 
       - name: Publish Cucumber summary
         if: always()
