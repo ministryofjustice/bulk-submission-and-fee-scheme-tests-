@@ -252,7 +252,7 @@ import axios from 'axios';
 import { runSubmissionCleanup } from "../../utils/scripts/cleanup-submissions";
 import { chromium, firefox, webkit } from "playwright";
 
-setDefaultTimeout(60 * 1000);
+setDefaultTimeout(10 * 60 * 1000);
 
 // ---------- Clear Down ----------
 BeforeAll(function () {

@@ -289,7 +289,6 @@ export class World {
       'ws://localhost:4444',
       'ws://localhost:4445',
       'ws://localhost:4446',
-      'ws://localhost:4447'
     ];
 
     let selectedGrid: string | undefined;

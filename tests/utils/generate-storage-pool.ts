@@ -8,7 +8,7 @@ import * as path from 'path';
 dotenv.config();
 
 const STORAGE_DIR = path.resolve('tests/auth-states');
-const COUNT = parseInt(process.env.STATE_COUNT || '5', 10);
+const COUNT = parseInt(process.env.STATE_COUNT || '3', 10);
 const MFA_SECRET = process.env.MFA_SECRET;
 
 if (!MFA_SECRET) {

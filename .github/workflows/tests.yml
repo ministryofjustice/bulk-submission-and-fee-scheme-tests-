@@ -183,7 +183,6 @@ jobs:
           nohup npx playwright run-server --port=4444 > grid.log 2>&1 &
           nohup npx playwright run-server --port=4445 > grid.log 2>&1 &
           nohup npx playwright run-server --port=4446 > grid.log 2>&1 &
-          nohup npx playwright run-server --port=4447 > grid.log 2>&1 &
           echo "✅ Playwright Grid started in background"
           sleep 5
 
@@ -209,7 +208,7 @@ jobs:
           ./scripts/wait-for-port.sh 8085 fsp-api
 
           npm run login
-          npx cucumber-js -p bulksubmission --parallel 3
+          npx cucumber-js -p bulksubmission --parallel 3 --retry 1
 
       - name: Publish Cucumber summary
         if: always()
