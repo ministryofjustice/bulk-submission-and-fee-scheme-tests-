@@ -64,6 +64,16 @@ async function isSubmissionPeriodUsed(areaOfLaw: string, submissionPeriod: strin
 }
 
 // ---------- UPDATED: Exclude Current Month ----------
+const convertSubmissionPeriodToDate = (period: string): string => {
+  const [month, year] = period.split('-');
+  const months = {
+    "JAN": 0, "FEB": 1, "MAR": 2, "APR": 3, "MAY": 4, "JUN": 5,
+    "JUL": 6, "AUG": 7, "SEP": 8, "OCT": 9, "NOV": 10, "DEC": 11
+  };
+  const date = new Date(parseInt(year), months[month as keyof typeof months], 1);
+  return formatDate(date);
+};
+
 const generateUniqueSubmissionPeriod = async (office: string): Promise<string> => {
   const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
   let period: string;
@@ -205,19 +215,23 @@ const generateFile = async (fileName: string, outcomesCount: number, fileType: "
   content += `SCHEDULE,submissionPeriod=${submissionPeriodInput},areaOfLaw=LEGAL HELP,scheduleNum=${office}/CIVIL\n`;
 
 
-  for (let i = 1; i <= outcomesCount; i++) {
-
+  for (let i = 0; i < outcomesCount; i++) {
     const o = await generateOutcome(officeInput, i, submissionYear);
     let feeCode = randomFrom(feeCodes);
     let ucn = o.ucn.toUpperCase();
     let ufn = o.ufn;
-    // Only use options if they are provided
-    if (claims?.[i]) {
+
+    let caseStartDate = submissionPeriod ? convertSubmissionPeriodToDate(submissionPeriod) : o.case_start_date;
+
+    console.log(`Dates: ${submissionPeriod} = ${o.case_start_date}`);
+
+    if (claims?.[i] !== undefined) {
+      console.log(`➕Currently adding claim ${i}: ${claims[i].ucn}, ${claims[i].ufn}, ${claims[i].feeCode}`);
       feeCode = claims[i].feeCode ?? randomFrom(feeCodes);
       ucn = claims[i].ucn ?? o.ucn;
       ufn = claims[i].ufn ?? o.ufn;
     }
-    content += `OUTCOME,FEE_CODE=${feeCode},matterType=FAMX:FAPP,CASE_REF_NUMBER=${o.case_ref_number},CASE_START_DATE=${o.case_start_date},CASE_ID=${o.case_id},UFN=${ufn},PROCUREMENT_AREA=PA00120,ACCESS_POINT=AP00000,CLIENT_FORENAME=${o.client_forename},CLIENT_SURNAME=${o.client_surname},CLIENT_DATE_OF_BIRTH=${o.client_date_of_birth},UCN=${ucn},GENDER=${o.gender},ETHNICITY=${o.ethnicity},DISABILITY=${o.disability},CLIENT_POST_CODE=${o.client_post_code},WORK_CONCLUDED_DATE=${o.work_concluded_date},CASE_STAGE_LEVEL=FPC01,ADVICE_TIME=${o.advice_time},TRAVEL_TIME=${o.travel_time},WAITING_TIME=${o.waiting_time},PROFIT_COST=${o.profit_cost},DISBURSEMENTS_AMOUNT=${o.disbursements_amount},COUNSEL_COST=${o.counsel_cost},DISBURSEMENTS_VAT=${o.disbursements_vat},TRAVEL_WAITING_COSTS=0.00,VAT_INDICATOR=${o.vat_indicator},LONDON_NONLONDON_RATE=${o.london_nonlondon_rate},TRAVEL_COSTS=${o.travel_costs},OUTCOME_CODE=${o.outcome_code},POSTAL_APPL_ACCP=N,SCHEDULE_REF=${o.schedule_ref}\n`;
+    content += `OUTCOME,FEE_CODE=${feeCode},matterType=FAMX:FAPP,CASE_REF_NUMBER=${o.case_ref_number},CASE_START_DATE=${caseStartDate},CASE_ID=${o.case_id},UFN=${ufn},PROCUREMENT_AREA=PA00120,ACCESS_POINT=AP00000,CLIENT_FORENAME=${o.client_forename},CLIENT_SURNAME=${o.client_surname},CLIENT_DATE_OF_BIRTH=${o.client_date_of_birth},UCN=${ucn},GENDER=${o.gender},ETHNICITY=${o.ethnicity},DISABILITY=${o.disability},CLIENT_POST_CODE=${o.client_post_code},WORK_CONCLUDED_DATE=${o.work_concluded_date},CASE_STAGE_LEVEL=FPC01,ADVICE_TIME=${o.advice_time},TRAVEL_TIME=${o.travel_time},WAITING_TIME=${o.waiting_time},PROFIT_COST=${o.profit_cost},DISBURSEMENTS_AMOUNT=${o.disbursements_amount},COUNSEL_COST=${o.counsel_cost},DISBURSEMENTS_VAT=${o.disbursements_vat},TRAVEL_WAITING_COSTS=0.00,VAT_INDICATOR=${o.vat_indicator},LONDON_NONLONDON_RATE=${o.london_nonlondon_rate},TRAVEL_COSTS=${o.travel_costs},OUTCOME_CODE=${o.outcome_code},POSTAL_APPL_ACCP=N,SCHEDULE_REF=${o.schedule_ref}\n`;
   }
 
   if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);
