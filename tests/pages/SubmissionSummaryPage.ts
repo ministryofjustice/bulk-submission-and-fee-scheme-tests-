@@ -3,14 +3,17 @@ import { BasePage } from './BasePage';
 
 export class SubmissionSummaryPage extends BasePage {
   readonly successBanner: Locator;
+  readonly failureBanner: Locator;
   readonly statusTag: Locator;
   readonly summaryRows: Locator;
   readonly claimsTable: Locator;
 
   constructor(page: Page) {
     // 👇 The visible heading and primary button text for this page
+
     super(page, 'Submission summary', 'Print this page');
     this.successBanner = page.locator('.govuk-notification-banner--success');
+    this.failureBanner = page.locator('.moj-alert--error');
     this.statusTag = page.locator('.govuk-tag--green');
     this.summaryRows = page.locator('.govuk-summary-list__row');
     this.claimsTable = page.locator('table.govuk-table');
@@ -20,6 +23,17 @@ export class SubmissionSummaryPage extends BasePage {
     await this.successBanner.waitFor({ timeout: 60000 });
     const bannerText = await this.successBanner.textContent();
     expect(bannerText).toContain('Your submission has been accepted.');
+    return bannerText;
+  }
+
+  async verifyErrorBanner(totalErrors: number) {
+    await this.failureBanner.waitFor({ timeout: 60000 });
+    const bannerText = await this.failureBanner.textContent();
+    if(totalErrors == 1){
+      expect(bannerText).toContain(`1 error was found with your submission`);
+    }else{
+      expect(bannerText).toContain(`${totalErrors} errors was found with your submission`);
+    }
     return bannerText;
   }
 

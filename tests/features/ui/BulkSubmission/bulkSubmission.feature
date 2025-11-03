@@ -25,7 +25,7 @@ Feature: Bulk Submission via UI
     Given I am on the bulk import page
     When I upload "<AreaOfLaw>" "<Format>" file with "<Outcomes>" outcomes via the API
     And I upload the generated file
-    Then I should have 1 submission error for "<AreaOfLaw>"
+    Then I should have duplicate submission error for "0P322F" "<AreaOfLaw>"
       | submission period |
 
     Examples:
