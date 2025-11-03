@@ -211,6 +211,7 @@ const generateFile = async (fileName: string, outcomesCount: number, fileType: "
     let feeCode = randomFrom(feeCodes);
     let ucn = o.ucn.toUpperCase();
     let ufn = o.ufn;
+    // Only use options if they are provided
     if (claims?.[i]) {
       feeCode = claims[i].feeCode ?? randomFrom(feeCodes);
       ucn = claims[i].ucn ?? o.ucn;
