@@ -241,7 +241,6 @@ jobs:
             search) FEATURE_PATH="tests/features/ui/BulkSubmission/search.feature" ;;
             submissionValidation) FEATURE_PATH="tests/features/ui/BulkSubmission/submissionValidation.feature" ;;
             duplicateChecksLegalHelp) FEATURE_PATH="tests/features/ui/BulkSubmission/duplicateChecksLegalHelp.feature" ;;
-            duplicateChecksLegalHelpDisbursements) FEATURE_PATH="tests/features/ui/BulkSubmission/duplicateChecksLegalHelpDisbursements.feature" ;;
             *)
               echo "Unrecognised feature '$FEATURE'"
               exit 1
