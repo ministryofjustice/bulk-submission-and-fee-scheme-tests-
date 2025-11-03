@@ -19,6 +19,7 @@ on:
           - fileUploadValidation
           - search
           - submissionValidation
+          - temp
       tags:
         description: 'Optional Cucumber tag expression (e.g. @smoke and not @wip)'
         required: false
@@ -239,6 +240,7 @@ jobs:
             fileUploadValidation) FEATURE_PATH="tests/features/ui/BulkSubmission/fileUploadValidation.feature" ;;
             search) FEATURE_PATH="tests/features/ui/BulkSubmission/search.feature" ;;
             submissionValidation) FEATURE_PATH="tests/features/ui/BulkSubmission/submissionValidation.feature" ;;
+            duplicateChecksLegalHelp) FEATURE_PATH="tests/features/ui/BulkSubmission/duplicateChecksLegalHelp.feature" ;;
             *)
               echo "Unrecognised feature '$FEATURE'"
               exit 1
