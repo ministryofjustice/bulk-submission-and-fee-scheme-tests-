@@ -17,7 +17,7 @@ jobs:
     environment: uat
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.54.2-jammy
+      image: mcr.microsoft.com/playwright:v1.56.0-jammy
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -76,13 +76,10 @@ jobs:
     environment: uat
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.54.2-jammy
+      image: mcr.microsoft.com/playwright:v1.56.0-jammy
       options: --user root --env HOME=/root --shm-size=2gb --ipc=host
     env:
       HOME: /root
-      MOZ_DISABLE_CONTENT_SANDBOX: 1
-      MOZ_FORCE_DISABLE_E10S: 1
-
 
     steps:
       - name: Checkout repository
@@ -177,12 +174,16 @@ jobs:
           DB_NAME=${{ secrets.DB_NAME }}
           DB_SSL=${{ secrets.DB_SSL }}
           HEADLESS=true
+          HOME: /root
           EOF
           
 
       - name: Start Playwright Grid
         run: |
           nohup npx playwright run-server --port=4444 > grid.log 2>&1 &
+          nohup npx playwright run-server --port=4445 > grid.log 2>&1 &
+          nohup npx playwright run-server --port=4446 > grid.log 2>&1 &
+          nohup npx playwright run-server --port=4447 > grid.log 2>&1 &
           echo "✅ Playwright Grid started in background"
           sleep 5
 
@@ -197,15 +198,9 @@ jobs:
             sleep 3
           done
 
-      - name: Fix permissions for Firefox
-        run: |
-          mkdir -p /root/.cache /root/.mozilla
-          chown -R root:root /root
-          chmod -R 755 /root
-
       - name: Run UI Tests
         env:
-          REMOTE_URL: ws://localhost:4444
+          HOME: /root
           CUCUMBER_TAGS: ${{ inputs.tags }}
         run: |
           ./scripts/wait-for-port.sh 5432 dstew-db 
@@ -214,7 +209,7 @@ jobs:
           ./scripts/wait-for-port.sh 8085 fsp-api
 
           npm run login
-          npx cucumber-js -p bulksubmission --parallel 4
+          npx cucumber-js -p bulksubmission --parallel 3
 
       - name: Publish Cucumber summary
         if: always()
