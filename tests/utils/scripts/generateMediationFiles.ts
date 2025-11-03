@@ -21,7 +21,7 @@ const offices = ['1T702E'];
 const feeCodes = ['ASSA'];
 const OUTPUT_DIR = "generated_submissions_mediation";
 const PROVIDER_API = process.env.PROVIDER_API || 'https://laa-provider-details-api-uat.apps.live.cloud-platform.service.justice.gov.uk/api/v1/provider-offices';
-const MIN_CASE_START = new Date( '2025-05-01');
+const MIN_CASE_START = new Date('2015-05-01');
 const MAX_CASE_START = new Date('2025-10-31');
 
 // ---------- 3️⃣ Helpers ----------

@@ -3,7 +3,6 @@ Feature: Duplicate checks - Legal Help - Disbursements
   Background:
     Given I am on the bulk import page
 
-    @temp
   Scenario Outline: Should reject submission if less than 3 months
     Given I generate "Legal help" "<format>" file with the following claims from period "FEB-2026"
       | ucn                  | feeCode | ufn   |
