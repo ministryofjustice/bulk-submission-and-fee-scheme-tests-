@@ -133,6 +133,10 @@ export class SubmissionSummaryPage extends BasePage {
     return messageText;
   }
 
+  async ensureMatterStartsTabHidden() {
+    await expect(this.matterStartsTab).toHaveCount(0, { timeout: 5000 });
+  }
+
   async validateSummary(expectedAreaOfLaw: string) {
     const summary = await this.getSummaryData();
     expect(summary['Area of law']).toContain(expectedAreaOfLaw);

@@ -50,6 +50,29 @@ Then(
 );
 
 Then(
+    'I should see the submission summary for {string} without a matter starts tab',
+    async function (this: CustomWorld, areaOfLaw: string) {
+        const summaryPage = new SubmissionSummaryPage(this.page!);
+
+        await summaryPage.verifySuccessBanner();
+
+        const summary = await summaryPage.validateSummary(areaOfLaw);
+        const reference = summary['Reference'];
+        if (reference) {
+            this.cleanupSubmissionIds.add(reference);
+            this.submissionReference = reference;
+        }
+        this.officeAccount = summary['Account'];
+        this.submissionPeriod = summary['Submission period'];
+
+        await summaryPage.ensureMatterStartsTabHidden();
+
+        await this.attach(`✅ Summary validated:\n${JSON.stringify(summary, null, 2)}`, 'text/plain');
+        await this.attach('✅ Verified matter starts tab is not present', 'text/plain');
+    }
+);
+
+Then(
     'I should see the submission summary for {string} with matter starts matching the generated file',
     async function (this: CustomWorld, areaOfLaw: string) {
         const summaryPage = new SubmissionSummaryPage(this.page!);

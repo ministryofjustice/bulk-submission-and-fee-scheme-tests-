@@ -12,7 +12,7 @@ Feature: Matter Starts Uploads
     | Legal help  |
     | Mediation   |
 
-  @nilSubmissions @Temp 
+  @nilSubmissions
   Scenario Outline: Successful nil submission shows no matter starts
     Given I am on the bulk import page
     When I generate "<AreaOfLaw>" "csv" file with "0" outcomes
@@ -24,3 +24,9 @@ Feature: Matter Starts Uploads
     | Legal help  |
     | Mediation   |
 
+  @nilSubmissions
+  Scenario: Crime lower nil submission hides matter starts tab
+    Given I am on the bulk import page
+    When I generate "Crime lower" "csv" file with "0" outcomes
+    And I upload the generated file
+    Then I should see the submission summary for "Crime lower" without a matter starts tab
