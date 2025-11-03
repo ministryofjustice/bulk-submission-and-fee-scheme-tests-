@@ -16,7 +16,7 @@ const AREA_OF_LAW = 'MEDIATION';
 let providerApiAvailable = true;
 
 // ---------- 2️⃣ Config ----------
-const offices = ['1T702E'];
+const offices = ['0P322F'];
 const feeCodes = ['ASSA'];
 const OUTPUT_DIR = "generated_submissions_mediation";
 const PROVIDER_API = process.env.PROVIDER_API || 'https://laa-provider-details-api-uat.apps.live.cloud-platform.service.justice.gov.uk/api/v1/provider-offices';

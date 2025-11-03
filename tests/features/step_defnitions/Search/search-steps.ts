@@ -73,7 +73,7 @@ Given(
 
             switch (areaOfLaw) {
                 case 'LEGAL HELP':
-                    generatedFiles=await GenerateCivilFile(1, 0, format,uniqueSuffix);
+                    generatedFiles = await GenerateCivilFile(1, 0, format, { suffix: uniqueSuffix });
                     break;
                 case 'MEDIATION':
                     generatedFiles=await GenerateMediationFiles(1, 0, format,uniqueSuffix);
