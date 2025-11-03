@@ -191,7 +191,7 @@ const generateFile = async (
   let content = `OFFICE,account=${office}\n`;
   content += `SCHEDULE,submissionPeriod=${submissionPeriod},areaOfLaw=LEGAL HELP,scheduleNum=${office}/CIVIL\n`;
 
-  for (let i = 1; i <= outcomesCount; i++) {
+  for (let i = 0; i < outcomesCount; i++)
     const outcome = await generateOutcome(office, i, submissionYear);
 
     const claimOverride = claims?.[i - 1];
