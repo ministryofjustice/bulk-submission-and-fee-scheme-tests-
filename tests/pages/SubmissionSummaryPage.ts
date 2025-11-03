@@ -115,6 +115,24 @@ export class SubmissionSummaryPage extends BasePage {
     return matterStarts;
   }
 
+  async validateNoMatterStartsMessage(
+    expectedMessage: string = 'There are no matter starts attached to this submission.'
+  ) {
+    await this.openMatterStartsTab();
+    const heading = this.page.locator('#matter-starts');
+    await heading.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+
+    await expect(this.matterStartsRows).toHaveCount(0, { timeout: 5000 });
+
+    const messageLocator = this.page.locator('#matter-starts ~ p.govuk-body').first();
+    await messageLocator.waitFor({ state: 'visible', timeout: 10000 });
+
+    const messageText = (await messageLocator.textContent())?.trim() ?? '';
+    expect(messageText).toContain(expectedMessage.trim());
+
+    return messageText;
+  }
+
   async validateSummary(expectedAreaOfLaw: string) {
     const summary = await this.getSummaryData();
     expect(summary['Area of law']).toContain(expectedAreaOfLaw);

@@ -1,14 +1,26 @@
 @bulkSubmission @matterStarts
 Feature: Matter Starts Uploads
 
-  Scenario: Successful bulk submission for legal help matter starts
+  Scenario Outline: Successful bulk submission for <AreaOfLaw> matter starts
     Given I am on the bulk import page
-    When I generate "Legal help" "csv" with all matter type file
+    When I generate "<AreaOfLaw>" "csv" with all matter type file
     And I upload the generated file
-    Then I should see the submission summary for "Legal help" with matter starts matching the generated file
+    Then I should see the submission summary for "<AreaOfLaw>" with matter starts matching the generated file
 
-Scenario: Successful bulk submission for mediation matter starts
+  Examples:
+    | AreaOfLaw |
+    | Legal help  |
+    | Mediation   |
+
+  @nilSubmissions @Temp 
+  Scenario Outline: Successful nil submission shows no matter starts
     Given I am on the bulk import page
-    When I generate "Mediation" "csv" with all matter type file
+    When I generate "<AreaOfLaw>" "csv" file with "0" outcomes
     And I upload the generated file
-    Then I should see the submission summary for "Mediation" with matter starts matching the generated file
+    Then I should see the submission summary for "<AreaOfLaw>" with no matter starts message
+  
+  Examples:
+    | AreaOfLaw   |
+    | Legal help  |
+    | Mediation   |
+

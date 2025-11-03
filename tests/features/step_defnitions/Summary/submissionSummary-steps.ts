@@ -27,6 +27,29 @@ Then(
 );
 
 Then(
+    'I should see the submission summary for {string} with no matter starts message',
+    async function (this: CustomWorld, areaOfLaw: string) {
+        const summaryPage = new SubmissionSummaryPage(this.page!);
+
+        await summaryPage.verifySuccessBanner();
+
+        const summary = await summaryPage.validateSummary(areaOfLaw);
+        const reference = summary['Reference'];
+        if (reference) {
+            this.cleanupSubmissionIds.add(reference);
+            this.submissionReference = reference;
+        }
+        this.officeAccount = summary['Account'];
+        this.submissionPeriod = summary['Submission period'];
+
+        const message = await summaryPage.validateNoMatterStartsMessage();
+
+        await this.attach(`✅ Summary validated:\n${JSON.stringify(summary, null, 2)}`, 'text/plain');
+        await this.attach(`✅ Verified no matter starts message:\n${message}`, 'text/plain');
+    }
+);
+
+Then(
     'I should see the submission summary for {string} with matter starts matching the generated file',
     async function (this: CustomWorld, areaOfLaw: string) {
         const summaryPage = new SubmissionSummaryPage(this.page!);
