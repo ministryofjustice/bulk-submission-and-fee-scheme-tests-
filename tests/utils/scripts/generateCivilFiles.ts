@@ -20,8 +20,6 @@ const OUTPUT_DIR = 'generated_submissions_legal';
 const PROVIDER_API =
   process.env.PROVIDER_API ||
   'https://laa-provider-details-api-uat.apps.live.cloud-platform.service.justice.gov.uk/api/v1/provider-offices';
-const MIN_CASE_START = new Date('2015-05-01');
-const MAX_CASE_START = new Date('2025-10-31');
 
 // ---------- 3️⃣ Helpers ----------
 const pad = (num: number, len = 2) => num.toString().padStart(len, '0');
@@ -49,7 +47,29 @@ const generateUCN = (dob: Date, surname: string, initial: string) => {
   return `${dd}${mm}${yyyy}/${initial}/${sanitizeForCode(surname.slice(0, 3))}`;
 };
 
-// ---------- 4️⃣ Provider API Check ----------
+// ---------- 4️⃣ Submission Period Helpers ----------
+const convertSubmissionPeriodToDate = (period: string): string => {
+  const [month, year] = period.split('-');
+  const months: Record<string, number> = {
+    JAN: 0,
+    FEB: 1,
+    MAR: 2,
+    APR: 3,
+    MAY: 4,
+    JUN: 5,
+    JUL: 6,
+    AUG: 7,
+    SEP: 8,
+    OCT: 9,
+    NOV: 10,
+    DEC: 11,
+  };
+  const monthIndex = months[month.toUpperCase()] ?? 0;
+  const date = new Date(parseInt(year, 10), monthIndex, 1);
+  return formatDate(date);
+};
+
+// ---------- 5️⃣ Provider API Check ----------
 const fetchProviderSchedules = async (office: string, caseStartDate: Date) => {
   if (!providerApiAvailable) return undefined;
 
@@ -80,7 +100,7 @@ const fetchProviderSchedules = async (office: string, caseStartDate: Date) => {
   }
 };
 
-// ---------- 5️⃣ Outcome Generator ----------
+// ---------- 6️⃣ Outcome Generator ----------
 const generateOutcome = async (
   office: string,
   caseNum: number,
@@ -177,7 +197,6 @@ const ensureOutputDir = () => {
   }
 };
 
-// ---------- 6️⃣ File Generator ----------
 const generateFile = async (
   baseName: string,
   outcomesCount: number,
@@ -191,19 +210,25 @@ const generateFile = async (
   let content = `OFFICE,account=${office}\n`;
   content += `SCHEDULE,submissionPeriod=${submissionPeriod},areaOfLaw=LEGAL HELP,scheduleNum=${office}/CIVIL\n`;
 
-  for (let i = 0; i < outcomesCount; i++)
-    const outcome = await generateOutcome(office, i, submissionYear);
-
-    const claimOverride = claims?.[i - 1];
+  for (let i = 0; i < outcomesCount; i++) {
+    const outcome = await generateOutcome(office, i + 1, submissionYear);
+    const claimOverride = claims?.[i];
     const feeCode = claimOverride?.feeCode ?? randomFrom(feeCodes);
     const ucn = (claimOverride?.ucn ?? outcome.ucn).toUpperCase();
     const ufn = claimOverride?.ufn ?? outcome.ufn;
+    const caseStartDate = submissionPeriod
+      ? convertSubmissionPeriodToDate(submissionPeriod)
+      : outcome.case_start_date;
 
-    content += `OUTCOME,FEE_CODE=${feeCode},matterType=FAMX:FAPP,CASE_REF_NUMBER=${outcome.case_ref_number},CASE_START_DATE=${outcome.case_start_date},CASE_ID=${outcome.case_id},UFN=${ufn},PROCUREMENT_AREA=PA00120,ACCESS_POINT=AP00000,CLIENT_FORENAME=${outcome.client_forename},CLIENT_SURNAME=${outcome.client_surname},CLIENT_DATE_OF_BIRTH=${outcome.client_date_of_birth},UCN=${ucn},GENDER=${outcome.gender},ETHNICITY=${outcome.ethnicity},DISABILITY=${outcome.disability},CLIENT_POST_CODE=${outcome.client_post_code},WORK_CONCLUDED_DATE=${outcome.work_concluded_date},CASE_STAGE_LEVEL=FPC01,ADVICE_TIME=${outcome.advice_time},TRAVEL_TIME=${outcome.travel_time},WAITING_TIME=${outcome.waiting_time},PROFIT_COST=${outcome.profit_cost},DISBURSEMENTS_AMOUNT=${outcome.disbursements_amount},COUNSEL_COST=${outcome.counsel_cost},DISBURSEMENTS_VAT=${outcome.disbursements_vat},TRAVEL_WAITING_COSTS=0.00,VAT_INDICATOR=${outcome.vat_indicator},LONDON_NONLONDON_RATE=${outcome.london_nonlondon_rate},TRAVEL_COSTS=${outcome.travel_costs},OUTCOME_CODE=${outcome.outcome_code},POSTAL_APPL_ACCP=N,SCHEDULE_REF=${outcome.schedule_ref}\n`;
+    content += `OUTCOME,FEE_CODE=${feeCode},matterType=FAMX:FAPP,CASE_REF_NUMBER=${outcome.case_ref_number},CASE_START_DATE=${caseStartDate},CASE_ID=${outcome.case_id},UFN=${ufn},PROCUREMENT_AREA=PA00120,ACCESS_POINT=AP00000,CLIENT_FORENAME=${outcome.client_forename},CLIENT_SURNAME=${outcome.client_surname},CLIENT_DATE_OF_BIRTH=${outcome.client_date_of_birth},UCN=${ucn},GENDER=${outcome.gender},ETHNICITY=${outcome.ethnicity},DISABILITY=${outcome.disability},CLIENT_POST_CODE=${outcome.client_post_code},WORK_CONCLUDED_DATE=${outcome.work_concluded_date},CASE_STAGE_LEVEL=FPC01,ADVICE_TIME=${outcome.advice_time},TRAVEL_TIME=${outcome.travel_time},WAITING_TIME=${outcome.waiting_time},PROFIT_COST=${outcome.profit_cost},DISBURSEMENTS_AMOUNT=${outcome.disbursements_amount},COUNSEL_COST=${outcome.counsel_cost},DISBURSEMENTS_VAT=${outcome.disbursements_vat},TRAVEL_WAITING_COSTS=0.00,VAT_INDICATOR=${outcome.vat_indicator},LONDON_NONLONDON_RATE=${outcome.london_nonlondon_rate},TRAVEL_COSTS=${outcome.travel_costs},OUTCOME_CODE=${outcome.outcome_code},POSTAL_APPL_ACCP=N,SCHEDULE_REF=${outcome.schedule_ref}\n`;
   }
 
   ensureOutputDir();
-  fs.writeFileSync(path.join(OUTPUT_DIR, `${baseName}.${fileType}`), content, 'utf-8');
+  fs.writeFileSync(
+    path.join(OUTPUT_DIR, `${baseName}.${fileType}`),
+    content,
+    'utf-8'
+  );
 };
 
 export interface GenerateCivilFileOptions {
