@@ -146,6 +146,37 @@ Given('I generate {string} {string} file with the following claims from period {
   await this.attach(`📁 Generated file for upload: ${fileName}`, 'text/plain');
 });
 
+Given('I generate {string} {string} file with the following claims from period {string} with office {string}', async function (this: CustomWorld, areaOfLaw, format, submissionPeriod, office, dataTable) {
+
+  let claims: claimOptions[] = dataTable.hashes();
+
+  for (let i = 0; i < claims.length; i++) {
+    console.log(`➕Claim to add ${i}: ${claims[i].ucn}, ${claims[i].ufn}, ${claims[i].feeCode}`);
+  }
+
+  let generatedFiles: string[] = [];
+  switch (areaOfLaw) {
+    case "Legal help" :
+      generatedFiles = await GenerateCivilFile(1, claims.length, format, submissionPeriod, office, claims)
+      break
+    case "Mediation" :
+      generatedFiles = await GenerateMediationFiles(1, claims.length, format)
+      break
+    case "Crime lower" :
+      generatedFiles = await GenerateCrimeFiles(1, claims.length, format)
+      break
+    default : {
+      throw new Error(`Invalid area of law :${areaOfLaw}`)
+    }
+  }
+
+  const filePath = generatedFiles[0];
+  const fileName = path.basename(filePath);
+  this.fileName = fileName;
+  this.generatedFilePath = filePath;
+  await this.attach(`📁 Generated file for upload: ${fileName}`, 'text/plain');
+});
+
 Given('I make the generated file invalid', async function (this: CustomWorld) {
   if (!this.mostRecentSubmissionId) {
     throw new Error('❌ No latest submission found. Make sure a submission was uploaded first via API.');
