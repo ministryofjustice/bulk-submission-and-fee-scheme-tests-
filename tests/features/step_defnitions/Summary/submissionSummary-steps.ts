@@ -1,9 +1,12 @@
 import { Then } from '@cucumber/cucumber';
+import type { DataTable } from '@cucumber/cucumber';
 import type { CustomWorld } from '../../support/world';
 import { SubmissionSummaryPage } from '../../../pages/SubmissionSummaryPage';
 import { expect } from '@playwright/test';
 
 type SummaryRecord = Record<string, string | undefined>;
+
+const normalizeWhitespace = (text: string) => text.replace(/\s+/g, ' ').trim();
 
 const storeSummaryContext = (world: CustomWorld, summary: SummaryRecord) => {
   const reference = summary['Reference'];
@@ -203,7 +206,12 @@ Then(
 
 Then(
   'I should have duplicate submission error for {string} {string}',
-  async function (this: CustomWorld, office: string, areaOfLaw: string) {
+  async function (
+    this: CustomWorld,
+    office: string,
+    areaOfLaw: string,
+    dataTable?: DataTable
+  ) {
     this.submissionSummaryPage = new SubmissionSummaryPage(this.page!);
 
     await this.submissionSummaryPage.verifyErrorBanner(1);
@@ -217,6 +225,27 @@ Then(
 
     const submissionPeriod = this.submissionPeriod;
 
+    const requestedFields =
+      dataTable
+        ?.raw()
+        .flat()
+        .map((cell) => cell.trim())
+        .filter(Boolean) ?? [];
+
+    if (requestedFields.length > 0) {
+      await this.attach(
+        `📥 Additional expectations requested: ${requestedFields.join(', ')}`,
+        'text/plain'
+      );
+
+      if (requestedFields.includes('submission period')) {
+        expect(
+          submissionPeriod,
+          'Expected a stored submission period from a previous step'
+        ).toBeTruthy();
+      }
+    }
+
     const expectedMessage = `Submission already exists for Office (${office}), Area of Law (${areaOfLaw.toUpperCase()}), Period (${submissionPeriod})`;
     await this.attach(`Expecting: ${expectedMessage}`, 'text/plain');
     await this.attach(`Actual: ${errors[0]}`, 'text/plain');
@@ -226,7 +255,10 @@ Then(
       'text/plain'
     );
 
-    const match = errors.some((err) => err.includes(expectedMessage));
+    const normalizedExpected = normalizeWhitespace(expectedMessage);
+    const normalizedErrors = errors.map((err) => normalizeWhitespace(err));
+
+    const match = normalizedErrors.some((err) => err.includes(normalizedExpected));
     expect(
       match,
       `Expected submission error message to include:\n"${expectedMessage}"\n\nFound:\n${errors.join('\n')}`
