@@ -1,7 +1,6 @@
 @bulkSubmission
 Feature: Bulk Submission Search
 
-  @bulkSubmission
   Scenario Outline: Search For Valid/Invalid claims using submission ref
     Given I ensure there is a "<Status>" submission for "<AreaOfLaw>"
     And I am on the Search page
@@ -18,7 +17,6 @@ Feature: Bulk Submission Search
       | VALIDATION_SUCCEEDED | MEDIATION   |
 
 
-  @bulkSubmission
   Scenario: Validate error message when searching with an invalid submission reference
     Given I am on the Search page
     When I search using an invalid submission reference
@@ -26,7 +24,6 @@ Feature: Bulk Submission Search
     Then the Search page should pass accessibility checks
 
 
-  @bulkSubmission
   Scenario Outline: Validate error messages for invalid search inputs
     Given I am on the Search page
     When I enter invalid search criteria:
@@ -47,7 +44,6 @@ Feature: Bulk Submission Search
       |                   | 40/15/2025 | 31/31/2025 | Enter the submission from date in the correct format, for example, 17/5/2024 | Enter the submission to date in the correct format, for example, 17/5/2024 |
 
 
-  @bulkSubmission
   Scenario: Search for submissions using valid date range
     Given I determine a valid submission search date range for the past 1 days
     And I am on the Search page
@@ -56,14 +52,12 @@ Feature: Bulk Submission Search
     Then I should see results matching the expected count
 
 
-  @bulkSubmission
   Scenario: Verify future dates are disabled in the date pickers
     Given I am on the Search page
     Then future dates should be disabled in the "from" date picker
     And future dates should be disabled in the "to" date picker
 
 
-  @bulkSubmission
   Scenario: Search with a past date range that returns no submissions
     Given I choose a date in the past with no submissions
     And I am on the Search page

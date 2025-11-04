@@ -8,16 +8,15 @@ import { hideBin } from 'yargs/helpers';
 import 'reflect-metadata';
 import dotenv from 'dotenv';
 import {convertFileToXml} from "./converter";
-import { createDataSourceManager } from '../db/dataSourceManager';
+import { getUniqueSubmissionPeriod } from './submissionPeriodHelper';
 dotenv.config();
 
+const AREA_OF_LAW = 'MEDIATION';
 // ---------- 1️⃣ Database Setup ----------
-const dataSourceManager = createDataSourceManager({ label: 'generateMediationFiles' });
-
 let providerApiAvailable = true;
 
 // ---------- 2️⃣ Config ----------
-const offices = ['1T702E'];
+const offices = ['0P322F'];
 const feeCodes = ['ASSA'];
 const OUTPUT_DIR = "generated_submissions_mediation";
 const PROVIDER_API = process.env.PROVIDER_API || 'https://laa-provider-details-api-uat.apps.live.cloud-platform.service.justice.gov.uk/api/v1/provider-offices';
@@ -38,40 +37,7 @@ const generateUFN = (date: Date, caseNum: number) => {
     return `${dd}${mm}${yy}/${nnn}`;
 };
 
-// ---------- 4️⃣ DB Submission Check ----------
-async function isSubmissionPeriodUsed(areaOfLaw: string, submissionPeriod: string, office: string): Promise<boolean> {
-    const dataSource = dataSourceManager.getDataSource();
-    if (!dataSource.isInitialized) return false;
-
-    const result = await dataSource.query(
-        `SELECT 1 
-         FROM claims.submission 
-         WHERE area_of_law = $1 
-           AND submission_period = $2 
-           AND office_account_number = $3 
-           AND status = 'VALIDATION_SUCCEEDED'
-         LIMIT 1`,
-        [areaOfLaw, submissionPeriod, office]
-    );
-    return result.length > 0;
-}
-
-const generateUniqueSubmissionPeriod = async (office: string): Promise<string> => {
-    const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
-    let period: string;
-    let attempts = 0;
-
-    do {
-        const submissionDate = faker.date.between({ from: MIN_CASE_START, to: MAX_CASE_START });
-        period = `${months[submissionDate.getMonth()]}-${submissionDate.getFullYear()}`;
-        attempts++;
-        if (attempts > 50) throw new Error(`Cannot find unique submission period for office ${office}`);
-    } while (await isSubmissionPeriodUsed('MEDIATION', period, office));
-
-    return period;
-};
-
-// ---------- 5️⃣ Provider API Check ----------
+// ---------- 4️⃣ Provider API Check ----------
 const fetchProviderSchedules = async (office: string, caseStartDate: Date) => {
     if (!providerApiAvailable) return undefined;
 
@@ -185,7 +151,7 @@ const generateOutcome = async (office: string, caseNum: number) => {
 
 const generateFile = async (fileName: string, outcomesCount: number, fileType: 'txt' | 'csv') => {
     const office = randomFrom(offices);
-    const submissionPeriod = await generateUniqueSubmissionPeriod(office);
+    const submissionPeriod = await getUniqueSubmissionPeriod(office, AREA_OF_LAW);
 
 
 // Create a safe schedule number (<= 20 chars)
@@ -209,44 +175,18 @@ const generateFile = async (fileName: string, outcomesCount: number, fileType: '
     console.log(`✅ Generated ${fileName}.${fileType} with ${outcomesCount} outcomes for office ${office}`);
 };
 
-// export async function GenerateMediationFiles(files: number, outcomes: number, format: 'txt' | 'csv'): Promise<string[]> {
-//     const generatedFiles: string[] = [];
-//
-//     try {
-//         await AppDataSource.initialize();
-//         console.log('✅ Database connection established');
-//
-//         for (let i = 1; i <= files; i++) {
-//             const fileName = `mediation_submission_${i}.${format}`;
-//             const fullPath = path.join(OUTPUT_DIR, fileName);
-//
-//             await generateFile(`mediation_submission_${i}`, outcomes, format);
-//             generatedFiles.push(fullPath);
-//         }
-//
-//         console.log(`\n🎉 Completed. Files saved in: ${OUTPUT_DIR}/`);
-//         return generatedFiles;
-//     } catch (err) {
-//         console.error('❌ Error:', err);
-//         throw err;
-//     } finally {
-//         await AppDataSource.destroy();
-//         console.log('🔒 Database connection closed');
-//     }
-// }
-
 export async function GenerateMediationFiles(
     files: number,
     outcomes: number,
-    format: 'txt' | 'csv' | 'xml'
+    format: 'txt' | 'csv' | 'xml',
+    suffix?: string
 ): Promise<string[]> {
     const generatedFiles: string[] = [];
 
-    await dataSourceManager.ensureInitialized();
-
     try {
         for (let i = 1; i <= files; i++) {
-            const baseName = `mediation_submission_${i}`;
+            const uniquePart = suffix || `${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+            const baseName = `mediation_${uniquePart}_${i}`;
             const intermediateFormat = format === 'xml' ? 'csv' : format;
 
             const inputFile = path.join(OUTPUT_DIR, `${baseName}.${intermediateFormat}`);
@@ -281,6 +221,6 @@ export async function GenerateMediationFiles(
         console.error('❌ Error:', err);
         throw err;
     } finally {
-        await dataSourceManager.destroy();
+        // No shared DB connection to close here
     }
 }

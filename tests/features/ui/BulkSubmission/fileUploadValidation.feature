@@ -27,7 +27,7 @@ Feature: Bulk Submission Upload Validation
     Given I have generated an "restricted" bulk submission file named "officeRestriction.csv"
     When I upload that file
     Then the user sees an error message "User does not have authorisation to submit for office 0E525U. Please verify your office code and access permissions."
-    
+
   Scenario: Upload fails with Invalid Area of Law
     When I upload "tests/data/invalid/invalidAreaOfLaw.csv"
     Then the user sees an error message "Area of Law must be one of: MEDIATION, CRIME LOWER, or LEGAL HELP"

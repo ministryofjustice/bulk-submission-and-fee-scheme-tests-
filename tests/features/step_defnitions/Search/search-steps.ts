@@ -64,23 +64,27 @@ Given(
 
             const format = 'csv';
             let generatedFiles: string[] = [];
-            // const generatedFilePath =
-            //     '/Users/temilayo.oluwaseunkufeji/Documents/bulk-submission-and-fee-scheme-tests-/generated_submissions_legal/legal_submission_1.csv';
+            // 🔹 Safe scenario name fallback
+            const safeScenario = (this.currentScenarioName || 'Scenario')
+                .replace(/\s+/g, '_')
+                .replace(/[^a-zA-Z0-9_]/g, '');
+
+            const uniqueSuffix = `${safeScenario}_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 
             switch (areaOfLaw) {
                 case 'LEGAL HELP':
-                    generatedFiles=await GenerateCivilFile(1, 0, format);
+                    generatedFiles = await GenerateCivilFile(1, 0, format, { suffix: uniqueSuffix });
                     break;
                 case 'MEDIATION':
-                    generatedFiles=await GenerateMediationFiles(1, 0, format);
+                    generatedFiles=await GenerateMediationFiles(1, 0, format,uniqueSuffix);
                     break;
                 case 'CRIME LOWER':
-                    generatedFiles=await GenerateCrimeFiles(1, 0, format);
+                    generatedFiles=await GenerateCrimeFiles(1, 0, format,uniqueSuffix);
                     break;
                 default:
                     throw new Error(`Invalid area of law: ${areaOfLaw}`);
             }
-            const generatedFilePath = generatedFiles[0];
+            const generatedFilePath = generatedFiles.find(f => f.includes(uniqueSuffix)) || generatedFiles[0];
             await this.attach(`📝 File generated for ${areaOfLaw}: ${generatedFilePath}`, 'text/plain');
 
             // 🚀 Step 3: Upload file
