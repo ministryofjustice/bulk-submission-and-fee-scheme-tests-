@@ -7,6 +7,7 @@ import { convertFileToXml } from './converter';
 import 'reflect-metadata';
 import dotenv from 'dotenv';
 import { claimOptions } from './claimOptions';
+import {GenerateFileOptions} from "./generateFileOptions";
 
 dotenv.config();
 
@@ -199,13 +200,13 @@ const ensureOutputDir = () => {
 
 const generateFile = async (
   baseName: string,
-                            outcomesCount: number, fileType: 'txt' | 'csv',
+  outcomesCount: number, fileType: 'txt' | 'csv',
   submissionPeriod: string,
   office: string,
   claims?: claimOptions[]
 ) => {
   const officeInput = office ?? randomFrom(offices);
-  const submissionPeriodInput = submissionPeriod ?? await generateUniqueSubmissionPeriod(officeInput);
+  const submissionPeriodInput = submissionPeriod ?? await getUniqueSubmissionPeriod(officeInput, 'LEGAL HELP');
   const submissionYear = parseInt(submissionPeriodInput.split('-')[1], 10);
 
   let content = `OFFICE,account=${office}\n`;
@@ -217,8 +218,9 @@ const generateFile = async (
     const feeCode = claimOverride?.feeCode ?? randomFrom(feeCodes);
     const ucn = (claimOverride?.ucn ?? o.ucn).toUpperCase();
     const ufn = claimOverride?.ufn ?? o.ufn;
-    const profitCost = claimOverride??.profitCost ?? o.profit_cost;
-    const londonNonLondonRate = claimOverride??.londonNonLondonRate ?? o.london_nonlondon_rate;
+    const profitCost = claimOverride?.profitCost ?? o.profit_cost;
+    const londonNonLondonRate = claimOverride?.londonNonLondonRate ?? o.london_nonlondon_rate;
+
     const caseStartDate = submissionPeriod ?
         convertSubmissionPeriodToDate(submissionPeriod) :
         o.case_start_date;
@@ -234,18 +236,11 @@ const generateFile = async (
   );
 };
 
-export interface GenerateCivilFileOptions {
-  submissionPeriod?: string;
-  office?: string;
-  claims?: claimOptions[];
-  suffix?: string;
-}
-
 export async function GenerateCivilFile(
   files: number,
   outcomes: number,
   format: 'txt' | 'csv' | 'xml',
-  options: GenerateCivilFileOptions = {}
+  options: GenerateFileOptions = {}
 ): Promise<string[]> {
   const generatedFiles: string[] = [];
   const { submissionPeriod, office, claims, suffix } = options;

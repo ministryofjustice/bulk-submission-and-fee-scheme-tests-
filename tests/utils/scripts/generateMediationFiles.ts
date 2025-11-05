@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 import {convertFileToXml} from "./converter";
 import {getUniqueSubmissionPeriod} from './submissionPeriodHelper';
 import {claimOptions} from "./claimOptions";
+import {GenerateFileOptions} from "./generateFileOptions";
 dotenv.config();
 
 const AREA_OF_LAW = 'MEDIATION';
@@ -151,7 +152,7 @@ const generateOutcome = async (office: string, caseNum: number) => {
 const generateFile = async (fileName: string,
                             outcomesCount: number,
                             fileType: 'txt' | 'csv',
-                            claims?: claimOptions[]) => {
+                            options: GenerateFileOptions = {}) => {
   const office = randomFrom(offices);
   const submissionPeriod = await getUniqueSubmissionPeriod(office, AREA_OF_LAW);
 
@@ -169,9 +170,9 @@ const generateFile = async (fileName: string,
   for (let i = 0; i < outcomesCount; i++) {
     const o = await generateOutcome(office, i);
     let feeCode = randomFrom(feeCodes);
-    if (claims?.[i] !== undefined) {
-      console.log(`➕Currently adding mediation claim ${i}: ${claims[i].feeCode}, ${claims[i].profitCost}`);
-      feeCode = claims[i].feeCode ?? randomFrom(feeCodes);
+    if (options.claims?.[i] !== undefined) {
+      console.log(`➕Currently adding mediation claim ${i}: ${options.claims[i].feeCode}, ${options.claims[i].profitCost}`);
+      feeCode = options.claims[i].feeCode ?? randomFrom(feeCodes);
     }
 
     content += `OUTCOME,FEE_CODE=${feeCode},matterType=MEDI:MDCS,CASE_START_DATE=${o.case_start_date},CASE_ID=${o.case_id},UFN=${o.ufn},CLIENT_FORENAME=${o.client1_first},CLIENT_SURNAME=${o.client1_last},CLIENT_DATE_OF_BIRTH=${o.client1_dob},UCN=${o.ucn1},GENDER=${o.client1_gender},ETHNICITY=${o.client1_ethnicity},DISABILITY=${o.client1_disability},CLIENT_POST_CODE=${o.client1_postcode},CLIENT_LEGALLY_AIDED=${o.client1_legally_aided},CLIENT2_FORENAME=${o.client2_first},CLIENT2_SURNAME=${o.client2_last},CLIENT2_DATE_OF_BIRTH=${o.client2_dob},CLIENT2_UCN=${o.ucn2},CLIENT2_GENDER=${o.client2_gender},CLIENT2_ETHNICITY=${o.client2_ethnicity},CLIENT2_DISABILITY=${o.client2_disability},CLIENT2_POST_CODE=${o.client2_postcode},CLIENT2_LEGALLY_AIDED=${o.client2_legally_aided},MED_CONCLUDED_DATE=${o.med_concluded_date},WORK_CONCLUDED_DATE=${o.work_concluded_date},NUMBER_OF_MEDIATION_SESSIONS=${o.number_of_sessions},MEDIATION_TIME=${o.mediation_time},CASE_REF_NUMBER=${o.case_ref_number},OUTCOME_CODE=${o.outcome_code},DISBURSEMENTS_AMOUNT=${o.disbursements_amount},DISBURSEMENTS_VAT=${o.disbursements_vat},VAT_INDICATOR=${o.vat_indicator},UNIQUE_CASE_ID=${o.unique_case_id},OUTREACH=${o.outreach},REFERRAL=${o.referral},POSTAL_APPL_ACCP=Y,CLIENT2_POSTAL_APPL_ACCP=N,SCHEDULE_REF=${scheduleNum}\n`;
@@ -187,15 +188,14 @@ export async function GenerateMediationFiles(
     files: number,
     outcomes: number,
     format: 'txt' | 'csv' | 'xml',
-    suffix?: string,
-    options?: claimOptions[]
+    options: GenerateFileOptions = {}
 ): Promise<string[]> {
   const generatedFiles: string[] = [];
 
 
 
   try {
-    for (let i = 1; i <= files; i++) {const uniquePart = suffix || `${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    for (let i = 1; i <= files; i++) {const uniquePart = options.suffix || `${Date.now()}_${Math.floor(Math.random() * 10000)}`;
       const baseName = `mediation_${uniquePart}_${i}`;
       const intermediateFormat = format === 'xml' ? 'csv' : format;
 
