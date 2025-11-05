@@ -1,3 +1,4 @@
+@temp
 Feature: Duplicate checks - Legal Help - Disbursements
 
   Background:
@@ -15,12 +16,13 @@ Feature: Duplicate checks - Legal Help - Disbursements
     Then I should see the following submission error messages for "Legal help":
       | Error Message  |
       | <errorMessage> |
-    # TODO: These warning messages are wrong, until BC-230 is fixed
     Examples:
       | format | ufn        | ucn             | submissionPeriod | errorMessage                                                                               |
-      | csv    | 010725/123 | 01011998/S/CSVA | JUN-2025         | Submission already exists for Office (0P322F), Area of Law (LEGAL HELP), Period (JUN-2025) |
-      | csv    | 020825/323 | 02011998/S/CSVB | JUL-2025         | A duplicate claim was found in another submission                                          |
-      | csv    | 020825/323 | 02011998/S/CSVB | AUG-2025         | A duplicate claim was found in another submission                                          |
+      | csv    | 020825/323 | 01011998/S/CSVA | APR-2025         | A duplicate claim was found in another submission                                          |
+      | csv    | 020825/323 | 02011998/S/CSVA | MAY-2025         | A duplicate claim was found in another submission                                          |
+      | csv    | 010725/123 | 03011998/S/CSVA | JUN-2025         | Submission already exists for Office (0P322F), Area of Law (LEGAL HELP), Period (JUN-2025) |
+      | csv    | 020825/323 | 04011998/S/CSVA | JUL-2025         | A duplicate claim was found in another submission                                          |
+      | csv    | 020825/323 | 05011998/S/CSVA | AUG-2025         | A duplicate claim was found in another submission                                          |
 
   Scenario Outline: Should reject submission if less than 3 months - accept
     Given I generate "Legal help" "<format>" file with the following claims from period "JUN-2025"
