@@ -28,18 +28,16 @@ let bsLocal: any;
 
 // ---------- BrowserStack Local Setup ----------
 BeforeAll(async function () {
-  if (process.env.BROWSERSTACK_LOCAL === 'true') {
-    bsLocal = new Local();
-    console.log('🔌 Starting BrowserStack Local...');
-    await new Promise<void>((resolve, reject) => {
-      // @ts-ignore
-      bsLocal.start({ key: process.env.BROWSERSTACK_ACCESS_KEY }, (err) => {
-        if (err) return reject(err);
-        console.log('✅ BrowserStack Local tunnel established');
-        resolve();
-      });
+  bsLocal = new Local();
+  console.log('🔌 Starting BrowserStack Local...');
+  await new Promise<void>((resolve, reject) => {
+    // @ts-ignore
+    bsLocal.start({ key: process.env.BROWSERSTACK_ACCESS_KEY }, (err) => {
+      if (err) return reject(err);
+      console.log('✅ BrowserStack Local tunnel established');
+      resolve();
     });
-  }
+  });
 
   // Clear attachments directory
   const dir = path.join(process.cwd(), 'reports', 'attachments');
@@ -70,7 +68,7 @@ Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHoo
       build: 'playwright-cucumber-browserstack-build',
       'browserstack.username': process.env.BROWSERSTACK_USERNAME,
       'browserstack.accessKey': process.env.BROWSERSTACK_ACCESS_KEY,
-      'browserstack.local': process.env.BROWSERSTACK_LOCAL === 'true',
+      'browserstack.local': true,
       'browserstack.console': 'errors',
       'browserstack.networkLogs': false,
     };
