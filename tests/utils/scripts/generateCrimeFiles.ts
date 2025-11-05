@@ -8,6 +8,7 @@ import {convertFileToXml} from "./converter";
 import {getUniqueSubmissionPeriod} from './submissionPeriodHelper';
 import {claimOptions} from "./claimOptions";
 import {GenerateFileOptions} from "./generateFileOptions";
+
 dotenv.config();
 
 // ---------- 1️⃣ Setup ----------
@@ -154,27 +155,20 @@ const generateFile = async (fileName: string,
                             outcomesCount: number,
                             fileType: 'txt' | 'csv',
                             options: GenerateFileOptions = {}) => {
-  const office = randomFrom(offices);
-  const submissionPeriod = await getUniqueSubmissionPeriod(office, 'CRIME LOWER');
+  const office = options.office ?? randomFrom(offices);
+  const submissionPeriod = options.submissionPeriod ?? await getUniqueSubmissionPeriod(office, 'CRIME LOWER');
 
   let content = `OFFICE,account=${office}\n`;
   content += `SCHEDULE,submissionPeriod=${submissionPeriod},areaOfLaw=CRIME LOWER,scheduleNum=${office}/CRM\n`;
 
   for (let i = 0; i < outcomesCount; i++) {
     const o = await generateOutcome(office, i);
-    let feeCode = randomFrom(feeCodes);
-    let matterType = feeCode.substring(0, 4);
-    let profitCost = o.profit_cost;
-    let travelCost = o.travel_costs;
-    let disbursementAmount = o.disbursements_amount;
-    if (options.claims?.[i] !== undefined) {
-      console.log(`➕Currently adding crime lower claim ${i}: ${options.claims[i].feeCode}, ${options.claims[i].profitCost}`);
-
-      feeCode = options.claims[i].feeCode ?? randomFrom(feeCodes);
-      profitCost = options.claims[i].profitCost ?? o.profit_cost;
-      travelCost = options.claims[i].travelCost ?? o.travel_costs;
-      disbursementAmount = options.claims[i].disbursementAmount ?? o.disbursements_amount;
-    }
+    const claimOverride = options.claims?.[i];
+    const feeCode = claimOverride?.feeCode ?? randomFrom(feeCodes);
+    const profitCost = claimOverride?.profitCost ?? o.profit_cost;
+    const travelCost = claimOverride?.travelCost ?? o.travel_costs;
+    const disbursementAmount = claimOverride?.disbursementAmount ?? o.disbursements_amount;
+    const matterType = feeCode.substring(0, 4);
 
     content += `OUTCOME,FEE_CODE=${feeCode},matterType=${matterType},UFN=${o.ufn},CLIENT_FORENAME=${o.client_forename},CLIENT_SURNAME=${o.client_surname},GENDER=${o.gender},ETHNICITY=${o.ethnicity},DISABILITY=${o.disability},CASE_START_DATE=${o.case_start_date},PROFIT_COST=${profitCost},DISBURSEMENTS_AMOUNT=${disbursementAmount},DISBURSEMENTS_VAT=${o.disbursements_vat},VAT_INDICATOR=${o.vat_indicator},TRAVEL_COSTS=${travelCost},OUTCOME_CODE=${o.outcome_code},CRIME_MATTER_TYPE=${o.crime_matter_type},TRAVEL_WAITING_COSTS=${o.travel_waiting_costs},WORK_CONCLUDED_DATE=${o.work_concluded_date},NO_OF_SUSPECTS=${o.no_of_suspects},NO_OF_POLICE_STATION=${o.no_of_police_station},POLICE_STATION=${o.police_station},DUTY_SOLICITOR=${o.duty_solicitor},YOUTH_COURT=${o.youth_court},SCHEME_ID=${o.scheme_id},DSCC_NUMBER=${o.dscc_number}\n`;
   }
@@ -194,7 +188,8 @@ export async function GenerateCrimeFiles(
   const generatedFiles: string[] = [];
 
   try {
-    for (let i = 1; i <= files; i++) {const uniquePart = options.suffix || `${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    for (let i = 1; i <= files; i++) {
+      const uniquePart = options.suffix || `${Date.now()}_${Math.floor(Math.random() * 10000)}`;
       const baseName = `crime_${uniquePart}_${i}`;
       const intermediateFormat = format === 'xml' ? 'csv' : format;
 
