@@ -1,18 +1,29 @@
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import { createDataSourceManager } from '../db/dataSourceManager';
 
+// ---------- 🧠 File-based cache setup ----------
+const USED_PERIODS_FILE = path.join(os.tmpdir(), 'used_submission_periods.json');
+if (!fs.existsSync(USED_PERIODS_FILE)) fs.writeFileSync(USED_PERIODS_FILE, JSON.stringify([]), 'utf-8');
+
+const readUsedPeriods = (): string[] => {
+  try {
+    return JSON.parse(fs.readFileSync(USED_PERIODS_FILE, 'utf-8'));
+  } catch {
+    return [];
+  }
+};
+
+const writeUsedPeriods = (periods: string[]) => {
+  fs.writeFileSync(USED_PERIODS_FILE, JSON.stringify(periods), 'utf-8');
+  console.log(`✅ Updated used periods cache: ${USED_PERIODS_FILE}`);
+};
+
+// ---------- Existing code ----------
 const MONTHS = [
-  'JAN',
-  'FEB',
-  'MAR',
-  'APR',
-  'MAY',
-  'JUN',
-  'JUL',
-  'AUG',
-  'SEP',
-  'OCT',
-  'NOV',
-  'DEC',
+  'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+  'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
 ];
 
 const allowedPeriods: string[] = (() => {
@@ -56,14 +67,17 @@ const createRandomIndices = (length: number): number[] => {
 };
 
 export async function getUniqueSubmissionPeriod(
-  account: string,
-  dbAreaOfLaw: string
+    account: string,
+    dbAreaOfLaw: string
 ): Promise<string> {
   if (allowedPeriods.length === 0) {
     throw new Error('No allowed submission periods available.');
   }
 
   const accountKey = account.trim();
+  const areaKey = dbAreaOfLaw.trim().toUpperCase();
+  const usedFilePeriods = readUsedPeriods();
+
   if (!usedPeriods.has(accountKey)) {
     usedPeriods.set(accountKey, new Set());
   }
@@ -75,24 +89,31 @@ export async function getUniqueSubmissionPeriod(
 
   for (const index of randomizedIndices) {
     const candidate = allowedPeriods[index];
-    if (cache.has(candidate)) continue;
+    const cacheKey = `${areaKey}_${accountKey}_${candidate}`;
+
+    // ✅ skip if in-memory or file cache already used
+    if (cache.has(candidate) || usedFilePeriods.includes(cacheKey)) continue;
 
     if (hasDb) {
       const rows = await dataSource.query(
-        `SELECT 1
+          `SELECT 1
          FROM claims.submission
          WHERE area_of_law = $1
            AND submission_period = $2
            AND office_account_number = $3
          LIMIT 1`,
-        [dbAreaOfLaw, candidate, accountKey]
+          [dbAreaOfLaw, candidate, accountKey]
       );
       if (Array.isArray(rows) && rows.length > 0) {
         continue;
       }
     }
 
+    // ✅ Record usage in both in-memory and file cache
     cache.add(candidate);
+    usedFilePeriods.push(cacheKey);
+    writeUsedPeriods(usedFilePeriods);
+
     return candidate;
   }
 
@@ -120,4 +141,8 @@ export async function destroySubmissionPeriodManager() {
 export function resetSubmissionPeriodCache() {
   usedPeriods.clear();
   usedScheduleRefs.clear();
+
+  if (fs.existsSync(USED_PERIODS_FILE)) fs.unlinkSync(USED_PERIODS_FILE);
+  fs.writeFileSync(USED_PERIODS_FILE, JSON.stringify([]), 'utf-8');
+  console.log('🧹 Submission period cache reset.');
 }
