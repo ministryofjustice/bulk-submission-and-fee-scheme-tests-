@@ -31,3 +31,20 @@ Feature: Bulk Submission Upload Validation
   Scenario: Upload fails with Invalid Area of Law
     When I upload "tests/data/invalid/invalidAreaOfLaw.csv"
     Then the user sees an error message "Area of Law must be one of: MEDIATION, CRIME LOWER, or LEGAL HELP"
+
+  Scenario: Upload fails with number format exception
+    Given I generate "<AreaOfLaw>" "csv" file with "1" outcomes
+    And I override the generated file field "<field>" with value "<value>"
+    When I upload that file
+    Then the user sees an error message "Invalid value '<value>' supplied for field '<fieldDisplayValue>'."
+    # NOTE: wider permutations of invalid numeric values are covered by laa-data-claims-api unit tests.
+    # See: https://github.com/ministryofjustice/laa-data-claims-api/blob/main/claims-data/service/src/test/java/uk/gov/justice/laa/dstew/payments/claimsdata/mapper/BulkSubmissionMapperTests.java
+    Examples:
+      | AreaOfLaw  | field           | value           | fieldDisplayValue |
+      | Legal help | TRAVEL_TIME     | 9999999999      | travelTime        |
+      | Legal help | WAITING_TIME    | 9999999999      | waitingTime       |
+      | Legal help | TRAVEL_TIME     | NAN             | travelTime        |
+      | Legal help | WAITING_TIME    | NAN             | waitingTime       |
+
+
+    

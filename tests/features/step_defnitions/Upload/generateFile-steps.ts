@@ -10,6 +10,10 @@ import { BulkImportPage } from '../../../pages/bulkImportPage';
 import FormData from 'form-data';
 import fs from 'fs';
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 Given(
   'I generate {string} {string} file with {string} outcomes',
   async function (this: CustomWorld, areaOfLaw, format, outcomes) {
@@ -57,6 +61,7 @@ Given(
     const fileName = path.basename(filePath);
     this.fileName = fileName;
     this.generatedFilePath = filePath;
+    this.filePath = filePath;
     await this.attach(`📁 Generated file for upload: ${fileName}`, 'text/plain');
   }
 );
@@ -112,6 +117,7 @@ Given('I generate {string} {string} file with the following claims', async funct
   const fileName = path.basename(filePath);
   this.fileName = fileName;
   this.generatedFilePath = filePath;
+  this.filePath = filePath;
   await this.attach(`📁 Generated file for upload: ${fileName}`, 'text/plain');
 });
 
@@ -143,6 +149,7 @@ Given('I generate {string} {string} file with the following claims from period {
   const fileName = path.basename(filePath);
   this.fileName = fileName;
   this.generatedFilePath = filePath;
+  this.filePath = filePath;
   await this.attach(`📁 Generated file for upload: ${fileName}`, 'text/plain');
 });
 
@@ -176,6 +183,44 @@ Given('I make the generated file invalid', async function (this: CustomWorld) {
     throw new Error(`Submission never updated (final status: ${uploadResp.status}: ${uploadResp.statusText})`);
   }
 })
+
+Given(
+  'I override the generated file field {string} with value {string}',
+  async function (this: CustomWorld, field: string, value: string) {
+    const filePath = this.generatedFilePath || this.filePath;
+    if (!filePath) {
+      throw new Error('Generated file path is not set. Did you run the generator step first?');
+    }
+
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`Generated file not found at ${filePath}`);
+    }
+
+    const trimmedField = field.trim();
+    const trimmedValue = value.trim();
+
+    const content = fs.readFileSync(filePath, 'utf8');
+    const pattern = new RegExp(`(${escapeRegExp(trimmedField)}=)([^,\\r\\n]*)`, 'g');
+
+    let replacements = 0;
+    const updated = content.replace(pattern, (_match, prefix: string) => {
+      replacements++;
+      return `${prefix}${trimmedValue}`;
+    });
+
+    if (replacements === 0) {
+      throw new Error(`Field "${trimmedField}" not found in generated file ${filePath}`);
+    }
+
+    fs.writeFileSync(filePath, updated, 'utf8');
+    this.filePath = filePath;
+
+    await this.attach(
+      `✏️ Overrode field ${trimmedField} with value ${trimmedValue} in ${path.basename(filePath)}`,
+      'text/plain'
+    );
+  }
+);
 
 
 When('I upload the generated file', async function (this: CustomWorld) {
