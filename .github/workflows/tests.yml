@@ -171,6 +171,7 @@ jobs:
           DB_SSL=${{ secrets.DB_SSL }}
           BROWSERSTACK_USERNAME=${{secrets.BROWSERSTACK_USERNAME}}
           BROWSERSTACK_ACCESS_KEY=${{secrets.BROWSERSTACK_ACCESS_KEY}}
+          GITHUB_RUN_NUMBER=${{ github.run_number }}
           HEADLESS=true
           EOF
 
@@ -185,7 +186,7 @@ jobs:
 
           npm run login
           npm run teardown
-          npx cucumber-js -p bulksubmission
+          npm run test:e2e:browserstack
 
       - name: Publish Cucumber summary
         if: always()

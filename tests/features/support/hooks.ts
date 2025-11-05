@@ -13,33 +13,16 @@ import World from './world';
 import * as fs from 'fs';
 import * as path from 'path';
 import os from 'os';
-import { chromium } from 'playwright';
-import dotenv from 'dotenv';
-import { Local } from 'browserstack-local';
 import { createDataSourceManager } from '../../utils/db/dataSourceManager';
 import { cleanSubmissionData } from '../../utils/scripts/cleanup-submissions';
 import { destroySubmissionPeriodManager } from '../../utils/scripts/submissionPeriodHelper';
 
-dotenv.config();
 setDefaultTimeout(60 * 1000);
 
 const submissionCleanupManager = createDataSourceManager({ label: 'submissionCleanup' });
-let bsLocal: any;
 
-// ---------- BrowserStack Local Setup ----------
-BeforeAll(async function () {
-  bsLocal = new Local();
-  console.log('🔌 Starting BrowserStack Local...');
-  await new Promise<void>((resolve, reject) => {
-    // @ts-ignore
-    bsLocal.start({ key: process.env.BROWSERSTACK_ACCESS_KEY }, (err) => {
-      if (err) return reject(err);
-      console.log('✅ BrowserStack Local tunnel established');
-      resolve();
-    });
-  });
-
-  // Clear attachments directory
+// ---------- Clear Down ----------
+BeforeAll(function () {
   const dir = path.join(process.cwd(), 'reports', 'attachments');
   try {
     fs.rmSync(dir, { recursive: true, force: true });
@@ -54,42 +37,9 @@ BeforeAll(async function () {
 Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHookParameter) {
   this.currentScenarioName = scenario.pickle.name || 'UnnamedScenario';
 
-  // --- Connect to BrowserStack ---
-  (global as any).__browsers = (global as any).__browsers || {};
-  let browser = (global as any).__browsers[process.pid];
-
-  if (!browser) {
-    const caps = {
-      browser: 'chrome',
-      browser_version: 'latest',
-      os: 'osx',
-      os_version: 'big sur',
-      name: this.currentScenarioName,
-      build: 'playwright-cucumber-browserstack-build',
-      'browserstack.username': process.env.BROWSERSTACK_USERNAME,
-      'browserstack.accessKey': process.env.BROWSERSTACK_ACCESS_KEY,
-      'browserstack.local': true,
-      'browserstack.console': 'errors',
-      'browserstack.networkLogs': false,
-    };
-
-    const wsEndpoint = `wss://cdp.browserstack.com/playwright?caps=${encodeURIComponent(
-        JSON.stringify(caps)
-    )}`;
-
-    console.log(`🔗 Connecting to BrowserStack via WebSocket...`);
-    browser = await chromium.connect({ wsEndpoint });
-    (global as any).__browsers[process.pid] = browser;
-
-    console.log(`🌐 Connected to BrowserStack Chrome for PID ${process.pid}`);
-  } else {
-    console.log(`♻️ Reusing existing BrowserStack browser for PID ${process.pid}`);
-  }
-
-  this.browser = browser;
+  await this.openBrowser();
   await this.attach('🌐 Browser launched for scenario', 'text/plain');
 
-  // --- Context Setup ---
   const globalStorage = path.resolve('storageState.json');
   const workerStorage = path.resolve(os.tmpdir(), `storageState-${process.pid}.json`);
 
@@ -190,13 +140,6 @@ AfterAll(async function () {
       delete (global as any).__browsers;
     } else {
       console.log('ℹ️ No global browsers to close');
-    }
-
-    // Stop BrowserStack Local if running
-    if (bsLocal && bsLocal.isRunning()) {
-      console.log('🛑 Stopping BrowserStack Local...');
-      await new Promise<void>((resolve) => bsLocal.stop(() => resolve()));
-      console.log('✅ BrowserStack Local stopped');
     }
   } catch (err) {
     console.warn('⚠️ Failed to close browsers after all tests:', err);
