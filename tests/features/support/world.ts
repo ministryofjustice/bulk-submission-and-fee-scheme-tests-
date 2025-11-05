@@ -98,21 +98,40 @@ export class World {
   }
 
   // ===== UI helpers =====
-  async openBrowser(opts: LaunchOptions = { headless: process.env.HEADLESS === 'true' }) {
+  async openBrowser() {
     (global as any).__browsers = (global as any).__browsers || {};
     let browser = (global as any).__browsers[process.pid];
 
     if (!browser) {
-      browser = await chromium.launch(opts);
+      const caps = {
+        browser: 'chrome',
+        browser_version: 'latest',
+        os: 'osx',
+        os_version: 'big sur',
+        name: this.currentScenarioName || 'Playwright Cucumber Test',
+        build: 'playwright-cucumber-browserstack-build',
+        'browserstack.username': process.env.BROWSERSTACK_USERNAME || 'temik_lqGyU5',
+        'browserstack.accessKey': process.env.BROWSERSTACK_ACCESS_KEY || '6ErtiKXpLLMFxDTxSAmm',
+        'browserstack.local': true,
+        'browserstack.console': 'errors',
+        'browserstack.networkLogs': false,
+      };
+
+      const wsEndpoint = `wss://cdp.browserstack.com/playwright?caps=${encodeURIComponent(
+          JSON.stringify(caps)
+      )}`;
+
+      console.log(`🔗 Connecting to BrowserStack via WebSocket...`);
+      browser = await chromium.connect({ wsEndpoint });
       (global as any).__browsers[process.pid] = browser;
-      console.log(`🌐 Launched new browser for PID ${process.pid}`);
+
+      console.log(`🌐 Connected to BrowserStack Chrome for PID ${process.pid}`);
     } else {
-      console.log(`♻️ Reusing existing browser for PID ${process.pid}`);
+      console.log(`♻️ Reusing existing BrowserStack browser for PID ${process.pid}`);
     }
 
     this.browser = browser;
   }
-
   async goto(path: string) {
     if (!this.page) throw new Error('Browser not opened! Did you forget to tag this scenario with @ui?');
     await this.page.goto(path);

@@ -169,6 +169,8 @@ jobs:
           DB_PASS=${{ secrets.DB_PASS }}
           DB_NAME=${{ secrets.DB_NAME }}
           DB_SSL=${{ secrets.DB_SSL }}
+          BROWSERSTACK_USERNAME=${{secrets.BROWSERSTACK_USERNAME}}
+          BROWSERSTACK_ACCESS_KEY=${{secrets.BROWSERSTACK_ACCESS_KEY}}
           HEADLESS=true
           EOF
 
@@ -183,7 +185,7 @@ jobs:
 
           npm run login
           npm run teardown
-          npx cucumber-js -p bulksubmission --retry 1
+          npx cucumber-js -p bulksubmission
 
       - name: Publish Cucumber summary
         if: always()

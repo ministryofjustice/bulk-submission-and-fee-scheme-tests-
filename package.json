@@ -11,7 +11,17 @@
     "test:report": "playwright show-report",
     "login": "ts-node tests/setup/auth.setup.ts",
     "teardown": "ts-node tests/utils/scripts/cleanup-submissions.ts",
-    "test:tag": "cucumber-js --require-module ts-node/register --require \"tests/features/**/*.ts\" --format json:reports/cucumber.json --format html:reports/cucumber.html tests/features/**/*.feature"
+    "test:tag": "cucumber-js --require-module ts-node/register --require \"tests/features/**/*.ts\" --format json:reports/cucumber.json --format html:reports/cucumber.html tests/features/**/*.feature",
+    "postinstall": "npm update browserstack-node-sdk",
+    "test-browserstack": "browserstack-node-sdk cucumber-js --require-module ts-node/register --require \"tests/features/**/*.ts\" --format json:reports/cucumber.json --format html:reports/cucumber.html \"tests/features/**/*.feature\"",
+    "test:smoke-browserstack": "browserstack-node-sdk cucumber-js --require-module ts-node/register   --require \"tests/features/**/*.ts\" --format json:reports/cucumber.json  --format html:reports/cucumber.html --tags \"@smoke\" \"tests/features/**/*.feature\"",
+    "test:api-browserstack": "browserstack-node-sdk cucumber-js --require-module ts-node/register  --require \"tests/features/**/*.ts\" --format json:reports/cucumber.json  --format html:reports/cucumber.html --tags \"@api\" \"tests/features/**/*.feature\"",
+    "test:ui-browserstack": "browserstack-node-sdk cucumber-js --require-module ts-node/register  --require \"tests/features/**/*.ts\" --format json:reports/cucumber.json  --format html:reports/cucumber.html --tags \"@ui\" \"tests/features/**/*.feature\"",
+    "test:tag-browserstack": "browserstack-node-sdk cucumber-js --require-module ts-node/register --require \"tests/features/**/*.ts\" --format json:reports/cucumber.json --format html:reports/cucumber.html tests/features/**/*.feature",
+    "report:bdd-browserstack": "browserstack-node-sdk node scripts/report.js",
+    "login-browserstack": "browserstack-node-sdk ts-node tests/setup/auth.setup.ts",
+    "teardown-browserstack": "browserstack-node-sdk ts-node tests/utils/scripts/cleanup-submissions.ts",
+    "test:report-browserstack": "browserstack-node-sdk playwright show-report"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
@@ -22,6 +32,8 @@
     "@types/yargs": "^17.0.33",
     "axe-core": "^4.11.0",
     "axios": "^1.11.0",
+    "browserstack-local": "^1.5.8",
+    "browserstack-node-sdk": "^1.45.5",
     "cucumber-html-reporter": "^7.2.0",
     "dotenv": "^17.2.1",
     "otplib": "^12.0.1",
