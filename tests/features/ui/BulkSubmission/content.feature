@@ -21,6 +21,6 @@ Feature: Content check for the UI matching UX designs
     When I search using the most recent submission reference
     Then the search results table matches the expected layout
 
-  Scenario: Upload page content matches design
+  Scenario: Search page content matches design
     Given I am on the Search page
     Then the page content matches "search.html"

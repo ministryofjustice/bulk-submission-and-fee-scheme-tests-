@@ -1,12 +1,16 @@
-import { expect, Locator, Page } from '@playwright/test';
-import { BasePage } from './BasePage';
+import {expect, Locator, Page} from '@playwright/test';
+import {BasePage} from './BasePage';
 
 export class SubmissionSummaryPage extends BasePage {
   readonly successBanner: Locator;
   readonly failureBanner: Locator;
+  readonly warningBanner: Locator;
   readonly statusTag: Locator;
   readonly summaryRows: Locator;
   readonly claimsTable: Locator;
+  readonly claimsTab: Locator;
+  readonly matterStartsTab: Locator;
+  readonly matterStartsRows: Locator;
 
   constructor(page: Page) {
     // 👇 The visible heading and primary button text for this page
@@ -14,25 +18,40 @@ export class SubmissionSummaryPage extends BasePage {
     super(page, 'Submission summary', 'Print this page');
     this.successBanner = page.locator('.govuk-notification-banner--success');
     this.failureBanner = page.locator('.moj-alert--error');
+    this.warningBanner = page.locator('.moj-alert--warning');
     this.statusTag = page.locator('.govuk-tag--green');
     this.summaryRows = page.locator('.govuk-summary-list__row');
     this.claimsTable = page.locator('table.govuk-table');
+    this.claimsTab = page.locator('.moj-sub-navigation__link', { hasText: 'Claims' });
+    this.matterStartsTab = page.locator('.moj-sub-navigation__link', { hasText: 'Matter starts' });
+    this.matterStartsRows = page.locator('#matter-starts + dl .govuk-summary-list__row');
   }
 
   async verifySuccessBanner() {
-    await this.successBanner.waitFor({ timeout: 60000 });
+    await this.successBanner.waitFor({timeout: 60000});
     const bannerText = await this.successBanner.textContent();
     expect(bannerText).toContain('Your submission has been accepted.');
     return bannerText;
   }
 
   async verifyErrorBanner(totalErrors: number) {
-    await this.failureBanner.waitFor({ timeout: 60000 });
+    await this.failureBanner.waitFor({timeout: 60000});
     const bannerText = await this.failureBanner.textContent();
-    if(totalErrors == 1){
+    if (totalErrors == 1) {
       expect(bannerText).toContain(`1 error was found with your submission`);
-    }else{
+    } else {
       expect(bannerText).toContain(`${totalErrors} errors was found with your submission`);
+    }
+    return bannerText;
+  }
+
+  async verifyWarningBanner(totalWarnings: number) {
+    await this.warningBanner.waitFor({timeout: 60000});
+    const bannerText = await this.warningBanner.textContent();
+    if (totalWarnings == 1) {
+      expect(bannerText).toContain(`1 claim has a warning message`);
+    } else {
+      expect(bannerText).toContain(`${totalWarnings} claims have warning messages`);
     }
     return bannerText;
   }
@@ -50,22 +69,58 @@ export class SubmissionSummaryPage extends BasePage {
     return summary;
   }
 
-  async getClaimsData() {
+  async getClaimsData(areaOfLaw: string = 'Legal help') {
     const rows = this.claimsTable.locator('tbody tr');
-    const claims: any[] = [];
+    const claims: Record<string, string>[] = [];
 
     const rowCount = await rows.count();
     for (let i = 0; i < rowCount; i++) {
       const cells = rows.nth(i).locator('td');
-      const claim = {
+      let claim: Record<string, string | null> = {
         surname: await cells.nth(1).textContent(),
-        forename: await cells.nth(2).textContent(),
-        ufn: await cells.nth(3).textContent(),
-        ucn: await cells.nth(4).textContent(),
-        feeCode: await cells.nth(5).textContent(),
+        forename: null,
+        ucn: null,
+        surnameTwo: null,
+        forenameTwo: null,
+        ucnTwo: null,
+        initial: null,
+        ufn: null,
+        feeCode: null,
         value: await cells.nth(6).textContent(),
         escapeCase: await cells.nth(7).textContent(),
+        dateWorkConcluded: null,
+        messages: null
       };
+
+      if (areaOfLaw == 'Legal help') {
+        claim = {
+          ...claim,
+          forename: await cells.nth(2).textContent(),
+          ufn: await cells.nth(3).textContent(),
+          ucn: await cells.nth(4).textContent(),
+          feeCode: await cells.nth(5).textContent(),
+          messages: await cells.nth(8).textContent(),
+        };
+      } else if (areaOfLaw == 'Crime lower') {
+        claim = {
+          ...claim,
+          initial: await cells.nth(2).textContent(),
+          ufn: await cells.nth(3).textContent(),
+          feeCode: await cells.nth(4).textContent(),
+          dateWorkConcluded: await cells.nth(5).textContent(),
+          messages: await cells.nth(8).textContent(),
+        }
+      } else if (areaOfLaw == 'Mediation') {
+        claim = {
+          ...claim,
+          forename: await cells.nth(2).textContent(),
+          ucn: await cells.nth(3).textContent(),
+          surnameTwo: await cells.nth(4).textContent(),
+          forenameTwo: await cells.nth(5).textContent(),
+          ucnTwo: await cells.nth(6).textContent(),
+          feeCode: await cells.nth(7).textContent(),
+        }
+      }
       claims.push(
           Object.fromEntries(
               Object.entries(claim).map(([k, v]) => [k, v?.trim() || ''])
@@ -74,6 +129,75 @@ export class SubmissionSummaryPage extends BasePage {
     }
 
     return claims;
+  }
+
+  private async openMatterStartsTab() {
+    await this.matterStartsTab.waitFor({ state: 'visible', timeout: 10000 });
+    const ariaCurrent = await this.matterStartsTab.getAttribute('aria-current');
+    if (ariaCurrent === 'page') return;
+
+    await Promise.all([
+      this.page.waitForLoadState('networkidle').catch(() => {}),
+      this.matterStartsTab.click(),
+    ]);
+
+    await expect(this.matterStartsTab).toHaveAttribute('aria-current', 'page', { timeout: 10000 });
+  }
+
+  async getMatterStartsData() {
+    await this.openMatterStartsTab();
+    await this.page.locator('#matter-starts').waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+
+    const rows = await this.matterStartsRows.all();
+    const matterStarts: Array<{ code: string; count: number }> = [];
+
+    for (const row of rows) {
+      const code = (await row.locator('.govuk-summary-list__key').textContent())?.trim();
+      const rawValue = (await row.locator('.govuk-summary-list__value').textContent())?.trim();
+      if (!code || rawValue === undefined) continue;
+
+      const parsedCount = Number(rawValue.replace(/,/g, ''));
+      const count = Number.isNaN(parsedCount) ? 0 : parsedCount;
+      matterStarts.push({ code, count });
+    }
+
+    return matterStarts;
+  }
+
+  async validateMatterStarts(expected: Record<string, number>) {
+    const matterStarts = await this.getMatterStartsData();
+
+    expect(matterStarts.length).toBeGreaterThanOrEqual(Object.keys(expected).length);
+
+    for (const [code, expectedCount] of Object.entries(expected)) {
+      const entry = matterStarts.find((m) => m.code === code);
+      expect(entry, `Matter start code ${code} was not found`).toBeTruthy();
+      expect(entry?.count).toBe(expectedCount);
+    }
+
+    return matterStarts;
+  }
+
+  async validateNoMatterStartsMessage(
+    expectedMessage: string = 'There are no matter starts attached to this submission.'
+  ) {
+    await this.openMatterStartsTab();
+    const heading = this.page.locator('#matter-starts');
+    await heading.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+
+    await expect(this.matterStartsRows).toHaveCount(0, { timeout: 5000 });
+
+    const messageLocator = this.page.locator('#matter-starts ~ p.govuk-body').first();
+    await messageLocator.waitFor({ state: 'visible', timeout: 10000 });
+
+    const messageText = (await messageLocator.textContent())?.trim() ?? '';
+    expect(messageText).toContain(expectedMessage.trim());
+
+    return messageText;
+  }
+
+  async ensureMatterStartsTabHidden() {
+    await expect(this.matterStartsTab).toHaveCount(0, { timeout: 5000 });
   }
 
   async validateSummary(expectedAreaOfLaw: string) {

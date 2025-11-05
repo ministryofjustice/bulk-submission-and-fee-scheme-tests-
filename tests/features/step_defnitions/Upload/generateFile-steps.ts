@@ -1,58 +1,105 @@
 import {Given, When} from '@cucumber/cucumber';
 import type {CustomWorld} from '../../support/world';
-import {GenerateCivilFile} from "../../../utils/scripts/generateCivilFiles";
-import {GenerateMediationFiles} from "../../../utils/scripts/generateMediationFiles";
-import {GenerateCrimeFiles} from "../../../utils/scripts/generateCrimeFiles";
+import {GenerateCivilFile} from '../../../utils/scripts/generateCivilFiles';
+import {GenerateMediationFiles} from '../../../utils/scripts/generateMediationFiles';
+import {GenerateCrimeFiles} from '../../../utils/scripts/generateCrimeFiles';
+import {generateMatterStartsFile} from '../../../utils/scripts/generateMatterStartsFile';
+import {claimOptions} from '../../../utils/scripts/claimOptions';
+import path from 'path';
+import {BulkImportPage} from '../../../pages/bulkImportPage';
+import FormData from 'form-data';
+import fs from 'fs';
 
-import path from "path";
-import {BulkImportPage} from "../../../pages/bulkImportPage";
-import FormData from "form-data";
-import fs from "fs";
-import {claimOptions} from "../../../utils/scripts/claimOptions";
+Given(
+    'I generate {string} {string} file with {string} outcomes',
+    async function (this: CustomWorld, areaOfLaw, format, outcomes) {
+      const files = 1;
+      const totalOutcomes = Number(outcomes);
+      let generatedFiles: string[] = [];
 
-Given('I generate {string} {string} file with {string} outcomes', async function (this: CustomWorld, areaOfLaw, format, outcomes) {
-  let generatedFiles: string[] = [];
-  switch (areaOfLaw) {
-    case "Legal help" :
-      generatedFiles = await GenerateCivilFile(1, outcomes, format)
-      break
-    case "Mediation" :
-      generatedFiles = await GenerateMediationFiles(1, outcomes, format)
-      break
-    case "Crime lower" :
-      generatedFiles = await GenerateCrimeFiles(1, outcomes, format)
-      break
-    default :
-      throw new Error(`Invalid area of law :${areaOfLaw}`)
+      const safeScenario = (this.currentScenarioName || 'Scenario')
+      .replace(/\s+/g, '_')
+      .replace(/[^a-zA-Z0-9_]/g, '');
+      const uniqueSuffix = `${safeScenario}_${Date.now()}_${Math.floor(
+          Math.random() * 10000
+      )}`;
 
-  }
+      console.log(`🧩 Unique suffix for file: ${uniqueSuffix}`);
 
-  const filePath = generatedFiles[0];
-  const fileName = path.basename(filePath);
-  this.fileName = fileName;
-  this.generatedFilePath = filePath;
-  await this.attach(`📁 Generated file for upload: ${fileName}`, 'text/plain');
-});
+      switch (areaOfLaw) {
+        case 'Legal help':
+          generatedFiles = await GenerateCivilFile(files, totalOutcomes, format, {
+            suffix: uniqueSuffix,
+          });
+          break;
+        case 'Mediation':
+          generatedFiles = await GenerateMediationFiles(
+              files,
+              totalOutcomes,
+              format, {
+                suffix: uniqueSuffix,
+              }
+          );
+          break;
+        case 'Crime lower':
+          generatedFiles = await GenerateCrimeFiles(
+              files,
+              totalOutcomes,
+              format, {
+                suffix: uniqueSuffix,
+              }
+          );
+          break;
+        default:
+          throw new Error(`Invalid area of law :${areaOfLaw}`);
+      }
+
+      const filePath =
+          generatedFiles.find((f) => f.includes(uniqueSuffix)) || generatedFiles[0];
+      const fileName = path.basename(filePath);
+      this.fileName = fileName;
+      this.generatedFilePath = filePath;
+      await this.attach(`📁 Generated file for upload: ${fileName}`, 'text/plain');
+    }
+);
+
+When(
+    'I generate {string} {string} with all matter type file',
+    async function (this: CustomWorld, areaOfLaw: string, format: string) {
+      const result = await generateMatterStartsFile(areaOfLaw, format, '', 1, {includeAllCodes: true});
+
+      this.fileName = result.fileName;
+      this.generatedFilePath = result.filePath;
+      this.matterStartCounts = result.counts;
+      this.submissionPeriod = result.submissionPeriod;
+      this.officeAccount = result.officeAccount;
+
+      await this.attach(
+          `📝 Generated matter starts file (all codes): ${result.fileName}`,
+          'text/plain'
+      );
+      await this.attach(
+          `🗓 Submission period: ${result.submissionPeriod}\n📄 Schedule ref: ${result.scheduleRef}`,
+          'text/plain'
+      );
+    }
+);
 
 
 Given('I generate {string} {string} file with the following claims', async function (this: CustomWorld, areaOfLaw, format, dataTable) {
 
   let claims: claimOptions[] = dataTable.hashes();
 
-  for (let i = 0; i < claims.length; i++) {
-    console.log(`➕Claim to add ${i}: ${claims[i].ucn}, ${claims[i].ufn}, ${claims[i].feeCode}`);
-  }
-
   let generatedFiles: string[] = [];
   switch (areaOfLaw) {
     case "Legal help" :
-      generatedFiles = await GenerateCivilFile(1, claims.length, format, undefined, undefined, claims)
+      generatedFiles = await GenerateCivilFile(1, claims.length, format, {claims})
       break
     case "Mediation" :
-      generatedFiles = await GenerateMediationFiles(1, claims.length, format)
+      generatedFiles = await GenerateMediationFiles(1, claims.length, format, {claims})
       break
     case "Crime lower" :
-      generatedFiles = await GenerateCrimeFiles(1, claims.length, format)
+      generatedFiles = await GenerateCrimeFiles(1, claims.length, format, {claims})
       break
     default : {
       throw new Error(`Invalid area of law :${areaOfLaw}`)
@@ -77,7 +124,42 @@ Given('I generate {string} {string} file with the following claims from period {
   let generatedFiles: string[] = [];
   switch (areaOfLaw) {
     case "Legal help" :
-      generatedFiles = await GenerateCivilFile(1, claims.length, format, submissionPeriod, undefined, claims)
+      generatedFiles = await GenerateCivilFile(1, claims.length, format, {submissionPeriod, claims})
+      break
+    case "Mediation" :
+      generatedFiles = await GenerateMediationFiles(1, claims.length, format)
+      break
+    case "Crime lower" :
+      generatedFiles = await GenerateCrimeFiles(1, claims.length, format)
+      break
+    default : {
+      throw new Error(`Invalid area of law :${areaOfLaw}`)
+    }
+  }
+
+  const filePath = generatedFiles[0];
+  const fileName = path.basename(filePath);
+  this.fileName = fileName;
+  this.generatedFilePath = filePath;
+  await this.attach(`📁 Generated file for upload: ${fileName}`, 'text/plain');
+});
+
+Given('I generate {string} {string} file with the following claims from period {string} with office {string}', async function (this: CustomWorld, areaOfLaw, format, submissionPeriod, office, dataTable) {
+
+  let claims: claimOptions[] = dataTable.hashes();
+
+  for (let i = 0; i < claims.length; i++) {
+    console.log(`➕Claim to add ${i}: ${claims[i].ucn}, ${claims[i].ufn}, ${claims[i].feeCode}`);
+  }
+
+  let generatedFiles: string[] = [];
+  switch (areaOfLaw) {
+    case "Legal help" :
+      generatedFiles = await GenerateCivilFile(1, claims.length, format, {
+        submissionPeriod,
+        office,
+        claims,
+      })
       break
     case "Mediation" :
       generatedFiles = await GenerateMediationFiles(1, claims.length, format)
@@ -248,31 +330,62 @@ When(
 
 When(
     'I upload {string} {string} file with {string} outcomes via the API',
-    async function (this: CustomWorld, areaOfLaw: string, format: "txt" | "csv" | "xml", outcomes: number) {
+    async function (
+        this: CustomWorld,
+        areaOfLaw: string,
+        format: 'txt' | 'csv' | 'xml',
+        outcomes: number
+    ) {
       try {
+        const files = 1;
+        const safeScenario = (this.currentScenarioName || 'Scenario')
+        .replace(/\s+/g, '_')
+        .replace(/[^a-zA-Z0-9_]/g, '');
+
+        const uniqueSuffix = `${safeScenario}_${Date.now()}_${Math.floor(
+            Math.random() * 10000
+        )}`;
+
         let generatedFiles: string[] = [];
 
-        // 🧩 Step 1: Generate the file dynamically
         switch (areaOfLaw.toLowerCase()) {
           case 'legal help':
-            generatedFiles = await GenerateCivilFile(1, outcomes, format);
+            generatedFiles = await GenerateCivilFile(files, outcomes, format, {
+              suffix: uniqueSuffix,
+            });
             break;
           case 'mediation':
-            generatedFiles = await GenerateMediationFiles(1, outcomes, format);
+            generatedFiles = await GenerateMediationFiles(
+                files,
+                outcomes,
+                format, {
+                  suffix: uniqueSuffix,
+                }
+            );
             break;
           case 'crime lower':
-            generatedFiles = await GenerateCrimeFiles(1, outcomes, format);
+            generatedFiles = await GenerateCrimeFiles(
+                files,
+                outcomes,
+                format, {
+                  suffix: uniqueSuffix,
+                }
+            );
             break;
           default:
             throw new Error(`Invalid area of law: ${areaOfLaw}`);
         }
 
-        const generatedFilePath = generatedFiles[0];
+        const generatedFilePath =
+            generatedFiles.find((f) => f.includes(uniqueSuffix)) ||
+            generatedFiles[0];
         const fileName = path.basename(generatedFilePath);
         this.generatedFilePath = generatedFilePath;
-        await this.attach(`📝 Generated ${areaOfLaw} file (${outcomes} outcomes): ${fileName}`, 'text/plain');
+        await this.attach(
+            `📝 Generated ${areaOfLaw} file (${outcomes} outcomes): ${fileName}`,
+            'text/plain'
+        );
 
-        // 🚀 Step 2: Upload file via API
         const form = new FormData();
         form.append('file', fs.createReadStream(generatedFilePath), {
           filename: fileName,
@@ -303,9 +416,9 @@ When(
             'text/plain'
         );
 
-        // ⏳ Step 3: Poll until VALIDATION_SUCCEEDED
         const maxRetries = 25;
-        const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+        const delay = (ms: number) =>
+            new Promise((res) => setTimeout(res, ms));
         let status = '';
         let submissionPeriod = '';
 
@@ -323,9 +436,15 @@ When(
           const submission = resp.data.content?.[0];
           status = submission?.status || 'UNKNOWN';
           submissionPeriod = submission?.submission_period || '';
-          await this.attach(`Attempt ${attempt}: current status = ${status} (${submissionPeriod})`, 'text/plain');
+          await this.attach(
+              `Attempt ${attempt}: current status = ${status} (${submissionPeriod})`,
+              'text/plain'
+          );
           if (status === 'VALIDATION_SUCCEEDED') {
-            await this.attach(`✅ Submission validated successfully: ${submissionId}`, 'text/plain');
+            await this.attach(
+                `✅ Submission validated successfully: ${submissionId}`,
+                'text/plain'
+            );
             break;
           }
 
@@ -333,15 +452,35 @@ When(
         }
 
         if (status !== 'VALIDATION_SUCCEEDED') {
-          throw new Error(`Submission never reached VALIDATION_SUCCEEDED (final status: ${status})`);
+          throw new Error(
+              `Submission never reached VALIDATION_SUCCEEDED (final status: ${status})`
+          );
         }
 
         this.submissionPeriod = submissionPeriod;
-        await this.attach(`📦 Stored submission period for reuse: ${submissionPeriod}`, 'text/plain');
-
+        await this.attach(
+            `📦 Stored submission period for reuse: ${submissionPeriod}`,
+            'text/plain'
+        );
       } catch (error: any) {
-        await this.attach(`❌ Upload via API failed: ${error.message}`, 'text/plain');
+        await this.attach(
+            `❌ Upload via API failed: ${error.message}`,
+            'text/plain'
+        );
         throw error;
       }
     }
 );
+When('I duplicate the last record in the generated file', async function (this: CustomWorld) {
+  const content = fs.readFileSync(this.generatedFilePath!, 'utf-8').trimEnd();
+
+  const lines = content.split('\n').filter(line => line.trim() !== '');
+  if (lines.length === 0) {
+    console.warn('⚠️ File is empty — nothing to duplicate.');
+    return;
+  }
+
+  const lastLine = lines[lines.length - 1];
+  fs.appendFileSync(this.generatedFilePath!, `${lastLine}`, 'utf-8');
+  console.log(`✅ Duplicated last line in ${path.basename(this.generatedFilePath!)}`);
+});

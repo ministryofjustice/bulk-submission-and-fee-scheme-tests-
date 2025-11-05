@@ -6,12 +6,22 @@ import type { CustomWorld } from '../support/world';
 import { BulkImportPage } from '../../pages/bulkImportPage';
 
 const normalizeHtml = (html: string): string => {
-  const withoutCsrfToken = html.replace(
-    /(<input\b[^>]*name=["']?_csrf["'][^>]*?)\s+value="[^"]*"/gi,
-    '$1'
-  );
+  const withoutDynamicAttributes = html
+    .replace(/(<input\b[^>]*name=["']?_csrf["'][^>]*?)\s+value="[^"]*"/gi,'$1')
+    .replace(/data-max-date="[^"]*"/gi, '')
+    .replace(/data-min-date="[^"]*"/gi, '')
+    .replace(/aria-disabled="true"/gi, '')
+    .replace(/\s+data-testid=/gi, ' data-testid=')
+    .replace(
+      /(<span\b[^>]*class=["'][^"']*govuk-visually-hidden[^"']*["'][^>]*>)(Excluded date,[^<]*)(<\/span>)/gi,
+      '$1$3'
+    )
+    .replace(
+      /(<span\b[^>]*class=["'][^"']*govuk-visually-hidden[^"']*["'][^>]*>)([A-Za-z]+ \d{1,2} [A-Za-z]+ \d{4})(<\/span>)/gi,
+      '$1$3'
+    );
 
-  return withoutCsrfToken
+  return withoutDynamicAttributes
     .replace(/\r\n/g, '\n')
     .split('\n')
     .map((line) => line.trim())
@@ -51,7 +61,19 @@ When('I upload the generated file and wait for import in progress', async functi
   const inProgressHeading = this.page!.locator('h1.moj-interruption-card__heading');
   await inProgressHeading.waitFor({ state: 'visible', timeout: 60000 });
 
-  await this.attach('✅ Import in progress screen displayed', 'text/plain');
+
+  const startTime = Date.now();
+  const maxWaitTime = 60 * 1000; // 1 minute
+
+  while (await inProgressHeading.isVisible()) {
+    if (Date.now() - startTime > maxWaitTime) {
+      throw new Error('Timeout waiting for import to complete after 5 minutes');
+    }
+    await this.page!.waitForTimeout(1000);
+    await this.page!.reload();
+  }
+
+  await this.attach('✅ Import in progress screen displayed and completed', 'text/plain');
 });
 
 Then('the search results table matches the expected layout', async function (this: CustomWorld) {

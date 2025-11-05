@@ -4,54 +4,78 @@
     "period": "OCT-2022",
     "scheduleNum": "2Q263D/CIVIL",
     "scheduleRef": "2Q263D/2018/18",
-    "template": "legal_help_template.csv"
+    "template": "legal_help_template.csv",
+    "areaOfLaw": "LEGAL HELP"
+  },
+  "0P322F_legal_help_matter_starts.csv": {
+    "account": "0P322F",
+    "period": "OCT-2022",
+    "scheduleNum": "0P322F/CIVIL",
+    "scheduleRef": "0P322F/2024/01",
+    "template": "legal_help_matter_starts.csv",
+    "areaOfLaw": "LEGAL HELP"
+  },
+  "0P322F_mediation_matter_starts.csv": {
+    "account": "0P322F",
+    "period": "OCT-2024",
+    "scheduleNum": "0P322F/MEDI2024/01",
+    "scheduleRef": "0P322F/MEDIATION/2024/01",
+    "template": "mediation_matter_starts.csv",
+    "areaOfLaw": "MEDIATION"
   },
   "nil_submission.csv": {
     "account": "0P322F",
     "period": "OCT-2022",
     "scheduleNum": "0P322F/CIVIL",
     "scheduleRef": "0P322F/2018/18",
-    "template": "legal_nil_submission.csv"
+    "template": "legal_nil_submission.csv",
+    "areaOfLaw": "LEGAL HELP"
   },
   "null_account.csv": {
     "account": "",
     "period": "OCT-2022",
     "scheduleNum": "0P322F/CIVIL",
     "scheduleRef": "0P322F/2018/18",
-    "template": "legal_nil_submission.csv"
+    "template": "legal_nil_submission.csv",
+    "areaOfLaw": "LEGAL HELP"
   },
   "legal_help_2Q286D_OCT2024": {
     "account": "2Q286D",
     "period": "OCT-2024",
     "scheduleNum": "2Q286D/CIVIL",
     "scheduleRef": "01/2Q286D/2024/01",
-    "template": "legal_help_template.csv"
+    "template": "legal_help_template.csv",
+    "areaOfLaw": "LEGAL HELP"
   },
   "2Q263D_crime_lower_test.csv": {
     "account": "2Q263D",
     "period": "OCT-2022",
     "scheduleNum": "CRM/2Q263D/23",
-    "template": "crime_lower_template.csv"
+    "template": "crime_lower_template.csv",
+    "areaOfLaw": "CRIME LOWER"
   },
   "2Q286D_mediation_test.csv": {
     "account": "2Q286D",
     "period": "OCT-2024",
     "scheduleNum": "2Q286D/MEDI2024/01",
     "scheduleRef": "2Q286D/MEDI2024/01",
-    "template": "mediation_template.csv"
+    "template": "mediation_template.csv",
+    "areaOfLaw": "MEDIATION"
   },
   "2Q282Z_mediation_error_test.csv": {
     "account": "2Q282Z",
     "period": "OCT-2024",
     "scheduleNum": "2Q282Z/MEDI2024/01",
     "scheduleRef": "2Q282Z/MEDI2024/01",
-    "template": "mediation_error_template.csv"
+    "template": "mediation_error_template.csv",
+    "areaOfLaw": "MEDIATION"
   },
   "officeRestriction.csv": {
     "account": "0E525U",
     "period": "OCT-2024",
     "scheduleNum": "0E525U/MEDI2024/01",
     "scheduleRef": "0E525U/MEDI2024/01",
-    "template": "mediation_template.csv"
+    "template": "mediation_template.csv",
+    "areaOfLaw": "MEDIATION"
   }
 }
