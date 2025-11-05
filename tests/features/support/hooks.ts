@@ -3,11 +3,11 @@ import {
   Before,
   After,
   AfterStep,
+  AfterAll,
   setDefaultTimeout,
   Status,
   ITestCaseHookParameter,
   ITestStepHookParameter,
-  AfterAll,
 } from '@cucumber/cucumber';
 import World from './world';
 import * as fs from 'fs';
@@ -19,15 +19,16 @@ import { destroySubmissionPeriodManager } from '../../utils/scripts/submissionPe
 
 setDefaultTimeout(60 * 1000);
 
+// ---------- DB Cleanup Manager ----------
 const submissionCleanupManager = createDataSourceManager({ label: 'submissionCleanup' });
 
-// ---------- Clear Down ----------
+// ---------- Pre-Test Cleanup ----------
 BeforeAll(function () {
   const dir = path.join(process.cwd(), 'reports', 'attachments');
   try {
     fs.rmSync(dir, { recursive: true, force: true });
     fs.mkdirSync(dir, { recursive: true });
-    console.log(`🧹 Cleared attachments: ${path.relative(process.cwd(), dir)}`);
+    console.log(`🧹 Cleared attachments folder: ${path.relative(process.cwd(), dir)}`);
   } catch (err) {
     console.warn('⚠️ Could not initialize attachments directory:', err);
   }
@@ -37,29 +38,36 @@ BeforeAll(function () {
 Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHookParameter) {
   this.currentScenarioName = scenario.pickle.name || 'UnnamedScenario';
 
+  // 🧩 Create unique ID per worker for parallel safety
+  const uniqueId = `${process.pid}-${Math.random().toString(36).slice(2, 8)}`;
+  // ✅ Launch browser (local or BrowserStack SDK handles it internally)
   await this.openBrowser();
-  await this.attach('🌐 Browser launched for scenario', 'text/plain');
+  await this.attach(`🌐 Browser launched for scenario: ${this.currentScenarioName}`, 'text/plain');
 
+  // ---------- Isolated Storage State ----------
   const globalStorage = path.resolve('storageState.json');
-  const workerStorage = path.resolve(os.tmpdir(), `storageState-${process.pid}.json`);
+  const workerStorage = path.resolve(os.tmpdir(), `storageState-${uniqueId}.json`);
 
-  if (fs.existsSync(globalStorage) && !fs.existsSync(workerStorage)) {
+  if (fs.existsSync(globalStorage)) {
     fs.copyFileSync(globalStorage, workerStorage);
   }
 
+  // ---------- Context & Page ----------
   this.context = await this.browser!.newContext({
     baseURL: process.env.UI_BASE_URL,
     storageState: fs.existsSync(workerStorage) ? workerStorage : undefined,
   });
 
   this.page = await this.context.newPage();
+
+  // Clear state variables
   this.cleanupSubmissionIds.clear();
   this.submissionReference = undefined;
   this.submissionPeriod = undefined;
   this.officeAccount = undefined;
   this.matterStartCounts = undefined;
 
-  await this.attach(`🧭 New isolated context created for: ${scenario.pickle.name}`, 'text/plain');
+  await this.attach(`🧭 Isolated context ready for: ${this.currentScenarioName}`, 'text/plain');
 });
 
 After({ tags: 'not @api' }, async function (this: World) {
@@ -68,23 +76,26 @@ After({ tags: 'not @api' }, async function (this: World) {
       await this.context.close();
       this.context = undefined;
     }
-    console.log('🧹 Closed browser context after scenario');
+    if (this.browser) {
+      await this.browser.close();
+      this.browser = undefined;
+    }
+    console.log('🧹 Closed browser and context after scenario');
   } catch (err) {
-    console.warn('⚠️ Error closing browser context:', err);
+    console.warn('⚠️ Error during browser cleanup:', err);
   }
 });
 
+// ---------- Matter Starts Cleanup ----------
 After({ tags: '@matterStarts' }, async function (this: World) {
-  if (!this.cleanupSubmissionIds || this.cleanupSubmissionIds.size === 0) {
-    return;
-  }
+  if (!this.cleanupSubmissionIds || this.cleanupSubmissionIds.size === 0) return;
 
   const submissionIds = Array.from(this.cleanupSubmissionIds);
 
   try {
     const ready = await submissionCleanupManager.ensureInitialized();
     if (!ready) {
-      await this.attach('⚠️ Unable to connect to database for submission cleanup.', 'text/plain');
+      await this.attach('⚠️ DB not ready for submission cleanup.', 'text/plain');
       return;
     }
 
@@ -99,26 +110,32 @@ After({ tags: '@matterStarts' }, async function (this: World) {
   }
 });
 
-AfterStep({ tags: 'not @api' }, async function (this: World, step) {
+// ---------- Screenshot on Failure ----------
+AfterStep({ tags: 'not @api' }, async function (this: World, step: ITestStepHookParameter) {
   if (step.result?.status === Status.FAILED && this.page) {
-    const rawName = step.pickle?.name ?? 'failed-step';
-    const sanitizedStepName =
-        rawName
+    const sanitizedName =
+        (step.pickle?.name ?? 'failed-step')
             .trim()
             .replace(/[^A-Za-z0-9-_]+/g, '-')
             .replace(/-+/g, '-')
             .replace(/^-|-$/g, '') || 'failed-step';
-    const screenshotPath = `reports/attachments/${Date.now()}-${sanitizedStepName}.png`;
+
+    const uniqueId = `${process.pid}-${Date.now()}`;
+    const screenshotDir = path.join(process.cwd(), 'reports', 'attachments');
+    fs.mkdirSync(screenshotDir, { recursive: true });
+
+    const screenshotPath = path.join(screenshotDir, `${uniqueId}-${sanitizedName}.png`);
     await this.page.screenshot({ path: screenshotPath, fullPage: true });
     await this.attach(fs.readFileSync(screenshotPath), 'image/png');
     console.log(`📸 Screenshot captured for failed step: ${screenshotPath}`);
   }
 });
 
+// ---------- Global Cleanup ----------
 AfterAll(async function () {
   try {
-    const files = fs.readdirSync(os.tmpdir());
-    files
+    // Remove temp submission cache files
+    fs.readdirSync(os.tmpdir())
         .filter((f) => f.endsWith('_used_submission_periods.json'))
         .forEach((f) => {
           fs.unlinkSync(path.join(os.tmpdir(), f));
@@ -126,23 +143,8 @@ AfterAll(async function () {
         });
 
     await submissionCleanupManager.destroy();
-
-    const globalBrowsers = (global as any).__browsers;
-    if (globalBrowsers) {
-      for (const [pid, browser] of Object.entries(globalBrowsers)) {
-        // @ts-ignore
-        if (browser && browser.isConnected()) {
-          // @ts-ignore
-          await browser.close();
-          console.log(`🧹 Closed browser for worker PID: ${pid}`);
-        }
-      }
-      delete (global as any).__browsers;
-    } else {
-      console.log('ℹ️ No global browsers to close');
-    }
   } catch (err) {
-    console.warn('⚠️ Failed to close browsers after all tests:', err);
+    console.warn('⚠️ Error during global cleanup:', err);
   } finally {
     await destroySubmissionPeriodManager();
   }
@@ -161,7 +163,7 @@ async function safeAttach(world: World, label: string, content: string) {
   }
 }
 
-// ---------- Attach API Failure Evidence ----------
+// ---------- Attach API Evidence ----------
 AfterStep({ tags: '@api' }, async function (this: World, step: ITestStepHookParameter) {
   if (step.result?.status !== Status.FAILED) return;
 
@@ -176,7 +178,6 @@ AfterStep({ tags: '@api' }, async function (this: World, step: ITestStepHookPara
   await safeAttach(this, 'api-failure', `## API Failure Context\n\n${payloadBlock}${responseBlock}`);
 });
 
-// ---------- Attach API Evidence at Scenario End ----------
 After({ tags: '@api' }, async function (this: World, scenario: ITestCaseHookParameter) {
   if (scenario.result?.status === Status.FAILED) return;
 
