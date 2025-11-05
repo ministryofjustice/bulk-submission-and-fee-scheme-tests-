@@ -199,8 +199,7 @@ const ensureOutputDir = () => {
 
 const generateFile = async (
   baseName: string,
-  outcomesCount: number,
-  fileType: 'txt' | 'csv',
+                            outcomesCount: number, fileType: 'txt' | 'csv',
   submissionPeriod: string,
   office: string,
   claims?: claimOptions[]

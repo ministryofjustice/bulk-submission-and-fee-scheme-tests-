@@ -88,20 +88,16 @@ Given('I generate {string} {string} file with the following claims', async funct
 
   let claims: claimOptions[] = dataTable.hashes();
 
-  for (let i = 0; i < claims.length; i++) {
-    console.log(`➕Claim to add ${i}: ${claims[i].ucn}, ${claims[i].ufn}, ${claims[i].feeCode}`);
-  }
-
   let generatedFiles: string[] = [];
   switch (areaOfLaw) {
     case "Legal help" :
       generatedFiles = await GenerateCivilFile(1, claims.length, format, { claims })
       break
     case "Mediation" :
-      generatedFiles = await GenerateMediationFiles(1, claims.length, format)
+      generatedFiles = await GenerateMediationFiles(1, claims.length, format, claims)
       break
     case "Crime lower" :
-      generatedFiles = await GenerateCrimeFiles(1, claims.length, format)
+      generatedFiles = await GenerateCrimeFiles(1, claims.length, format, claims)
       break
     default : {
       throw new Error(`Invalid area of law :${areaOfLaw}`)

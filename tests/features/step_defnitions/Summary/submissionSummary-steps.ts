@@ -67,6 +67,46 @@ Then(
 );
 
 Then(
+    'The claims should have the following information for {string}:',
+    async function (this: CustomWorld, areaOfLaw: string,  dataTable) {
+      const summaryPage = new SubmissionSummaryPage(this.page!);
+
+      const claims = await summaryPage.getClaimsData(areaOfLaw);
+      const rows = dataTable.hashes();
+      const errors: string[] = [];
+
+
+      for (const expectedRow of rows) {
+        const matchingClaim = claims.find(claim =>
+            Object.entries(expectedRow).every(([field, expectedValue]) =>
+                claim[field] === expectedValue
+            )
+        );
+
+        if (!matchingClaim) {
+          errors.push(
+              `No matching claim found for expected values: ${JSON.stringify(expectedRow)}`
+          );
+        }
+      }
+
+      if (rows.length !== claims.length) {
+        errors.push(
+            `Expected ${rows.length} claims but found ${claims.length}`
+        );
+      }
+
+      if (errors.length > 0) {
+        throw new Error(
+            `❌ Claim validation failed:\n${errors.join('\n')}\n\nFound claims:\n${JSON.stringify(claims, null, 2)}`
+        );
+      }
+
+      await this.attach(`✅ Validated ${claims.length} claims against expected values`, 'text/plain');
+    }
+);
+
+Then(
   'I should see the submission summary for {string} with no matter starts message',
   async function (this: CustomWorld, areaOfLaw: string) {
     const summaryPage = new SubmissionSummaryPage(this.page!);

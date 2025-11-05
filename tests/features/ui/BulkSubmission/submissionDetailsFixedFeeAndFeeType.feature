@@ -1,13 +1,41 @@
+@bulkSubmission
 Feature: Submission details - Fixed fee & Fee type
 
   Background:
     Given I am on the bulk import page
 
-  @temp
   Scenario: Should show both escaped and fixed claims - Legal Help
     Given I generate "Legal help" "csv" file with the following claims
       | feeCode | profitCost | londonNonLondonRate |
       | FPB020  | 2000       | Y                   |
-      | FPB020  | 1000       | Y                   |
+      | FPB010  | 00         | Y                   |
     When I upload the generated file and wait for import in progress
-    And I should see the submission summary for "Legal help"
+    Then I should see the submission summary for "Legal help" with "2" claims
+    And The claims should have the following information for "Legal help":
+      | feeCode | escapeCase |
+      | FPB020  | Escaped    |
+      | FPB010  | No         |
+
+  Scenario: Should show both escaped and fixed claims - Crime lower
+    Given I generate "Crime lower" "csv" file with the following claims
+      | feeCode | profitCost |
+      | PRIA    | 50         |
+      | PRIB2   | 5000       |
+    When I upload the generated file and wait for import in progress
+    Then I should see the submission summary for "Crime lower" with "2" claims
+    And The claims should have the following information for "Crime lower":
+      | feeCode | escapeCase |
+      | PRIA    | No         |
+      | PRIB2   | Escaped    |
+
+  Scenario: Should show both escaped and fixed claims - Mediation (Don't get escaped mediation claims)
+    Given I generate "Mediation" "csv" file with the following claims
+      | feeCode | profitCost |
+      | ASSA    | 50         |
+      | ASST    | 5000       |
+    When I upload the generated file and wait for import in progress
+    Then I should see the submission summary for "Mediation" with "2" claims
+    And The claims should have the following information for "Mediation":
+      | feeCode |
+      | ASSA    |
+      | ASST    |
