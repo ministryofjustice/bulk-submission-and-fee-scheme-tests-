@@ -287,12 +287,17 @@ Then(
 
     const submissionPeriod = this.submissionPeriod;
 
-    const requestedFields =
-      dataTable
-        ?.raw()
-        .flat()
-        .map((cell) => cell.trim())
-        .filter(Boolean) ?? [];
+
+    const requestedFields = [];
+    if (dataTable && typeof dataTable.raw === 'function') {
+      requestedFields.push(
+          ...dataTable
+          .raw()
+          .flat()
+          .map((cell) => cell.trim())
+          .filter(Boolean)
+      );
+    }
 
     if (requestedFields.length > 0) {
       await this.attach(
@@ -310,7 +315,7 @@ Then(
 
     const expectedMessage = `Submission already exists for Office (${office}), Area of Law (${areaOfLaw.toUpperCase()}), Period (${submissionPeriod})`;
     await this.attach(`Expecting: ${expectedMessage}`, 'text/plain');
-    await this.attach(`Actual: ${errors[0]}`, 'text/plain');
+    await this.attach(`Actual:    ${errors[0]}`, 'text/plain');
 
     await this.attach(
       `🔎 Expecting to find message:\n${expectedMessage}`,
@@ -319,8 +324,8 @@ Then(
 
     const normalizedExpected = normalizeWhitespace(expectedMessage);
     const normalizedErrors = errors.map((err) => normalizeWhitespace(err));
-
     const match = normalizedErrors.some((err) => err.includes(normalizedExpected));
+
     expect(
       match,
       `Expected submission error message to include:\n"${expectedMessage}"\n\nFound:\n${errors.join('\n')}`
@@ -330,6 +335,7 @@ Then(
       `✅ Verified submission error for ${areaOfLaw}, period ${submissionPeriod}`,
       'text/plain'
     );
+
   }
 );
 

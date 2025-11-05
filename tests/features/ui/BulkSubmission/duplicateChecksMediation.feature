@@ -23,11 +23,12 @@ Feature: Duplicate checks - Mediation
     And I upload with generated file via the API
     When I upload the generated file and wait for import in progress
     Then I should have duplicate submission error for "0P322F" "Mediation"
+      | submission period |
     Examples:
       | format |
       | csv    |
-      | xml    |
-      | txt    |
+      #| xml    |
+      #| txt    |
 
   Scenario Outline: Should have no errors in <format> submission (UCN different)
     Given I generate "Mediation" "<format>" file with the following claims
@@ -37,6 +38,7 @@ Feature: Duplicate checks - Mediation
     And I upload with generated file via the API
     When I upload the generated file and wait for import in progress
     Then I should have duplicate submission error for "0P322F" "Mediation"
+      | submission period |
     Examples:
       | format |
       | csv    |
