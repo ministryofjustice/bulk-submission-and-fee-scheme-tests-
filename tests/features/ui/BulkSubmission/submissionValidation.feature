@@ -75,19 +75,14 @@ Feature: Invalid submission level validation
 
   Scenario Outline: Reject any file submission for submission periods greater than current Month
     Given today's date/time in Europe/London falls in "<currentMonth>"
-    And I generate "Legal help" "<format>" file with the following claims from period "FEB-2026"
-      | ucn                  | feeCode | ufn |
-      | 07081999/S/<format>E | CRI123  | 12345678/A/PERS  |
+    And I generate "Legal help" "<format>" file with the following claims from period "<submissionPeriod>"
+      | ucn                  | feeCode | ufn   |
+      | 07081999/S/<format>E | CRI123  | <ufn> |
     And I upload the generated file
     Then I should see the following submission error messages for "Legal help":
-      | Error Message                                          |
-      | Submissions for after the current month (<currentMonth>) are not accepted. Please submit for a previous month. |
-
+      | Error Message                                                                                                       |
+      | Submissions for <errorSubText> current month (<currentMonth>) are not accepted. Please submit for a previous month. |
     Examples:
-      | format | currentMonth  |
-      | csv    | November 2025 |
-#    Examples:
-#      | Format | Outcomes | currentMonth |
-#      | xml    | 0        | AUG-2025     |
-#      | csv    | 0        | NOV-2025     |
-#      | xml    | 0        | FEB-2026     |
+      | format | ufn        | submissionPeriod | currentMonth  | errorSubText |
+      | csv    | 060725/123 | NOV-2025         | November 2025 | the         |
+      | csv    | 060725/122 | JAN-2026         | November 2025 | after the   |

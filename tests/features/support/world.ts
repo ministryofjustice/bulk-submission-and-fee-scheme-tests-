@@ -46,7 +46,6 @@ export class World {
 
   submissionPeriod: string | undefined;
   filePath: string | undefined;
-  currentMonth: string | undefined;
 
   constructor(options: IWorldOptions) {
     // @ts-ignore

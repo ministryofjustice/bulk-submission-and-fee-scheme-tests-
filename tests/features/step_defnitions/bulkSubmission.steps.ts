@@ -65,7 +65,7 @@ Given(/^I have generated a?n "([^"]+)" bulk submission file named "([^"]+)"$/, a
 });
 
 Given( /^today's date\/time in Europe\/London falls in "([^"]+)"$/, async function (this: CustomWorld, currentMonth: string) {
-    this.currentMonth = currentMonth.toLowerCase();
+    // intentionally left blank
 })
 
 When('I upload that file', async function (this: CustomWorld) {
