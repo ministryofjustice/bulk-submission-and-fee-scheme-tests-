@@ -4,6 +4,7 @@ import {BasePage} from './BasePage';
 export class SubmissionSummaryPage extends BasePage {
   readonly successBanner: Locator;
   readonly failureBanner: Locator;
+  readonly warningBanner: Locator;
   readonly statusTag: Locator;
   readonly summaryRows: Locator;
   readonly claimsTable: Locator;
@@ -17,6 +18,7 @@ export class SubmissionSummaryPage extends BasePage {
     super(page, 'Submission summary', 'Print this page');
     this.successBanner = page.locator('.govuk-notification-banner--success');
     this.failureBanner = page.locator('.moj-alert--error');
+    this.warningBanner = page.locator('.moj-alert--warning');
     this.statusTag = page.locator('.govuk-tag--green');
     this.summaryRows = page.locator('.govuk-summary-list__row');
     this.claimsTable = page.locator('table.govuk-table');
@@ -39,6 +41,17 @@ export class SubmissionSummaryPage extends BasePage {
       expect(bannerText).toContain(`1 error was found with your submission`);
     } else {
       expect(bannerText).toContain(`${totalErrors} errors was found with your submission`);
+    }
+    return bannerText;
+  }
+
+  async verifyWarningBanner(totalWarnings: number) {
+    await this.warningBanner.waitFor({timeout: 60000});
+    const bannerText = await this.warningBanner.textContent();
+    if (totalWarnings == 1) {
+      expect(bannerText).toContain(`1 claim has a warning message`);
+    } else {
+      expect(bannerText).toContain(`${totalWarnings} claims have warning messages`);
     }
     return bannerText;
   }
@@ -75,7 +88,8 @@ export class SubmissionSummaryPage extends BasePage {
         feeCode: null,
         value: await cells.nth(6).textContent(),
         escapeCase: await cells.nth(7).textContent(),
-        dateWorkConcluded: null
+        dateWorkConcluded: null,
+        messages: null
       };
 
       if (areaOfLaw == 'Legal help') {
@@ -85,6 +99,7 @@ export class SubmissionSummaryPage extends BasePage {
           ufn: await cells.nth(3).textContent(),
           ucn: await cells.nth(4).textContent(),
           feeCode: await cells.nth(5).textContent(),
+          messages: await cells.nth(8).textContent(),
         };
       } else if (areaOfLaw == 'Crime lower') {
         claim = {
@@ -93,6 +108,7 @@ export class SubmissionSummaryPage extends BasePage {
           ufn: await cells.nth(3).textContent(),
           feeCode: await cells.nth(4).textContent(),
           dateWorkConcluded: await cells.nth(5).textContent(),
+          messages: await cells.nth(8).textContent(),
         }
       } else if (areaOfLaw == 'Mediation') {
         claim = {

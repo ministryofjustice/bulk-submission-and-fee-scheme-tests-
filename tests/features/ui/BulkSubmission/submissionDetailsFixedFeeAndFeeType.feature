@@ -11,22 +11,24 @@ Feature: Submission details - Fixed fee & Fee type
       | FPB010  | 00         | Y                   |
     When I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Legal help" with "2" claims
+    And There should be 1 warnings
     And The claims should have the following information for "Legal help":
-      | feeCode | escapeCase |
-      | FPB020  | Escaped    |
-      | FPB010  | No         |
+      | feeCode | escapeCase | messages |
+      | FPB020  | Escaped    | View (1) |
+      | FPB010  | No         |          |
 
   Scenario: Should show both escaped and fixed claims - Crime lower
     Given I generate "Crime lower" "csv" file with the following claims
-      | feeCode | profitCost |
-      | PRIA    | 50         |
-      | PRIB2   | 5000       |
+      | feeCode | disbursementAmount |
+      | INVC    | 50                 |
+      | INVC    | 5000               |
     When I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Crime lower" with "2" claims
+    And There should be 1 warnings
     And The claims should have the following information for "Crime lower":
-      | feeCode | escapeCase |
-      | PRIA    | No         |
-      | PRIB2   | Escaped    |
+      | feeCode | escapeCase | messages |
+      | INVC    | No         |          |
+      | INVC    | Escaped    | View (1) |
 
   Scenario: Should show both escaped and fixed claims - Mediation (Don't get escaped mediation claims)
     Given I generate "Mediation" "csv" file with the following claims

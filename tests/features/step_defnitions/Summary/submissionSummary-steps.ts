@@ -66,6 +66,12 @@ Then(
   }
 );
 
+Then(`There should be {int} warnings`, async function (this: CustomWorld, warningCount: number) {
+  const summaryPage = new SubmissionSummaryPage(this.page!);
+
+  await summaryPage.verifyWarningBanner(warningCount);
+})
+
 Then(
     'The claims should have the following information for {string}:',
     async function (this: CustomWorld, areaOfLaw: string,  dataTable) {

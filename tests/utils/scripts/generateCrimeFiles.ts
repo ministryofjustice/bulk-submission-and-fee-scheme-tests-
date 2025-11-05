@@ -165,14 +165,18 @@ const generateFile = async (fileName: string,
     let feeCode = randomFrom(feeCodes);
     let matterType = feeCode.substring(0, 4);
     let profitCost = o.profit_cost;
+    let travelCost = o.travel_costs;
+    let disbursementAmount = o.disbursements_amount;
     if (options.claims?.[i] !== undefined) {
       console.log(`➕Currently adding crime lower claim ${i}: ${options.claims[i].feeCode}, ${options.claims[i].profitCost}`);
 
       feeCode = options.claims[i].feeCode ?? randomFrom(feeCodes);
       profitCost = options.claims[i].profitCost ?? o.profit_cost;
+      travelCost = options.claims[i].travelCost ?? o.travel_costs;
+      disbursementAmount = options.claims[i].disbursementAmount ?? o.disbursements_amount;
     }
 
-    content += `OUTCOME,FEE_CODE=${feeCode},matterType=${matterType},UFN=${o.ufn},CLIENT_FORENAME=${o.client_forename},CLIENT_SURNAME=${o.client_surname},GENDER=${o.gender},ETHNICITY=${o.ethnicity},DISABILITY=${o.disability},CASE_START_DATE=${o.case_start_date},PROFIT_COST=${profitCost},DISBURSEMENTS_AMOUNT=${o.disbursements_amount},DISBURSEMENTS_VAT=${o.disbursements_vat},VAT_INDICATOR=${o.vat_indicator},TRAVEL_COSTS=${o.travel_costs},OUTCOME_CODE=${o.outcome_code},CRIME_MATTER_TYPE=${o.crime_matter_type},TRAVEL_WAITING_COSTS=${o.travel_waiting_costs},WORK_CONCLUDED_DATE=${o.work_concluded_date},NO_OF_SUSPECTS=${o.no_of_suspects},NO_OF_POLICE_STATION=${o.no_of_police_station},POLICE_STATION=${o.police_station},DUTY_SOLICITOR=${o.duty_solicitor},YOUTH_COURT=${o.youth_court},SCHEME_ID=${o.scheme_id},DSCC_NUMBER=${o.dscc_number}\n`;
+    content += `OUTCOME,FEE_CODE=${feeCode},matterType=${matterType},UFN=${o.ufn},CLIENT_FORENAME=${o.client_forename},CLIENT_SURNAME=${o.client_surname},GENDER=${o.gender},ETHNICITY=${o.ethnicity},DISABILITY=${o.disability},CASE_START_DATE=${o.case_start_date},PROFIT_COST=${profitCost},DISBURSEMENTS_AMOUNT=${disbursementAmount},DISBURSEMENTS_VAT=${o.disbursements_vat},VAT_INDICATOR=${o.vat_indicator},TRAVEL_COSTS=${travelCost},OUTCOME_CODE=${o.outcome_code},CRIME_MATTER_TYPE=${o.crime_matter_type},TRAVEL_WAITING_COSTS=${o.travel_waiting_costs},WORK_CONCLUDED_DATE=${o.work_concluded_date},NO_OF_SUSPECTS=${o.no_of_suspects},NO_OF_POLICE_STATION=${o.no_of_police_station},POLICE_STATION=${o.police_station},DUTY_SOLICITOR=${o.duty_solicitor},YOUTH_COURT=${o.youth_court},SCHEME_ID=${o.scheme_id},DSCC_NUMBER=${o.dscc_number}\n`;
   }
 
   if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);
@@ -188,8 +192,6 @@ export async function GenerateCrimeFiles(
     options: GenerateFileOptions = {}
 ): Promise<string[]> {
   const generatedFiles: string[] = [];
-
-
 
   try {
     for (let i = 1; i <= files; i++) {const uniquePart = options.suffix || `${Date.now()}_${Math.floor(Math.random() * 10000)}`;
