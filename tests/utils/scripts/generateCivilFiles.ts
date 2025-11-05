@@ -7,6 +7,7 @@ import { convertFileToXml } from './converter';
 import 'reflect-metadata';
 import dotenv from 'dotenv';
 import { claimOptions } from './claimOptions';
+import {GenerateFileOptions} from "./generateFileOptions";
 
 dotenv.config();
 
@@ -199,28 +200,32 @@ const ensureOutputDir = () => {
 
 const generateFile = async (
   baseName: string,
-  outcomesCount: number,
-  fileType: 'txt' | 'csv',
+  outcomesCount: number, fileType: 'txt' | 'csv',
   submissionPeriod: string,
   office: string,
   claims?: claimOptions[]
 ) => {
-  const submissionYear = parseInt(submissionPeriod.split('-')[1], 10);
+  const officeInput = office ?? randomFrom(offices);
+  const submissionPeriodInput = submissionPeriod ?? await getUniqueSubmissionPeriod(officeInput, 'LEGAL HELP');
+  const submissionYear = parseInt(submissionPeriodInput.split('-')[1], 10);
 
   let content = `OFFICE,account=${office}\n`;
-  content += `SCHEDULE,submissionPeriod=${submissionPeriod},areaOfLaw=LEGAL HELP,scheduleNum=${office}/CIVIL\n`;
+  content += `SCHEDULE,submissionPeriod=${submissionPeriodInput},areaOfLaw=LEGAL HELP,scheduleNum=${office}/CIVIL\n`;
 
   for (let i = 0; i < outcomesCount; i++) {
-    const outcome = await generateOutcome(office, i + 1, submissionYear);
+    const o = await generateOutcome(officeInput, i, submissionYear);
     const claimOverride = claims?.[i];
     const feeCode = claimOverride?.feeCode ?? randomFrom(feeCodes);
-    const ucn = (claimOverride?.ucn ?? outcome.ucn).toUpperCase();
-    const ufn = claimOverride?.ufn ?? outcome.ufn;
-    const caseStartDate = submissionPeriod
-      ? convertSubmissionPeriodToDate(submissionPeriod)
-      : outcome.case_start_date;
+    const ucn = (claimOverride?.ucn ?? o.ucn).toUpperCase();
+    const ufn = claimOverride?.ufn ?? o.ufn;
+    const profitCost = claimOverride?.profitCost ?? o.profit_cost;
+    const londonNonLondonRate = claimOverride?.londonNonLondonRate ?? o.london_nonlondon_rate;
 
-    content += `OUTCOME,FEE_CODE=${feeCode},matterType=FAMX:FAPP,CASE_REF_NUMBER=${outcome.case_ref_number},CASE_START_DATE=${caseStartDate},CASE_ID=${outcome.case_id},UFN=${ufn},PROCUREMENT_AREA=PA00120,ACCESS_POINT=AP00000,CLIENT_FORENAME=${outcome.client_forename},CLIENT_SURNAME=${outcome.client_surname},CLIENT_DATE_OF_BIRTH=${outcome.client_date_of_birth},UCN=${ucn},GENDER=${outcome.gender},ETHNICITY=${outcome.ethnicity},DISABILITY=${outcome.disability},CLIENT_POST_CODE=${outcome.client_post_code},WORK_CONCLUDED_DATE=${outcome.work_concluded_date},CASE_STAGE_LEVEL=FPC01,ADVICE_TIME=${outcome.advice_time},TRAVEL_TIME=${outcome.travel_time},WAITING_TIME=${outcome.waiting_time},PROFIT_COST=${outcome.profit_cost},DISBURSEMENTS_AMOUNT=${outcome.disbursements_amount},COUNSEL_COST=${outcome.counsel_cost},DISBURSEMENTS_VAT=${outcome.disbursements_vat},TRAVEL_WAITING_COSTS=0.00,VAT_INDICATOR=${outcome.vat_indicator},LONDON_NONLONDON_RATE=${outcome.london_nonlondon_rate},TRAVEL_COSTS=${outcome.travel_costs},OUTCOME_CODE=${outcome.outcome_code},POSTAL_APPL_ACCP=N,SCHEDULE_REF=${outcome.schedule_ref}\n`;
+    const caseStartDate = submissionPeriod ?
+        convertSubmissionPeriodToDate(submissionPeriod) :
+        o.case_start_date;
+
+    content += `OUTCOME,FEE_CODE=${feeCode},matterType=FAMX:FAPP,CASE_REF_NUMBER=${o.case_ref_number},CASE_START_DATE=${caseStartDate},CASE_ID=${o.case_id},UFN=${ufn},PROCUREMENT_AREA=PA00120,ACCESS_POINT=AP00000,CLIENT_FORENAME=${o.client_forename},CLIENT_SURNAME=${o.client_surname},CLIENT_DATE_OF_BIRTH=${o.client_date_of_birth},UCN=${ucn},GENDER=${o.gender},ETHNICITY=${o.ethnicity},DISABILITY=${o.disability},CLIENT_POST_CODE=${o.client_post_code},WORK_CONCLUDED_DATE=${o.work_concluded_date},CASE_STAGE_LEVEL=FPC01,ADVICE_TIME=${o.advice_time},TRAVEL_TIME=${o.travel_time},WAITING_TIME=${o.waiting_time},PROFIT_COST=${profitCost},DISBURSEMENTS_AMOUNT=${o.disbursements_amount},COUNSEL_COST=${o.counsel_cost},DISBURSEMENTS_VAT=${o.disbursements_vat},TRAVEL_WAITING_COSTS=0.00,VAT_INDICATOR=${o.vat_indicator},LONDON_NONLONDON_RATE=${londonNonLondonRate},TRAVEL_COSTS=${o.travel_costs},OUTCOME_CODE=${o.outcome_code},POSTAL_APPL_ACCP=N,SCHEDULE_REF=${o.schedule_ref}\n`;
   }
 
   ensureOutputDir();
@@ -231,18 +236,11 @@ const generateFile = async (
   );
 };
 
-export interface GenerateCivilFileOptions {
-  submissionPeriod?: string;
-  office?: string;
-  claims?: claimOptions[];
-  suffix?: string;
-}
-
 export async function GenerateCivilFile(
   files: number,
   outcomes: number,
   format: 'txt' | 'csv' | 'xml',
-  options: GenerateCivilFileOptions = {}
+  options: GenerateFileOptions = {}
 ): Promise<string[]> {
   const generatedFiles: string[] = [];
   const { submissionPeriod, office, claims, suffix } = options;

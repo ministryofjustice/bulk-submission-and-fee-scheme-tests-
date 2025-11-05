@@ -1,9 +1,10 @@
-import { expect, Locator, Page } from '@playwright/test';
-import { BasePage } from './BasePage';
+import {expect, Locator, Page} from '@playwright/test';
+import {BasePage} from './BasePage';
 
 export class SubmissionSummaryPage extends BasePage {
   readonly successBanner: Locator;
   readonly failureBanner: Locator;
+  readonly warningBanner: Locator;
   readonly statusTag: Locator;
   readonly summaryRows: Locator;
   readonly claimsTable: Locator;
@@ -17,6 +18,7 @@ export class SubmissionSummaryPage extends BasePage {
     super(page, 'Submission summary', 'Print this page');
     this.successBanner = page.locator('.govuk-notification-banner--success');
     this.failureBanner = page.locator('.moj-alert--error');
+    this.warningBanner = page.locator('.moj-alert--warning');
     this.statusTag = page.locator('.govuk-tag--green');
     this.summaryRows = page.locator('.govuk-summary-list__row');
     this.claimsTable = page.locator('table.govuk-table');
@@ -26,19 +28,30 @@ export class SubmissionSummaryPage extends BasePage {
   }
 
   async verifySuccessBanner() {
-    await this.successBanner.waitFor({ timeout: 60000 });
+    await this.successBanner.waitFor({timeout: 60000});
     const bannerText = await this.successBanner.textContent();
     expect(bannerText).toContain('Your submission has been accepted.');
     return bannerText;
   }
 
   async verifyErrorBanner(totalErrors: number) {
-    await this.failureBanner.waitFor({ timeout: 60000 });
+    await this.failureBanner.waitFor({timeout: 60000});
     const bannerText = await this.failureBanner.textContent();
-    if(totalErrors == 1){
+    if (totalErrors == 1) {
       expect(bannerText).toContain(`1 error was found with your submission`);
-    }else{
+    } else {
       expect(bannerText).toContain(`${totalErrors} errors was found with your submission`);
+    }
+    return bannerText;
+  }
+
+  async verifyWarningBanner(totalWarnings: number) {
+    await this.warningBanner.waitFor({timeout: 60000});
+    const bannerText = await this.warningBanner.textContent();
+    if (totalWarnings == 1) {
+      expect(bannerText).toContain(`1 claim has a warning message`);
+    } else {
+      expect(bannerText).toContain(`${totalWarnings} claims have warning messages`);
     }
     return bannerText;
   }
@@ -56,22 +69,58 @@ export class SubmissionSummaryPage extends BasePage {
     return summary;
   }
 
-  async getClaimsData() {
+  async getClaimsData(areaOfLaw: string = 'Legal help') {
     const rows = this.claimsTable.locator('tbody tr');
-    const claims: any[] = [];
+    const claims: Record<string, string>[] = [];
 
     const rowCount = await rows.count();
     for (let i = 0; i < rowCount; i++) {
       const cells = rows.nth(i).locator('td');
-      const claim = {
+      let claim: Record<string, string | null> = {
         surname: await cells.nth(1).textContent(),
-        forename: await cells.nth(2).textContent(),
-        ufn: await cells.nth(3).textContent(),
-        ucn: await cells.nth(4).textContent(),
-        feeCode: await cells.nth(5).textContent(),
+        forename: null,
+        ucn: null,
+        surnameTwo: null,
+        forenameTwo: null,
+        ucnTwo: null,
+        initial: null,
+        ufn: null,
+        feeCode: null,
         value: await cells.nth(6).textContent(),
         escapeCase: await cells.nth(7).textContent(),
+        dateWorkConcluded: null,
+        messages: null
       };
+
+      if (areaOfLaw == 'Legal help') {
+        claim = {
+          ...claim,
+          forename: await cells.nth(2).textContent(),
+          ufn: await cells.nth(3).textContent(),
+          ucn: await cells.nth(4).textContent(),
+          feeCode: await cells.nth(5).textContent(),
+          messages: await cells.nth(8).textContent(),
+        };
+      } else if (areaOfLaw == 'Crime lower') {
+        claim = {
+          ...claim,
+          initial: await cells.nth(2).textContent(),
+          ufn: await cells.nth(3).textContent(),
+          feeCode: await cells.nth(4).textContent(),
+          dateWorkConcluded: await cells.nth(5).textContent(),
+          messages: await cells.nth(8).textContent(),
+        }
+      } else if (areaOfLaw == 'Mediation') {
+        claim = {
+          ...claim,
+          forename: await cells.nth(2).textContent(),
+          ucn: await cells.nth(3).textContent(),
+          surnameTwo: await cells.nth(4).textContent(),
+          forenameTwo: await cells.nth(5).textContent(),
+          ucnTwo: await cells.nth(6).textContent(),
+          feeCode: await cells.nth(7).textContent(),
+        }
+      }
       claims.push(
           Object.fromEntries(
               Object.entries(claim).map(([k, v]) => [k, v?.trim() || ''])
