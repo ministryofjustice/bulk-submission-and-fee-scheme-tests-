@@ -12,7 +12,7 @@ Feature: Content check for the UI matching UX designs
   Scenario: Import in progress page content matches design
     Given I am on the bulk import page
     And I generate "Legal help" "csv" file with "1" outcomes
-    When I upload the generated file and wait for import in progress
+    When I upload the generated file and wait for import in progress screen
     Then the page content matches "upload_check.html"
 
   Scenario: Search results table layout matches design

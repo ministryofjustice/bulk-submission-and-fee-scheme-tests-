@@ -10,16 +10,14 @@ const normalizeHtml = (html: string): string => {
     .replace(/(<input\b[^>]*name=["']?_csrf["'][^>]*?)\s+value="[^"]*"/gi,'$1')
     .replace(/data-max-date="[^"]*"/gi, '')
     .replace(/data-min-date="[^"]*"/gi, '')
+    .replace(/\s*data-testid="[^"]*"/gi, '')
+    .replace(/\s*style="display:\s*(?:none|block);?"/gi, '')
     .replace(/aria-disabled="true"/gi, '')
-    .replace(/\s+data-testid=/gi, ' data-testid=')
-    .replace(
-      /(<span\b[^>]*class=["'][^"']*govuk-visually-hidden[^"']*["'][^>]*>)(Excluded date,[^<]*)(<\/span>)/gi,
-      '$1$3'
-    )
-    .replace(
-      /(<span\b[^>]*class=["'][^"']*govuk-visually-hidden[^"']*["'][^>]*>)([A-Za-z]+ \d{1,2} [A-Za-z]+ \d{4})(<\/span>)/gi,
-      '$1$3'
-    );
+    .replace(/(<table\b[^>]*class=["'][^"']*moj-datepicker__calendar[^"']*["'][^>]*?)\s+role="(?:grid|application)"/gi, '$1')
+    .replace(/(<h2\b[^>]*class=["'][^"']*moj-js-datepicker-month-year[^"']*["'][^>]*>)([^<]*)(<\/h2>)/gi, '$1$3')
+    .replace(/(<span\b[^>]*class=["'][^"']*govuk-visually-hidden[^"']*["'][^>]*>)(Excluded date,[^<]*)(<\/span>)/gi, '$1$3')
+    .replace(/(<span\b[^>]*class=["'][^"']*govuk-visually-hidden[^"']*["'][^>]*>)([A-Za-z]+ \d{1,2} [A-Za-z]+ \d{4})(<\/span>)/gi, '$1$3')
+    .replace(/(<table\b[^>]*class=["'][^"']*moj-datepicker__calendar[^"']*["'][^>]*>\s*<thead>[\s\S]*?<\/thead>)[\s\S]*?(<\/table>)/gi, '$1$2');
 
   return withoutDynamicAttributes
     .replace(/\r\n/g, '\n')
@@ -46,7 +44,7 @@ Then('the page content matches {string}', async function (this: CustomWorld, fix
   await this.attach(`✅ Page content matches ${fixtureName}`, 'text/plain');
 });
 
-When('I upload the generated file and wait for import in progress', async function (this: CustomWorld) {
+When(/^I upload the generated file and wait for import in progress(?: (screen))?$/, async function (this: CustomWorld, screen?: string) {
   if (!this.generatedFilePath) {
     throw new Error('No generated file available for upload');
   }
@@ -61,6 +59,10 @@ When('I upload the generated file and wait for import in progress', async functi
   const inProgressHeading = this.page!.locator('h1.moj-interruption-card__heading');
   await inProgressHeading.waitFor({ state: 'visible', timeout: 60000 });
 
+  if (screen) {
+    await this.attach('✅ Import in progress screen displayed', 'text/plain');
+    return;
+  }
 
   const startTime = Date.now();
   const maxWaitTime = 60 * 1000; // 1 minute

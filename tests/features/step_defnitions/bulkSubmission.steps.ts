@@ -112,6 +112,3 @@ When('I upload {string}', async function (this: CustomWorld, relativePath: strin
     // Attach for debugging
     await this.attach(`📂 Uploaded file: ${filePath}`, 'text/plain');
 });
-Given(/^today's date\/time in Europe\/London falls in \{submissionMonth\}$/, function () {
-
-});
