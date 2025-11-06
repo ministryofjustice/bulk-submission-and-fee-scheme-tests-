@@ -1,5 +1,4 @@
 @duplicateChecks
-@temp
 @bulkSubmission
 Feature: Duplicate checks - Legal Help
 
