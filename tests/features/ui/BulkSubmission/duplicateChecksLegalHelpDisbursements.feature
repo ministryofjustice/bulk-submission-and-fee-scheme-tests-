@@ -1,3 +1,4 @@
+@bulkSubmissions
 @duplicateChecks
 Feature: Duplicate checks - Legal Help - Disbursements
 
@@ -18,10 +19,10 @@ Feature: Duplicate checks - Legal Help - Disbursements
       | <errorMessage> |
     Examples:
       | originalSubmissionPeriod | format | ufn        | ucn             | submissionPeriod | errorMessage                                                                               |
-      # 2 Months Prior
-      | MAY-2021                 | csv    | 020825/123 | 01011998/S/CSVA | MAR-2021         | A duplicate claim was found in another submission                                          |
-      # 1 Month Prior
-      | JUN-2021                 | csv    | 020825/223 | 02011998/S/CSVA | JUL-2021         | A duplicate claim was found in another submission                                          |
+      # 2 Months Prior (Waiting on BC-230)
+      #| MAY-2021                 | csv    | 020825/123 | 01011998/S/CSVA | MAR-2021         | A duplicate claim was found in another submission                                          |
+      # 1 Month Prior  (Waiting on BC-230)
+      #| JUN-2021                 | csv    | 020825/223 | 02011998/S/CSVA | JUL-2021         | A duplicate claim was found in another submission                                          |
       # Same month
       | AUG-2021                 | csv    | 010725/323 | 03011998/S/CSVA | AUG-2021         | Submission already exists for Office (0P322F), Area of Law (LEGAL HELP), Period (AUG-2021) |
       # 1 Month ahead
@@ -41,10 +42,10 @@ Feature: Duplicate checks - Legal Help - Disbursements
     Then I should see the submission summary for "Legal help"
     Examples:
       | originalSubmissionPeriod | format | ufn        | ucn             | submissionPeriod |
-      # New submission for period earlier than original submission by 3 months
-      | MAY-2022                 | csv    | 020725/121 | 01021998/S/CSVA | FEB-2022         |
-      # New submission for period earlier than original submission by 5 months
-      | JUN-2022                 | csv    | 020725/122 | 02021998/S/CSVA | JAN-2022         |
+      # New submission for period earlier than original submission by 3 months  (Waiting on BC-230)
+      #| MAY-2022                 | csv    | 020725/121 | 01021998/S/CSVA | FEB-2022         |
+      # New submission for period earlier than original submission by 5 months  (Waiting on BC-230)
+      #| JUN-2022                 | csv    | 020725/122 | 02021998/S/CSVA | JAN-2022         |
       # New submission for period later than original submission by 3 months
       | JUL-2022                 | csv    | 020725/123 | 03021998/S/CSVA | OCT-2022         |
       # New submission for period earlier than original submission by 4 months
@@ -120,7 +121,7 @@ Feature: Duplicate checks - Legal Help - Disbursements
     Then I should see the submission summary for "Legal help"
     Examples:
       | originalSubmissionPeriod | format | ufn        | ucn             | submissionPeriod |
-      | JUL-2023                 | csv    | 011025/123 | 01021998/S/CSVA | AUG-2023         |
+      | JUL-2023                 | csv    | 301025/123 | 01021998/S/CSVA | AUG-2023         |
 
 
 
