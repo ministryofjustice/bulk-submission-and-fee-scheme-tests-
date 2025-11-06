@@ -18,7 +18,7 @@ Feature: Duplicate checks - Mediation
   Scenario Outline: Duplicate detected against a previously submitted claim from <format>
     Given I generate "Mediation" "<format>" file with the following claims
       | ucn             | ufn        |
-      | 14091962/T/PERS | 010625/123 |
+      | 14091962/T/PERS | 010725/123 |
     And I upload with generated file via the API
     When I upload the generated file and wait for import in progress
     Then I should have duplicate submission error for "0P322F" "Mediation"
@@ -32,8 +32,8 @@ Feature: Duplicate checks - Mediation
   Scenario Outline: Should have no errors in <format> submission (UCN different)
     Given I generate "Mediation" "<format>" file with the following claims
       | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>E | ASSA    | 010625/123 |
-      | 07081997/S/<format>E | ASSA    | 010625/123 |
+      | 07081996/S/<format>E | ASSA    | 010725/123 |
+      | 07081997/S/<format>E | ASSA    | 010725/123 |
     And I upload with generated file via the API
     When I upload the generated file and wait for import in progress
     Then I should have duplicate submission error for "0P322F" "Mediation"
@@ -62,8 +62,8 @@ Feature: Duplicate checks - Mediation
   Scenario Outline: Duplicate detected within the same <format> submission file (later row duplicate)
     Given I generate "Mediation" "<format>" file with the following claims
       | feeCode | uniqueCaseId |
-      | ASSA    | 020625/123   |
-      | ASSA    | 020625/123   |
+      | ASSA    | 020725/123   |
+      | ASSA    | 020725/123   |
     And I upload the generated file and wait for import in progress
     Then I should see the following submission error messages for "Mediation":
       | Error Message                                          |
@@ -78,8 +78,8 @@ Feature: Duplicate checks - Mediation
   Scenario Outline: Should have no errors in <format> submission (unique case ID different)
     Given I generate "Mediation" "<format>" file with the following claims
       | feeCode | uniqueCaseId    |
-      | ASSA    | 030625/<suffix> |
-      | ASSA    | 040625/<suffix> |
+      | ASSA    | 030725/<suffix> |
+      | ASSA    | 040725/<suffix> |
     When I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Mediation"
     Examples:
@@ -90,12 +90,12 @@ Feature: Duplicate checks - Mediation
 
   Scenario Outline: Should have no errors in <format> submission (unique case ID different multiple submissions)
     Given I generate "Mediation" "<format>" file with the following claims
-      | ucn                  | feeCode | uniqueCaseId    |
-      | 07081996/S/<format>E | ASSA    | 040625/<suffix> |
+      | feeCode | uniqueCaseId    |
+      | ASSA    | 060725/<suffix> |
     And I upload with generated file via the API
     Given I generate "Mediation" "<format>" file with the following claims
-      | ucn                  | feeCode | uniqueCaseId    |
-      | 07081996/S/<format>E | ASSA    | 050625/<suffix> |
+      | feeCode | uniqueCaseId    |
+      | ASSA    | 160725/<suffix> |
     When I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Mediation"
     Examples:
@@ -121,11 +121,11 @@ Feature: Duplicate checks - Mediation
   Scenario Outline: Should have no errors in <format> submission (fee code different multiple submissions)
     Given I generate "Mediation" "<format>" file with the following claims
       | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>E | ASSA    | 080625/123 |
+      | 07081996/S/<format>E | ASSA    | 080725/123 |
     And I upload with generated file via the API
     Given I generate "Mediation" "<format>" file with the following claims
       | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>E | ASST    | 080625/124 |
+      | 07081996/S/<format>E | ASST    | 080725/124 |
     When I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Mediation"
     Examples:
