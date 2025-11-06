@@ -1,5 +1,5 @@
 @duplicateChecks
-  @bulkSubmission
+@bulkSubmission
 Feature: Duplicate checks - Legal Help
 
   Background:

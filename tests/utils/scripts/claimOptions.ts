@@ -6,4 +6,5 @@ export interface claimOptions {
   travelCost?: number;
   disbursementAmount?: number;
   londonNonLondonRate?: string;
+  uniqueCaseId?: string;
 }

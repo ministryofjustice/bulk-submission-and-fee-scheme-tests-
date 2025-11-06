@@ -1,6 +1,5 @@
 @duplicateChecks
 @bulkSubmission
-@temp
 Feature: Duplicate checks - Mediation
 
   Background:
@@ -27,8 +26,8 @@ Feature: Duplicate checks - Mediation
     Examples:
       | format |
       | csv    |
-      #| xml    |
-      #| txt    |
+      | xml    |
+      | txt    |
 
   Scenario Outline: Should have no errors in <format> submission (UCN different)
     Given I generate "Mediation" "<format>" file with the following claims
@@ -62,9 +61,9 @@ Feature: Duplicate checks - Mediation
 
   Scenario Outline: Duplicate detected within the same <format> submission file (later row duplicate)
     Given I generate "Mediation" "<format>" file with the following claims
-      | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>E | ASSA    | 020625/123 |
-      | 07081996/S/<format>E | ASSA    | 020625/123 |
+      | feeCode | uniqueCaseId |
+      | ASSA    | 020625/123   |
+      | ASSA    | 020625/123   |
     And I upload the generated file and wait for import in progress
     Then I should see the following submission error messages for "Mediation":
       | Error Message                                          |
@@ -76,69 +75,40 @@ Feature: Duplicate checks - Mediation
       | xml    |
       | txt    |
 
-  Scenario Outline: Should have no errors in <format> submission (UFN different)
+  Scenario Outline: Should have no errors in <format> submission (unique case ID different)
     Given I generate "Mediation" "<format>" file with the following claims
-      | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>E | ASSA    | 030625/123 |
-      | 07081996/S/<format>E | ASSA    | 030625/124 |
+      | feeCode | uniqueCaseId    |
+      | ASSA    | 030625/<suffix> |
+      | ASSA    | 040625/<suffix> |
     When I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Mediation"
     Examples:
-      | format |
-      | csv    |
-      | xml    |
-      | txt    |
+      | format | suffix |
+      | csv    | 123    |
+      | xml    | 456    |
+      | txt    | 789    |
 
-  Scenario Outline: Should have no errors in <format> submission (UFN different multiple submissions)
+  Scenario Outline: Should have no errors in <format> submission (unique case ID different multiple submissions)
     Given I generate "Mediation" "<format>" file with the following claims
-      | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>E | ASSA    | 040625/123 |
+      | ucn                  | feeCode | uniqueCaseId    |
+      | 07081996/S/<format>E | ASSA    | 040625/<suffix> |
     And I upload with generated file via the API
     Given I generate "Mediation" "<format>" file with the following claims
-      | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>E | ASSA    | 040625/124 |
+      | ucn                  | feeCode | uniqueCaseId    |
+      | 07081996/S/<format>E | ASSA    | 050625/<suffix> |
     When I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Mediation"
     Examples:
-      | format |
-      | csv    |
-      | xml    |
-      | txt    |
-
-  Scenario Outline: Should have no errors in <format> submission (UCN different)
-    Given I generate "Mediation" "<format>" file with the following claims
-      | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>E | ASSA    | 050625/123 |
-      | 07081997/S/<format>F | ASSA    | 050625/123 |
-    When I upload the generated file and wait for import in progress
-    Then I should see the submission summary for "Mediation"
-    Examples:
-      | format |
-      | csv    |
-      | xml    |
-      | txt    |
-
-  Scenario Outline: Should have no errors in <format> submission (UCN different multiple submissions)
-    Given I generate "Mediation" "<format>" file with the following claims
-      | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>E | ASSA    | 060625/123 |
-    And I upload with generated file via the API
-    Given I generate "Mediation" "<format>" file with the following claims
-      | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>F | ASSA    | 060625/124 |
-    When I upload the generated file and wait for import in progress
-    Then I should see the submission summary for "Mediation"
-    Examples:
-      | format |
-      | csv    |
-      | xml    |
-      | txt    |
+      | format | suffix |
+      | csv    | 123    |
+      | xml    | 456    |
+      | txt    | 789    |
 
   Scenario Outline: Should have no errors in <format> submission (fee code different)
     Given I generate "Mediation" "<format>" file with the following claims
       | ucn                  | feeCode | ufn        |
       | 07081998/S/<format>E | ASSA    | 070725/123 |
-      | 07081998/S/<format>E | ASST     | 070725/123 |
+      | 07081998/S/<format>E | ASST    | 070725/123 |
     When I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Mediation"
     Examples:
@@ -148,14 +118,14 @@ Feature: Duplicate checks - Mediation
       | txt    |
 
 
-  Scenario Outline: Should have no errors in <format> submission (feeCode different multiple submissions)
+  Scenario Outline: Should have no errors in <format> submission (fee code different multiple submissions)
     Given I generate "Mediation" "<format>" file with the following claims
       | ucn                  | feeCode | ufn        |
       | 07081996/S/<format>E | ASSA    | 080625/123 |
     And I upload with generated file via the API
     Given I generate "Mediation" "<format>" file with the following claims
       | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>E | ASST     | 080625/124 |
+      | 07081996/S/<format>E | ASST    | 080625/124 |
     When I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Mediation"
     Examples:
