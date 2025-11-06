@@ -76,10 +76,10 @@ Given(
                     generatedFiles = await GenerateCivilFile(1, 0, format, { suffix: uniqueSuffix });
                     break;
                 case 'MEDIATION':
-                    generatedFiles=await GenerateMediationFiles(1, 0, format,uniqueSuffix);
+                    generatedFiles=await GenerateMediationFiles(1, 0, format,{ suffix: uniqueSuffix });
                     break;
                 case 'CRIME LOWER':
-                    generatedFiles=await GenerateCrimeFiles(1, 0, format,uniqueSuffix);
+                    generatedFiles=await GenerateCrimeFiles(1, 0, format,{ suffix: uniqueSuffix });
                     break;
                 default:
                     throw new Error(`Invalid area of law: ${areaOfLaw}`);

@@ -27,15 +27,15 @@ Feature: Matter Starts Uploads
   Examples:
     | AreaOfLaw   | Outcomes | 
     | Legal help  | 2        | 
-    | Mediation   | 2        | 
+    | Mediation   | 2        |
 
-  Scenario: Crime lower submission hides matter starts tab
+  Scenario Outline: Crime lower submission hides matter starts tab
     Given I am on the bulk import page
     When I generate "Crime lower" "csv" file with "<Outcomes>" outcomes
     And I upload the generated file
     Then I should see the submission summary for "Crime lower" without a matter starts tab
 
-  Examples:
-    | Outcomes | 
-    | 0        | 
-    | 1        | 
+    Examples:
+      | Outcomes |
+      | 0        |
+      | 1        |

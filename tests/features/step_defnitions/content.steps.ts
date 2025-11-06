@@ -61,7 +61,19 @@ When('I upload the generated file and wait for import in progress', async functi
   const inProgressHeading = this.page!.locator('h1.moj-interruption-card__heading');
   await inProgressHeading.waitFor({ state: 'visible', timeout: 60000 });
 
-  await this.attach('✅ Import in progress screen displayed', 'text/plain');
+
+  const startTime = Date.now();
+  const maxWaitTime = 60 * 1000; // 1 minute
+
+  while (await inProgressHeading.isVisible()) {
+    if (Date.now() - startTime > maxWaitTime) {
+      throw new Error('Timeout waiting for import to complete after 5 minutes');
+    }
+    await this.page!.waitForTimeout(1000);
+    await this.page!.reload();
+  }
+
+  await this.attach('✅ Import in progress screen displayed and completed', 'text/plain');
 });
 
 Then('the search results table matches the expected layout', async function (this: CustomWorld) {
