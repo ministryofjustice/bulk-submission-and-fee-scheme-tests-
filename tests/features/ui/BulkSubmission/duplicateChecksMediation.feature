@@ -1,6 +1,5 @@
 @duplicateChecks
 @bulkSubmission
-@temp
 Feature: Duplicate checks - Mediation
 
   Background:
@@ -27,8 +26,8 @@ Feature: Duplicate checks - Mediation
     Examples:
       | format |
       | csv    |
-      #| xml    |
-      #| txt    |
+      | xml    |
+      | txt    |
 
   Scenario Outline: Should have no errors in <format> submission (UCN different)
     Given I generate "Mediation" "<format>" file with the following claims
