@@ -73,8 +73,9 @@ Feature: Invalid submission level validation
     Submissions for periods before JAN-2015 are not accepted. Please submit for a period on or after JAN-2015.
     """
 
+  @month
   Scenario Outline: Reject any file submission for submission periods greater than current Month
-    Given today's date/time in Europe/London falls in "<currentMonth>"
+    Given today's date/time in Europe/London falls in the "<currentMonth>"
     And I generate "Legal help" "<format>" file with the following claims from period "<submissionPeriod>"
       | ucn                  | feeCode | ufn   |
       | 07081999/S/<format>E | CRI123  | <ufn> |
@@ -84,5 +85,5 @@ Feature: Invalid submission level validation
       | Submissions for <errorSubText> current month (<currentMonth>) are not accepted. Please submit for a previous month. |
     Examples:
       | format | ufn        | submissionPeriod | currentMonth  | errorSubText |
-      | csv    | 060725/123 | NOV-2025         | November 2025 | the         |
-      | csv    | 060725/122 | JAN-2026         | November 2025 | after the   |
+      | csv    | 060725/123 | month+0        | month+0 | the         |
+      | csv    | 060725/122 | month+3        | month+0 | after the   |

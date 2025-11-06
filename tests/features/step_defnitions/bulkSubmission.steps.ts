@@ -1,11 +1,12 @@
 import { Given, When, Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 import path from 'path';
-import { BulkImportPage } from '../../pages/bulkImportPage';
-import { BulkClaimSubmitPage } from '../../pages/BulkClaimSubmitPage';
-import type { CustomWorld } from '../support/world';
-import { generateEmptyFile, generateInvalidFile, generateLargeFile } from '../../utils/filegenerator';
-import { generateCSVFromFilename } from '../../utils/scripts/generateCSVFromFilename';
+import {BulkImportPage} from '../../pages/bulkImportPage';
+import {BulkClaimSubmitPage} from '../../pages/BulkClaimSubmitPage';
+import type {CustomWorld} from '../support/world';
+import {generateEmptyFile, generateInvalidFile, generateLargeFile} from '../../utils/filegenerator';
+import {generateCSVFromFilename} from '../../utils/scripts/generateCSVFromFilename';
+import {getSubmissionPeriod} from "../../utils/scripts/submissionPeriodHelper";
 
 const DATA_DIR = path.resolve('tests/data/generated_csv');
 
@@ -64,8 +65,8 @@ Given(/^I have generated a?n "([^"]+)" bulk submission file named "([^"]+)"$/, a
     this.fileName = path.basename(filePath);
 });
 
-Given( /^today's date\/time in Europe\/London falls in "([^"]+)"$/, async function (this: CustomWorld, currentMonth: string) {
-    // intentionally left blank
+Given( /^today's date\/time in Europe\/London falls in the "([^"]+)"$/, async function (this: CustomWorld, currentMonth: string, dataTable: any) {
+    this.currentSubmissionMonth = getSubmissionPeriod(currentMonth, false);
 })
 
 When('I upload that file', async function (this: CustomWorld) {
@@ -110,4 +111,7 @@ When('I upload {string}', async function (this: CustomWorld, relativePath: strin
 
     // Attach for debugging
     await this.attach(`📂 Uploaded file: ${filePath}`, 'text/plain');
+});
+Given(/^today's date\/time in Europe\/London falls in \{submissionMonth\}$/, function () {
+
 });

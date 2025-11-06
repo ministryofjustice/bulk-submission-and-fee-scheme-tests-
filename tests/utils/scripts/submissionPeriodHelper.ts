@@ -121,3 +121,28 @@ export function resetSubmissionPeriodCache() {
   usedPeriods.clear();
   usedScheduleRefs.clear();
 }
+
+export function getSubmissionPeriod(monthIncrement: string, isShort?: boolean) {
+    const currentDate = new Date();
+    const formatter = new Intl.DateTimeFormat('en-GB', { month: 'long' });
+    isShort = isShort ?? true;
+    let increment = 0;
+
+    // @ts-ignore
+    if (parseInt(monthIncrement) instanceof Number) {
+        increment = parseInt(monthIncrement);
+    } else {
+        increment = parseInt(monthIncrement.split('+')[1]);
+    }
+    // limits increment to 12 months (indexed from 0)
+    let incrementMonth = currentDate.getMonth() + increment;
+    if (incrementMonth > 11) {
+        incrementMonth = (increment % 11) - 1;
+    }
+
+    const glue = isShort ? '-' : ' ';
+    const month = isShort? MONTHS[incrementMonth]
+    : formatter.format(currentDate.setMonth(incrementMonth, currentDate.getDate()));
+
+    return `${month}${glue}${currentDate.getFullYear()}`;
+}
