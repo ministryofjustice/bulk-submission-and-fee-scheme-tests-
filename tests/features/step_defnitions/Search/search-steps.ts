@@ -32,36 +32,6 @@ Given(
     'I ensure there is a {string} submission for {string}',
     async function (this: CustomWorld, checkStatus:string,areaOfLaw: string) {
         try {
-            const dbAvailable = await dataSourceManager.ensureInitialized();
-            const dataSource = dataSourceManager.getDataSource();
-
-            // 🧠 Step 1: Check for existing successful submission
-            let existing: Array<{ id: string }> = [];
-            if (dbAvailable) {
-                existing = await dataSource.query(
-                    `SELECT id, area_of_law, created_on
-         FROM claims.submission
-         WHERE area_of_law ILIKE $1
-           AND status = $2
-         ORDER BY created_on DESC
-         LIMIT 1;`,
-                    [areaOfLaw,checkStatus]
-                );
-            } else {
-                console.warn('ℹ️ Skipping database pre-check for existing submissions due to unavailable connection.');
-            }
-
-            if (existing.length > 0) {
-                const submission = existing[0];
-                this.mostRecentSubmissionId = submission.id;
-                console.log(this.mostRecentSubmissionId)
-                await this.attach(`✅ Found existing ${checkStatus} submission: ${submission.id}`, 'text/plain');
-                return;
-            }
-
-            // 🧩 Step 2: None found — generate new file
-            await this.attach(`⚠️ No ${checkStatus} submissions found for ${areaOfLaw}. Generating new one...`, 'text/plain');
-
             const format = 'csv';
             let generatedFiles: string[] = [];
             // 🔹 Safe scenario name fallback
@@ -73,13 +43,25 @@ Given(
 
             switch (areaOfLaw) {
                 case 'LEGAL HELP':
-                    generatedFiles = await GenerateCivilFile(1, 0, format, { suffix: uniqueSuffix });
+                    if (checkStatus === "VALIDATION_FAILED"){
+                        generatedFiles = [path.resolve("tests/data/invalid/SearchLegalValidation.csv")];
+                    }else {
+                        generatedFiles = await GenerateCivilFile(1, 0, format, { suffix: uniqueSuffix });
+                    }
                     break;
                 case 'MEDIATION':
-                    generatedFiles=await GenerateMediationFiles(1, 0, format,{ suffix: uniqueSuffix });
+                    if (checkStatus === "VALIDATION_FAILED"){
+                        generatedFiles = [path.resolve("tests/data/invalid/mediationFieldValidation.txt")];
+                    }else {
+                        generatedFiles=await GenerateMediationFiles(1, 0, format,{ suffix: uniqueSuffix });
+                    }
                     break;
                 case 'CRIME LOWER':
-                    generatedFiles=await GenerateCrimeFiles(1, 0, format,{ suffix: uniqueSuffix });
+                    if (checkStatus === "VALIDATION_FAILED"){
+                        generatedFiles = [path.resolve("tests/data/invalid/SearchCrimeValidation.txt")];
+                    }else {
+                        generatedFiles=await GenerateCrimeFiles(1, 0, format,{ suffix: uniqueSuffix } );
+                    }
                     break;
                 default:
                     throw new Error(`Invalid area of law: ${areaOfLaw}`);
@@ -132,17 +114,17 @@ Given(
                 status = submission?.status || 'UNKNOWN';
                 await this.attach(`Attempt ${attempt + 1}: current status = ${status}`, 'text/plain');
 
-                if (status === 'VALIDATION_SUCCEEDED') break;
+                if (status === checkStatus) break;
                 await delay(3000);
             }
 
-            if (status !== 'VALIDATION_SUCCEEDED') {
-                throw new Error(`Submission never reached VALIDATION_SUCCESSFUL (final status: ${status})`);
+            if (status !== checkStatus) {
+                throw new Error(`Submission never reached "${checkStatus}"  (final status: ${status})`);
             }
 
             this.mostRecentSubmissionId = submissionId;
             console.log(this.mostRecentSubmissionId)
-            await this.attach(`✅ New VALIDATION_SUCCESSFUL submission created: ${submissionId}`, 'text/plain');
+            await this.attach(`✅ New "${checkStatus}"  submission created: ${submissionId}`, 'text/plain');
         } catch (error: any) {
             await this.attach(`❌ Error: ${error.message}`, 'text/plain');
             throw error;
