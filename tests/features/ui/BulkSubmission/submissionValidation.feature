@@ -49,7 +49,7 @@ Feature: Invalid submission level validation
       Unique file ID must be in the format DDMMYY/NNN with a date in the past
       The provider is not contracted for the category of law associated with the fee code
       """
-#  @month
+
   Scenario: Invalid data submission triggers regex and value validation errors for Mediation
     When I upload "tests/data/invalid/mediationFieldValidation.txt"
     Then I should see an error banner saying "1 claim has errors for missing or incorrect information"
