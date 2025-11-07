@@ -73,7 +73,7 @@ Feature: Invalid submission level validation
     Submissions for periods before JAN-2015 are not accepted. Please submit for a period on or after JAN-2015.
     """
 
-  @month
+    
   Scenario Outline: Reject any file submission for submission periods greater than current Month
     Given today's date/time in Europe/London falls in the "<currentMonth>"
     And I generate "Legal help" "<format>" file with the following claims from period "<submissionPeriod>"
