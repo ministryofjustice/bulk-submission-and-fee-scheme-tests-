@@ -9,7 +9,7 @@ Feature: Invalid submission level validation
     Then I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "LEGAL HELP":
       | Error Message                                                                                 |
-      | A category of law could not be found for the provided fee code: COM                                      |
+      | A category of law could not be found for the provided fee code: COM                           |
       | uniqueFileNumber is required for area of law: LEGAL HELP                                      |
       | clientForename is required for area of law: LEGAL HELP                                        |
       | clientSurname is required for area of law: LEGAL HELP                                         |
