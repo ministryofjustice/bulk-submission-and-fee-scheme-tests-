@@ -3,6 +3,7 @@ import type { DataTable } from '@cucumber/cucumber';
 import type { CustomWorld } from '../../support/world';
 import { SubmissionSummaryPage } from '../../../pages/SubmissionSummaryPage';
 import { expect } from '@playwright/test';
+import {getSubmissionPeriod} from "../../../utils/scripts/submissionPeriodHelper";
 
 type SummaryRecord = Record<string, string | undefined>;
 
@@ -361,6 +362,36 @@ Then(
     }
   }
 );
+
+Then ('I should see the following submission error messages for {string}',
+    async function (this: CustomWorld, placeHolder: string, dataTable: DataTable) {
+        const errorLocator = this.page!.locator(
+            '.moj-alert__heading, .govuk-table__cell, .govuk-error-summary, .moj-banner--failure, [role="alert"]'
+        );
+
+        await errorLocator.first().waitFor({ state: 'visible', timeout: 15000 });
+
+        const allText = await errorLocator.allTextContents();
+        await this.attach(
+            `🧾 Found error text:\n${allText.join('\n')}`,
+            'text/plain'
+        );
+
+        const expectedMessages = dataTable.raw().flat().slice(1);
+
+        for (const message of expectedMessages) {
+            let amendedMessage = message;
+            if (this.currentSubmissionMonth != null) {
+                amendedMessage = message.replace(placeHolder, this.currentSubmissionMonth)
+            }
+            const found = allText.some((t) => t.includes(amendedMessage.trim()));
+            expect(
+                found,
+                `❌ Expected error message not found for: "${amendedMessage.trim()}"`
+            ).toBeTruthy();
+        }
+    }
+)
 
 Then(
   'I should see an error banner saying {string}',

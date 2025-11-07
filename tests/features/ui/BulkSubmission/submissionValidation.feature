@@ -49,7 +49,7 @@ Feature: Invalid submission level validation
       Unique file ID must be in the format DDMMYY/NNN with a date in the past
       The provider is not contracted for the category of law associated with the fee code
       """
-
+#  @month
   Scenario: Invalid data submission triggers regex and value validation errors for Mediation
     When I upload "tests/data/invalid/mediationFieldValidation.txt"
     Then I should see an error banner saying "1 claim has errors for missing or incorrect information"
@@ -80,10 +80,10 @@ Feature: Invalid submission level validation
       | ucn                  | feeCode | ufn   |
       | 07081999/S/<format>E | CRI123  | <ufn> |
     And I upload the generated file
-    Then I should see the following submission error messages for "Legal help":
+    Then I should see the following submission error messages for "CURRENT_MONTH"
       | Error Message                                                                                                       |
-      | Submissions for <errorSubText> current month (<currentMonth>) are not accepted. Please submit for a previous month. |
+      | Submissions for <errorSubText> current month (CURRENT_MONTH) are not accepted. Please submit for a previous month. |
     Examples:
       | format | ufn        | submissionPeriod | currentMonth  | errorSubText |
       | csv    | 060725/123 | month+0        | month+0 | the         |
-      | csv    | 060725/122 | month+3        | month+0 | after the   |
+      | txt    | 060725/122 | month+3        | month+0 | after the   |

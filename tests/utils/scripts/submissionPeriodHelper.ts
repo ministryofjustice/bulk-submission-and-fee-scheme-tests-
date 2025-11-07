@@ -134,15 +134,12 @@ export function getSubmissionPeriod(monthIncrement: string, isShort?: boolean) {
     } else {
         increment = parseInt(monthIncrement.split('+')[1]);
     }
-    // limits increment to 12 months (indexed from 0)
-    let incrementMonth = currentDate.getMonth() + increment;
-    if (incrementMonth > 11) {
-        incrementMonth = (increment % 11) - 1;
-    }
+    // adjust the date to the new month and year
+    currentDate.setMonth( currentDate.getMonth() + increment, currentDate.getDate())
 
     const glue = isShort ? '-' : ' ';
-    const month = isShort? MONTHS[incrementMonth]
-    : formatter.format(currentDate.setMonth(incrementMonth, currentDate.getDate()));
+    const month = isShort? MONTHS[currentDate.getMonth()]
+    : formatter.format(currentDate);
 
     return `${month}${glue}${currentDate.getFullYear()}`;
 }

@@ -1,4 +1,4 @@
-import { Given, When, Then } from '@cucumber/cucumber';
+import {Given, When, Then} from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 import path from 'path';
 import {BulkImportPage} from '../../pages/bulkImportPage';
@@ -65,7 +65,7 @@ Given(/^I have generated a?n "([^"]+)" bulk submission file named "([^"]+)"$/, a
     this.fileName = path.basename(filePath);
 });
 
-Given( /^today's date\/time in Europe\/London falls in the "([^"]+)"$/, async function (this: CustomWorld, currentMonth: string, dataTable: any) {
+Given( /^today's date\/time in Europe\/London falls in the "([^"]+)"$/, async function (this: CustomWorld, currentMonth: string) {
     this.currentSubmissionMonth = getSubmissionPeriod(currentMonth, false);
 })
 
