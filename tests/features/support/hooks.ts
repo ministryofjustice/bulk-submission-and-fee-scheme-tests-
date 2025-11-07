@@ -16,10 +16,52 @@ import os from 'os';
 import { createDataSourceManager } from '../../utils/db/dataSourceManager';
 import { cleanSubmissionData } from '../../utils/scripts/cleanup-submissions';
 import { destroySubmissionPeriodManager } from '../../utils/scripts/submissionPeriodHelper';
+import net from "net";
+import { execSync } from 'child_process';
 
 setDefaultTimeout(60 * 1000);
 
 const submissionCleanupManager = createDataSourceManager({ label: 'submissionCleanup' });
+
+
+async function checkPort(port: number, name: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+    socket.setTimeout(3000);
+    socket.once("connect", () => {
+      console.log(`✅ [${name}] Port ${port} is responsive`);
+      socket.destroy();
+      resolve(true);
+    });
+    socket.once("timeout", () => {
+      console.warn(`⚠️ [${name}] Port ${port} timed out`);
+      socket.destroy();
+      resolve(false);
+    });
+    socket.once("error", (err) => {
+      console.warn(`⚠️ [${name}] Port ${port} failed: ${err.message}`);
+      resolve(false);
+    });
+    socket.connect(port, "127.0.0.1");
+  });
+}
+
+async function ensurePortsAvailable() {
+  const ports = [
+    { port: 5432, name: "dstew-db" },
+    { port: 8080, name: "dstew-api" },
+    { port: 8082, name: "sabc" },
+    { port: 8085, name: "fsp-api" },
+  ];
+
+  for (const { port, name } of ports) {
+    const ok = await checkPort(port, name);
+    if (!ok) {
+      console.log(`🔁 Restarting port-forward for ${name} (port ${port})...`);
+      execSync(`./scripts/port-forward.sh ${name} ${port} &`);
+    }
+  }
+}
 
 // ---------- Clear Down ----------
 BeforeAll(function () {
@@ -35,13 +77,18 @@ BeforeAll(function () {
 
 // ---------- UI Hooks ----------
 Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHookParameter) {
+  await ensurePortsAvailable();
   this.currentScenarioName = scenario.pickle.name || 'UnnamedScenario';
 
+  // 🧩 Create unique ID per worker for parallel safety
+  const uniqueId = `${process.pid}-${Math.random().toString(36).slice(2, 8)}`;
+  // ✅ Launch browser (local or BrowserStack SDK handles it internally)
   await this.openBrowser();
-  await this.attach('🌐 Browser launched for scenario', 'text/plain');
+  await this.attach(`🌐 Browser launched for scenario: ${this.currentScenarioName}`, 'text/plain');
 
+  // ---------- Isolated Storage State ----------
   const globalStorage = path.resolve('storageState.json');
-  const workerStorage = path.resolve(os.tmpdir(), `storageState-${process.pid}.json`);
+  const workerStorage = path.resolve(os.tmpdir(), `storageState-${uniqueId}.json`);
 
   if (fs.existsSync(globalStorage) && !fs.existsSync(workerStorage)) {
     fs.copyFileSync(globalStorage, workerStorage);
@@ -68,7 +115,11 @@ After({ tags: 'not @api' }, async function (this: World) {
       await this.context.close();
       this.context = undefined;
     }
-    console.log('🧹 Closed browser context after scenario');
+    if (this.browser) {
+      await this.browser.close();
+      this.browser = undefined;
+    }
+    console.log('🧹 Closed browser and context after scenario');
   } catch (err) {
     console.warn('⚠️ Error closing browser context:', err);
   }
@@ -126,23 +177,8 @@ AfterAll(async function () {
       });
 
     await submissionCleanupManager.destroy();
-
-    const globalBrowsers = (global as any).__browsers;
-    if (globalBrowsers) {
-      for (const [pid, browser] of Object.entries(globalBrowsers)) {
-        // @ts-ignore
-        if (browser && browser.isConnected()) {
-          // @ts-ignore
-          await browser.close();
-          console.log(`🧹 Closed browser for worker PID: ${pid}`);
-        }
-      }
-      delete (global as any).__browsers;
-    } else {
-      console.log('ℹ️ No global browsers to close');
-    }
   } catch (err) {
-    console.warn('⚠️ Failed to close browsers after all tests:', err);
+    console.warn('⚠️ Error during global cleanup:', err);
   } finally {
     await destroySubmissionPeriodManager();
   }

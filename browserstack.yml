@@ -1,0 +1,58 @@
+# =============================
+# BrowserStack Credentials
+# =============================
+userName: ${BROWSERSTACK_USERNAME}
+accessKey: ${BROWSERSTACK_ACCESS_KEY}
+
+# =============================
+# Project and Build Information
+# =============================
+projectName: LAA Bulk Claims E2E
+buildName: bulk-submission-e2e-test-${GITHUB_RUN_NUMBER}
+
+# =============================
+# Framework Configuration
+# =============================
+framework: playwright
+
+# =============================
+# Platform Configuration
+# =============================
+platforms:
+#  - os: OS X
+#    osVersion: Big Sur
+#    browserName: Chrome
+#    browserVersion: latest
+  - os: Windows
+    osVersion: 11
+    browserName: Chrome
+    browserVersion: latest
+
+# =============================
+# Parallelization
+# =============================
+parallelsPerPlatform: 2
+
+# =============================
+# Local Testing Configuration
+# =============================
+browserstackLocal: true
+browserstackLocalOptions:
+  forceLocal: true
+
+# =============================
+# Debugging and Logs
+# =============================
+debug: false
+networkLogs: true
+consoleLogs: info
+
+# =============================
+# Reporting & Analytics
+# =============================
+testObservability: true
+testReporting: true
+
+#retry:
+#  count: 1                # Number of retries for failed sessions
+#  strategy: "onFailure"

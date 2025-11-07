@@ -50,3 +50,7 @@ generated_submissions
 tests/data/generated_csv
 
 storageState.json
+
+grid.log
+local.log
+log/

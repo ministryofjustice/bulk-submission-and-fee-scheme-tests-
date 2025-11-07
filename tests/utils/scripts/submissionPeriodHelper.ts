@@ -1,5 +1,26 @@
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import { createDataSourceManager } from '../db/dataSourceManager';
 
+// ---------- 🧠 File-based cache setup ----------
+const USED_PERIODS_FILE = path.join(os.tmpdir(), 'used_submission_periods.json');
+if (!fs.existsSync(USED_PERIODS_FILE)) fs.writeFileSync(USED_PERIODS_FILE, JSON.stringify([]), 'utf-8');
+
+const readUsedPeriods = (): string[] => {
+  try {
+    return JSON.parse(fs.readFileSync(USED_PERIODS_FILE, 'utf-8'));
+  } catch {
+    return [];
+  }
+};
+
+const writeUsedPeriods = (periods: string[]) => {
+  fs.writeFileSync(USED_PERIODS_FILE, JSON.stringify(periods), 'utf-8');
+  console.log(`✅ Updated used periods cache: ${USED_PERIODS_FILE}`);
+};
+
+// ---------- Existing code ----------
 const MONTHS = [
   'JAN',
   'FEB',
@@ -64,6 +85,9 @@ export async function getUniqueSubmissionPeriod(
   }
 
   const accountKey = account.trim();
+  const areaKey = dbAreaOfLaw.trim().toUpperCase();
+  const usedFilePeriods = readUsedPeriods();
+
   if (!usedPeriods.has(accountKey)) {
     usedPeriods.set(accountKey, new Set());
   }
@@ -75,7 +99,10 @@ export async function getUniqueSubmissionPeriod(
 
   for (const index of randomizedIndices) {
     const candidate = allowedPeriods[index];
-    if (cache.has(candidate)) continue;
+    const cacheKey = `${areaKey}_${accountKey}_${candidate}`;
+
+    // ✅ skip if in-memory or file cache already used
+    if (cache.has(candidate) || usedFilePeriods.includes(cacheKey)) continue;
 
     if (hasDb) {
       const rows = await dataSource.query(
@@ -93,6 +120,9 @@ export async function getUniqueSubmissionPeriod(
     }
 
     cache.add(candidate);
+    usedFilePeriods.push(cacheKey);
+    writeUsedPeriods(usedFilePeriods);
+
     return candidate;
   }
 
@@ -120,4 +150,8 @@ export async function destroySubmissionPeriodManager() {
 export function resetSubmissionPeriodCache() {
   usedPeriods.clear();
   usedScheduleRefs.clear();
+
+  if (fs.existsSync(USED_PERIODS_FILE)) fs.unlinkSync(USED_PERIODS_FILE);
+  fs.writeFileSync(USED_PERIODS_FILE, JSON.stringify([]), 'utf-8');
+  console.log('🧹 Submission period cache reset.');
 }

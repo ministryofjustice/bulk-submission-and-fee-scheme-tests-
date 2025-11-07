@@ -173,11 +173,15 @@ jobs:
           DB_PASS=${{ secrets.DB_PASS }}
           DB_NAME=${{ secrets.DB_NAME }}
           DB_SSL=${{ secrets.DB_SSL }}
+          BROWSERSTACK_USERNAME=${{secrets.BROWSERSTACK_USERNAME}}
+          BROWSERSTACK_ACCESS_KEY=${{secrets.BROWSERSTACK_ACCESS_KEY}}
+          GITHUB_RUN_NUMBER=${{ github.run_number }}
           HEADLESS=true
           EOF
 
       - name: Run UI Tests
         env:
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
           CUCUMBER_TAGS: ${{ inputs.tags }}
         run: |
           ./scripts/wait-for-port.sh 5432 dstew-db 
@@ -187,7 +191,7 @@ jobs:
 
           npm run login
           npm run teardown
-          npx cucumber-js -p bulksubmission --retry 1
+          npm run test:e2e:browserstack
 
       - name: Publish Cucumber summary
         if: always()
