@@ -1,4 +1,4 @@
-@bulkSubmission @content
+@bulkSubmission @content @smoke
 Feature: Content check for the UI matching UX designs
 
   Scenario: Landing page content matches design

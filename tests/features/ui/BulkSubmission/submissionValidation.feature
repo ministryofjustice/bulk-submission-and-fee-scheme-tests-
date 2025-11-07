@@ -1,4 +1,4 @@
-@bulkSubmission
+@bulkSubmission @smoke
 Feature: Invalid submission level validation
 
   Background:

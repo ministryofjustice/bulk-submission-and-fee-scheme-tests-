@@ -7,8 +7,8 @@ accessKey: ${BROWSERSTACK_ACCESS_KEY}
 # =============================
 # Project and Build Information
 # =============================
-projectName: LAA Bulk Claims E2E Tests
-buildName: bulk-submission-e2e-test
+projectName: LAA Bulk Claims E2E
+buildName: bulk-submission-e2e-test-${GITHUB_RUN_NUMBER}
 buildIdentifier: ${GITHUB_RUN_NUMBER}
 
 # =============================

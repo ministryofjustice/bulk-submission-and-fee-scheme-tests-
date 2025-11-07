@@ -1,4 +1,4 @@
-@bulkSubmission
+@bulkSubmission @smoke
 Feature: Bulk Submission Upload Validation
 
   Background:

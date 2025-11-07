@@ -16,7 +16,7 @@ Feature: Bulk Submission via UI
       | Mediation   | csv    | 2        | 2      |
       | Crime lower | csv    | 3        | 3      |
 
-    @nilSubmissions
+    @nilSubmissions @smoke
     Examples:
       | AreaOfLaw   | Format | Outcomes | Claims |
       | Mediation   | xml    | 0        | 0      |

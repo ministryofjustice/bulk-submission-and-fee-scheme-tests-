@@ -1,3 +1,4 @@
+@smoke
 Feature: Duplicate checks - Legal Help
 
   Background:

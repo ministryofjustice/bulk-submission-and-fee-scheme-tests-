@@ -4,7 +4,7 @@ module.exports = {
       "--require tests/features/**/*.ts",
       "--format json:reports/cucumber.json",
       "--format html:reports/cucumber.html",
-      "--tags @bulkSubmission",
+      "--tags @search",
       "tests/features/**/BulkSubmission/*.feature"
     ].join(" "),
     temp: [
