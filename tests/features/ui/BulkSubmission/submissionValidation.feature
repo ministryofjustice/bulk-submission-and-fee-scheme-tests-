@@ -1,4 +1,4 @@
-@bulkSubmission @smoke
+@bulkSubmission
 Feature: Invalid submission level validation
 
   Background:
@@ -68,7 +68,7 @@ Feature: Invalid submission level validation
 
   Scenario: Reject submission due to period prior to 2015
     When I upload "tests/data/invalid/submissionPeriod.txt"
-    Then I should see a submission error message for "<AreaOfLaw>" saying
+    Then I should see a submission error message for "<AreaOfLaw>"
     """
     Submissions for periods before JAN-2015 are not accepted. Please submit for a period on or after JAN-2015.
     """

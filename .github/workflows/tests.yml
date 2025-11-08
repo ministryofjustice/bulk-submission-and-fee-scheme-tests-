@@ -193,6 +193,10 @@ jobs:
           npm run teardown
           npm run test:e2e:browserstack
 
+      - name: Teardown (global cleanup)
+        if: always()
+        run: npm run teardown
+
       - name: Publish Cucumber summary
         if: always()
         run: node scripts/cucumber-summary.js

@@ -1,4 +1,4 @@
-@bulkSubmission
+@bulkSubmission @smoke
 Feature: Bulk Submission via UI
 
   Background:
@@ -9,7 +9,7 @@ Feature: Bulk Submission via UI
     And I upload the generated file
     Then I should see the submission summary for "<AreaOfLaw>" with "<Claims>" claims
 
-    @validSubmissions @smoke
+    @validSubmissions
     Examples:
       | AreaOfLaw   | Format | Outcomes | Claims |
       | Legal help  | csv    | 2        | 2      |

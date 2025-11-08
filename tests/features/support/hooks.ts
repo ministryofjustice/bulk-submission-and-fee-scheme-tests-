@@ -79,27 +79,60 @@ BeforeAll(function () {
 Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHookParameter) {
   await ensurePortsAvailable();
   this.currentScenarioName = scenario.pickle.name || 'UnnamedScenario';
-
-  // 🧩 Create unique ID per worker for parallel safety
-  const uniqueId = `${process.pid}-${Math.random().toString(36).slice(2, 8)}`;
-  // ✅ Launch browser (local or BrowserStack SDK handles it internally)
   await this.openBrowser();
-  await this.attach(`🌐 Browser launched for scenario: ${this.currentScenarioName}`, 'text/plain');
 
-  // ---------- Isolated Storage State ----------
+  const uniqueId = `${process.pid}-${Math.random().toString(36).slice(2, 8)}`;
+
   const globalStorage = path.resolve('storageState.json');
   const workerStorage = path.resolve(os.tmpdir(), `storageState-${uniqueId}.json`);
-
   if (fs.existsSync(globalStorage) && !fs.existsSync(workerStorage)) {
     fs.copyFileSync(globalStorage, workerStorage);
   }
 
+  // ✅ Create a new isolated browser context first
   this.context = await this.browser!.newContext({
     baseURL: process.env.UI_BASE_URL,
+    // 🚫 remove the shared storage state if you want completely fresh sessions
     storageState: fs.existsSync(workerStorage) ? workerStorage : undefined,
   });
 
+  // ✅ Create a page for cleanup & logout
+  const page = await this.context.newPage();
+  await page.goto(process.env.UI_BASE_URL!, { waitUntil: 'domcontentloaded' });
+
+  // 🔐 If the Sign out button is visible, click it to reset the backend session
+  const signOutButton = page.locator('button.sign-in-button:has-text("Sign out")');
+  if (await signOutButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+    console.log('🔐 Signing out to reset backend session...');
+    await signOutButton.click();
+    await page.waitForLoadState('networkidle');
+  } else {
+    console.log('ℹ️ No active session found, skipping sign out.');
+  }
+
+  // 🧹 Clear all frontend caches
+  await page.evaluate(async () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    document.cookie.split(';').forEach(cookie => {
+      const name = cookie.split('=')[0].trim();
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+    });
+
+    const regs = await navigator.serviceWorker.getRegistrations();
+    for (const r of regs) await r.unregister();
+
+    const dbs = await indexedDB.databases?.();
+    if (dbs) for (const db of dbs) if (db.name) indexedDB.deleteDatabase(db.name);
+  });
+
+  await page.waitForTimeout(500);
+  await page.close();
+
+  // ✅ Fresh page for the scenario
   this.page = await this.context.newPage();
+
+  // Reset world variables
   this.cleanupSubmissionIds.clear();
   this.submissionReference = undefined;
   this.submissionPeriod = undefined;
@@ -108,6 +141,7 @@ Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHoo
 
   await this.attach(`🧭 New isolated context created for: ${scenario.pickle.name}`, 'text/plain');
 });
+
 
 After({ tags: 'not @api' }, async function (this: World) {
   try {

@@ -21,13 +21,14 @@ const OUTPUT_DIR = 'generated_submissions_mediation';
 const PROVIDER_API =
     process.env.PROVIDER_API ||
     'https://laa-provider-details-api-uat.apps.live.cloud-platform.service.justice.gov.uk/api/v1/provider-offices';
-const MIN_CASE_START = new Date('2015-01-01');
-const MAX_CASE_START = new Date('2025-12-31');
+
+// ---------- 📅 UFN Date range (aligned with Crime Lower) ----------
+const ufnMin = new Date('2017-02-02');
+const ufnMax = new Date('2018-12-31');
 
 // ---------- 2️⃣ Helpers ----------
 const pad = (num: number, len = 2) => num.toString().padStart(len, '0');
-const randomFrom = <T>(arr: T[]): T =>
-    arr[Math.floor(Math.random() * arr.length)];
+const randomFrom = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 const formatDate = (date: Date) =>
     date.toISOString().split('T')[0].split('-').reverse().join('/');
 const sanitizeForCode = (str: string) =>
@@ -78,21 +79,14 @@ const generateOutcome = async (office: string, caseNum: number) => {
   const client1Last = faker.person.lastName();
   const client2First = faker.person.firstName();
   const client2Last = faker.person.lastName();
-  const dob1 = faker.date.between({
-    from: new Date('1950-01-01'),
-    to: new Date('2000-12-31'),
-  });
-  const dob2 = faker.date.between({
-    from: new Date('1950-01-01'),
-    to: new Date('2000-12-31'),
-  });
+
+  const dob1 = faker.date.between({ from: new Date('1950-01-01'), to: new Date('2000-12-31') });
+  const dob2 = faker.date.between({ from: new Date('1950-01-01'), to: new Date('2000-12-31') });
 
   let caseStartDate: Date | null = null;
-  for (let attempt = 0; attempt < 50; attempt++) {
-    const candidateDate = faker.date.between({
-      from: MIN_CASE_START,
-      to: MAX_CASE_START,
-    });
+
+  for (let attempt = 0; attempt < 100; attempt++) {
+    const candidateDate = faker.date.between({ from: ufnMin, to: ufnMax });
     const schedules = await fetchProviderSchedules(office, candidateDate);
     if (schedules === undefined) {
       caseStartDate = candidateDate;
@@ -113,28 +107,18 @@ const generateOutcome = async (office: string, caseNum: number) => {
   }
 
   if (!caseStartDate) {
-    caseStartDate = faker.date.between({
-      from: MIN_CASE_START,
-      to: MAX_CASE_START,
-    });
+    caseStartDate = faker.date.between({ from: ufnMin, to: ufnMax });
     console.warn(`ℹ️ Using locally generated case start date for office ${office}`);
   }
 
-  const medConcluded = faker.date.between({
-    from: caseStartDate,
-    to: new Date(),
-  });
-  const workConcluded = faker.date.between({
-    from: caseStartDate,
-    to: medConcluded,
-  });
+  const medConcluded = faker.date.between({ from: caseStartDate, to: ufnMax });
+  const workConcluded = faker.date.between({ from: caseStartDate, to: medConcluded });
   const ufn = generateUFN(caseStartDate, caseNum);
 
   // Generate UCNs compliant with pattern
   const ucn1 = `${pad(dob1.getDate())}${pad(dob1.getMonth() + 1)}${dob1.getFullYear()}/${client1Last[0].toUpperCase()}/${sanitizeForCode(client1Last).slice(0, 4)}`;
   const ucn2 = `${pad(dob2.getDate())}${pad(dob2.getMonth() + 1)}${dob2.getFullYear()}/${client2Last[0].toUpperCase()}/${sanitizeForCode(client2Last).slice(0, 4)}`;
 
-  // @ts-ignore
   return {
     case_ref_number: faker.number.int({ min: 1000, max: 9999 }),
     case_start_date: formatDate(caseStartDate),
@@ -187,10 +171,8 @@ const generateFile = async (
 ) => {
   const office = options?.office ?? randomFrom(offices);
   const submissionPeriod =
-      options?.submissionPeriod ??
-      (await getUniqueSubmissionPeriod(office, AREA_OF_LAW));
+      options?.submissionPeriod ?? (await getUniqueSubmissionPeriod(office, AREA_OF_LAW));
 
-  // Build safe schedule reference
   const monthCode = submissionPeriod.slice(0, 3).toUpperCase();
   const yearCode = submissionPeriod.slice(-4).slice(-2);
   const scheduleNum = `${office}/MEDI${monthCode}${yearCode}/01`;
