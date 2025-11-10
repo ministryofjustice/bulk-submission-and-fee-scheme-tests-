@@ -16,52 +16,10 @@ import os from 'os';
 import { createDataSourceManager } from '../../utils/db/dataSourceManager';
 import { cleanSubmissionData } from '../../utils/scripts/cleanup-submissions';
 import { destroySubmissionPeriodManager } from '../../utils/scripts/submissionPeriodHelper';
-import net from "net";
-import { execSync } from 'child_process';
 
 setDefaultTimeout(60 * 1000);
 
 const submissionCleanupManager = createDataSourceManager({ label: 'submissionCleanup' });
-
-
-async function checkPort(port: number, name: string): Promise<boolean> {
-  return new Promise((resolve) => {
-    const socket = new net.Socket();
-    socket.setTimeout(3000);
-    socket.once("connect", () => {
-      console.log(`✅ [${name}] Port ${port} is responsive`);
-      socket.destroy();
-      resolve(true);
-    });
-    socket.once("timeout", () => {
-      console.warn(`⚠️ [${name}] Port ${port} timed out`);
-      socket.destroy();
-      resolve(false);
-    });
-    socket.once("error", (err) => {
-      console.warn(`⚠️ [${name}] Port ${port} failed: ${err.message}`);
-      resolve(false);
-    });
-    socket.connect(port, "127.0.0.1");
-  });
-}
-
-async function ensurePortsAvailable() {
-  const ports = [
-    { port: 5432, name: "dstew-db" },
-    { port: 8080, name: "dstew-api" },
-    { port: 8082, name: "sabc" },
-    { port: 8085, name: "fsp-api" },
-  ];
-
-  for (const { port, name } of ports) {
-    const ok = await checkPort(port, name);
-    if (!ok) {
-      console.log(`🔁 Restarting port-forward for ${name} (port ${port})...`);
-      execSync(`./scripts/port-forward.sh ${name} ${port} &`);
-    }
-  }
-}
 
 // ---------- Clear Down ----------
 BeforeAll(function () {
@@ -77,7 +35,6 @@ BeforeAll(function () {
 
 // ---------- UI Hooks ----------
 Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHookParameter) {
-  await ensurePortsAvailable();
   this.currentScenarioName = scenario.pickle.name || 'UnnamedScenario';
   await this.openBrowser();
 

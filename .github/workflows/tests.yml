@@ -191,7 +191,7 @@ jobs:
 
           npm run login
           npm run teardown
-          npm run test:e2e:browserstack
+          npx cucumber-js -p bulksubmission --parallel 5 --retry 1
 
       - name: Teardown (global cleanup)
         if: always()

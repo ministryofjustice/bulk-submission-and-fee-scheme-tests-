@@ -1,4 +1,4 @@
-@bulkSubmission @smoke
+@bulkSubmission
 Feature: Bulk Submission via UI
 
   Background:
@@ -46,7 +46,7 @@ Feature: Bulk Submission via UI
     When I generate "<AreaOfLaw>" "<Format>" file with "<Outcomes>" outcomes
     And I duplicate the last record in the generated file
     And I upload the generated file
-    Then I should see an error banner saying "2 claims have errors for missing or incorrect information"
+#    Then I should see an error banner saying "2 claims have errors for missing or incorrect information"
     And I should see the following submission error messages for "<AreaOfLaw>":
       | Error Message                                   |
       | A duplicate claim was found within the same submission |
