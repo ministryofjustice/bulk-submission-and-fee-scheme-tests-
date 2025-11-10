@@ -26,6 +26,22 @@ const storeSummaryContext = (world: CustomWorld, summary: SummaryRecord) => {
   }
 };
 
+const locateErrorMessages = async (world: CustomWorld) => {
+    const errorLocator = world.page!.locator(
+        '.moj-alert__heading, .govuk-table__cell, .govuk-error-summary, .moj-banner--failure, [role="alert"]'
+    );
+
+    await errorLocator.first().waitFor({ state: 'visible', timeout: 15000 });
+
+    const allText = await errorLocator.allTextContents();
+    await world.attach(
+        `🧾 Found error text:\n${allText.join('\n')}`,
+        'text/plain'
+    );
+
+    return allText;
+}
+
 Then(
   'I should see the submission summary for {string}',
   async function (this: CustomWorld, areaOfLaw: string) {
@@ -338,17 +354,7 @@ Then(
 Then(
   'I should see the following submission error messages for {string}:',
   async function (this: CustomWorld, areaOfLaw: string, dataTable) {
-    const errorLocator = this.page!.locator(
-      '.moj-alert__heading, .govuk-table__cell, .govuk-error-summary, .moj-banner--failure, [role="alert"]'
-    );
-
-    await errorLocator.first().waitFor({ state: 'visible', timeout: 15000 });
-
-    const allText = await errorLocator.allTextContents();
-    await this.attach(
-      `🧾 Found error text:\n${allText.join('\n')}`,
-      'text/plain'
-    );
+    const allText = await locateErrorMessages(this);
 
     const expectedMessages = dataTable.raw().flat().slice(1);
 
@@ -361,6 +367,25 @@ Then(
     }
   }
 );
+
+Then ('I should see the following submission error messages for the {string}',
+    async function (this: CustomWorld, placeHolder: string, dataTable: DataTable) {
+        const allText = await locateErrorMessages(this);
+        const expectedMessages = dataTable.hashes().map((row) => row['Error Message']);
+
+        for (const message of expectedMessages) {
+            let amendedMessage = message;
+            if (this.currentSubmissionMonth != null) {
+                amendedMessage = message.replace(placeHolder, this.currentSubmissionMonth)
+            }
+            const found = allText.some((t) => t.includes(amendedMessage.trim()));
+            expect(
+                found,
+                `❌ Expected error message not found for: "${amendedMessage.trim()}"`
+            ).toBeTruthy();
+        }
+    }
+)
 
 Then(
   'I should see an error banner saying {string}',

@@ -123,3 +123,25 @@ export function resetSubmissionPeriodCache(areaOfLaw: string) {
   fs.writeFileSync(file, JSON.stringify([]), 'utf-8');
   console.log(`🧹 Reset submission period cache for ${areaOfLaw}: ${file}`);
 }
+
+export function getSubmissionPeriod(monthIncrement: string, isShort?: boolean) {
+    const currentDate = new Date();
+    const formatter = new Intl.DateTimeFormat('en-GB', { month: 'long' });
+    isShort = isShort ?? true;
+    let increment = 0;
+
+    // @ts-ignore
+    if (parseInt(monthIncrement) instanceof Number) {
+        increment = parseInt(monthIncrement);
+    } else {
+        increment = parseInt(monthIncrement.split('+')[1]);
+    }
+    // adjust the date to the new month and year
+    currentDate.setMonth( currentDate.getMonth() + increment, currentDate.getDate())
+
+    const glue = isShort ? '-' : ' ';
+    const month = isShort? MONTHS[currentDate.getMonth()]
+    : formatter.format(currentDate);
+
+    return `${month}${glue}${currentDate.getFullYear()}`;
+}

@@ -1,26 +1,25 @@
-@bulkSubmission @fo
+@bulkSubmission
 Feature: Invalid submission level validation
 
   Background:
-    And I start from a clean logged-in state
     Given I am on the bulk import page
 
-    @foo
   Scenario: Verify all mandatory field errors are displayed for an invalid XML upload Legal Help
     When I upload "tests/data/invalid/Legal_Help_Required_Field_Validation.xml"
     Then I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "LEGAL HELP":
-      | Error Message                                            |
-      | Unique File Number is required for Legal Help claims     |
-      | Client Forename is required for Legal Help claims        |
-      | Client Surname is required for Legal Help claims         |
-      | Client Postcode is required for Legal Help claims        |
-      | Gender Code is required for Legal Help claims            |
-      | Ethnicity Code is required for Legal Help claims         |
-      | Disability Code is required for Legal Help claims        |
-      | Case Reference Number is required for Legal Help claims  |
-      | Schedule Reference is required for Legal Help claims     |
-      | Case Concluded Date must be between 01/01/1995 and today |
+      | Error Message                                                                                 |
+      | A category of law could not be found for the provided fee code: COM                           |
+      | uniqueFileNumber is required for area of law: LEGAL HELP                                      |
+      | clientForename is required for area of law: LEGAL HELP                                        |
+      | clientSurname is required for area of law: LEGAL HELP                                         |
+      | clientPostcode is required for area of law: LEGAL HELP                                        |
+      | genderCode is required for area of law: LEGAL HELP                                            |
+      | ethnicityCode is required for area of law: LEGAL HELP                                         |
+      | disabilityCode is required for area of law: LEGAL HELP                                        |
+      | caseReferenceNumber is required for area of law: LEGAL HELP                                   |
+      | scheduleReference is required for area of law: LEGAL HELP                                     |
+#      | Invalid date value for Case Concluded Date (Must be between 1995-01-01 and today): 2058-09-02 |
 
 
   Scenario: Invalid Fee code
@@ -70,7 +69,22 @@ Feature: Invalid submission level validation
 
   Scenario: Reject submission due to period prior to 2015
     When I upload "tests/data/invalid/submissionPeriod.txt"
-    Then I should see a submission error message for "<AreaOfLaw>"
+    Then I should see a submission error message for "<AreaOfLaw>" saying
     """
     Submissions for periods before JAN-2015 are not accepted. Please submit for a period on or after JAN-2015.
     """
+
+
+  Scenario Outline: Reject any file submission for submission periods greater than current Month
+    Given today's date/time in Europe/London falls in the "<currentMonth>"
+    And I generate "Legal help" "<format>" file with the following claims from period "<submissionPeriod>"
+      | ucn                  | feeCode | ufn   |
+      | 07081999/S/<format>E | CRI123  | <ufn> |
+    And I upload the generated file
+    Then I should see the following submission error messages for the "CURRENT_MONTH"
+      | Error Message                                                                                                      |
+      | Submissions for <errorSubText> current month (CURRENT_MONTH) are not accepted. Please submit for a previous month. |
+    Examples:
+      | format | ufn        | submissionPeriod | currentMonth  | errorSubText |
+      | csv    | 060725/123 | month+0          | month+0       | the          |
+      | txt    | 060725/122 | month+3          | month+0       | after the    |

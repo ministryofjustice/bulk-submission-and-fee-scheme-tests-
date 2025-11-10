@@ -48,7 +48,7 @@ export class World {
   submissionPeriod: string | undefined;
   filePath: string | undefined;
   currentScenarioName: string | undefined;
-  workerStoragePath: string | undefined;
+  currentSubmissionMonth: string | undefined;
 
   constructor(options: IWorldOptions) {
     // @ts-ignore
@@ -98,10 +98,21 @@ export class World {
     return path.split('.').reduce((acc: any, key: string) => (acc == null ? acc : acc[key]), obj as any);
   }
 
-    // ===== UI helpers =====
-    async openBrowser(opts: LaunchOptions = {headless: process.env.HEADLESS === 'true'}) {
-        this.browser = await chromium.launch(opts);
+  // ===== UI helpers =====
+  async openBrowser(opts: LaunchOptions = { headless: process.env.HEADLESS === 'true' }) {
+    (global as any).__browsers = (global as any).__browsers || {};
+    let browser = (global as any).__browsers[process.pid];
+
+    if (!browser) {
+      browser = await chromium.launch(opts);
+      (global as any).__browsers[process.pid] = browser;
+      console.log(`🌐 Launched new browser for PID ${process.pid}`);
+    } else {
+      console.log(`♻️ Reusing existing browser for PID ${process.pid}`);
     }
+
+    this.browser = browser;
+  }
 
   async goto(path: string) {
     if (!this.page) throw new Error('Browser not opened! Did you forget to tag this scenario with @ui?');
