@@ -9,6 +9,7 @@ import path from 'path';
 import {BulkImportPage} from '../../../pages/bulkImportPage';
 import FormData from 'form-data';
 import fs from 'fs';
+import {getSubmissionPeriod} from "../../../utils/scripts/submissionPeriodHelper";
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -124,6 +125,10 @@ Given('I generate {string} {string} file with the following claims from period {
 
   for (let i = 0; i < claims.length; i++) {
     console.log(`➕Claim to add ${i}: ${claims[i].ucn}, ${claims[i].ufn}, ${claims[i].feeCode}`);
+  }
+
+  if (this.currentSubmissionMonth && submissionPeriod) {
+      submissionPeriod = getSubmissionPeriod(submissionPeriod);
   }
 
   let generatedFiles: string[] = [];

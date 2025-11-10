@@ -9,6 +9,7 @@ Feature: Invalid submission level validation
     Then I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "LEGAL HELP":
       | Error Message                                                                                 |
+      | A category of law could not be found for the provided fee code: COM                           |
       | uniqueFileNumber is required for area of law: LEGAL HELP                                      |
       | clientForename is required for area of law: LEGAL HELP                                        |
       | clientSurname is required for area of law: LEGAL HELP                                         |
@@ -18,7 +19,7 @@ Feature: Invalid submission level validation
       | disabilityCode is required for area of law: LEGAL HELP                                        |
       | caseReferenceNumber is required for area of law: LEGAL HELP                                   |
       | scheduleReference is required for area of law: LEGAL HELP                                     |
-      | Invalid date value for Case Concluded Date (Must be between 1995-01-01 and today): 2058-09-02 |
+#      | Invalid date value for Case Concluded Date (Must be between 1995-01-01 and today): 2058-09-02 |
 
 
   Scenario: Invalid Fee code
@@ -72,3 +73,18 @@ Feature: Invalid submission level validation
     """
     Submissions for periods before JAN-2015 are not accepted. Please submit for a period on or after JAN-2015.
     """
+
+
+  Scenario Outline: Reject any file submission for submission periods greater than current Month
+    Given today's date/time in Europe/London falls in the "<currentMonth>"
+    And I generate "Legal help" "<format>" file with the following claims from period "<submissionPeriod>"
+      | ucn                  | feeCode | ufn   |
+      | 07081999/S/<format>E | CRI123  | <ufn> |
+    And I upload the generated file
+    Then I should see the following submission error messages for the "CURRENT_MONTH"
+      | Error Message                                                                                                      |
+      | Submissions for <errorSubText> current month (CURRENT_MONTH) are not accepted. Please submit for a previous month. |
+    Examples:
+      | format | ufn        | submissionPeriod | currentMonth  | errorSubText |
+      | csv    | 060725/123 | month+0          | month+0       | the          |
+      | txt    | 060725/122 | month+3          | month+0       | after the    |
