@@ -115,7 +115,7 @@ BeforeAll(function () {
 
 // ---------- UI Hooks ----------
 Before({tags: 'not @api'}, async function (this: World, scenario: ITestCaseHookParameter) {
-    if (process.env.CI) {
+    if (process.env.GITHUB_RUN_NUMBER) {
         await ensurePortsAvailable()
     }
 

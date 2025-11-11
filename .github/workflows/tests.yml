@@ -180,7 +180,6 @@ jobs:
           EOF
 
 
-
       - name: Record port-forward metadata (DSTEW DB)
         if: always()
         shell: bash
@@ -205,13 +204,24 @@ jobs:
         shell: bash
         run: |
           echo "{\"name\": \"fsp-api\", \"namespace\": \"${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}\", \"podSelector\": \"app.kubernetes.io/name=laa-fee-scheme-api\", \"port\": 8085, \"pidEnvVar\": \"PORT_FORWARD_PID\"}" > .portmeta/fsp-api.json
-     
+
+      - name: Install jq
+        run: apt-get update && apt-get install -y jq
 
       - name: Combine port-forward metadata
         if: always()
         shell: bash
         run: |
           jq -s '.' .portmeta/*.json > port-forward-config.json
+
+      - name: Start BrowserStack Local
+        uses: browserstack/github-actions/setup-local@v1
+        with:
+          local-testing: start
+          local-identifier: ci-${{ github.run_id }}
+        env:
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+
 
       - name: Run UI Tests
         env:
@@ -226,6 +236,15 @@ jobs:
           npm run login
           npm run teardown
           npm run test:e2e:browserstack
+
+      - name: Stop BrowserStack Local
+        if: always()
+        uses: browserstack/github-actions/setup-local@v1
+        with:
+          local-testing: stop
+          local-identifier: ci-${{ github.run_id }}
+        env:
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
 
       - name: Teardown (global cleanup)
         if: always()
