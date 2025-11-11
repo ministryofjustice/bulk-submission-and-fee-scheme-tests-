@@ -8,17 +8,17 @@ Feature: Invalid submission level validation
     When I upload "tests/data/invalid/Legal_Help_Required_Field_Validation.xml"
     Then I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "LEGAL HELP":
-      | Error Message                                                                                 |
-      | uniqueFileNumber is required for area of law: LEGAL HELP                                      |
-      | clientForename is required for area of law: LEGAL HELP                                        |
-      | clientSurname is required for area of law: LEGAL HELP                                         |
-      | clientPostcode is required for area of law: LEGAL HELP                                        |
-      | genderCode is required for area of law: LEGAL HELP                                            |
-      | ethnicityCode is required for area of law: LEGAL HELP                                         |
-      | disabilityCode is required for area of law: LEGAL HELP                                        |
-      | caseReferenceNumber is required for area of law: LEGAL HELP                                   |
-      | scheduleReference is required for area of law: LEGAL HELP                                     |
-      | Invalid date value for Case Concluded Date (Must be between 1995-01-01 and today): 2058-09-02 |
+      | Error Message                                            |
+      | Unique File Number is required for Legal Help claims     |
+      | Client Forename is required for Legal Help claims        |
+      | Client Surname is required for Legal Help claims         |
+      | Client Postcode is required for Legal Help claims        |
+      | Gender Code is required for Legal Help claims            |
+      | Ethnicity Code is required for Legal Help claims         |
+      | Disability Code is required for Legal Help claims        |
+      | Case Reference Number is required for Legal Help claims  |
+      | Schedule Reference is required for Legal Help claims     |
+      | Case Concluded Date must be between 01/01/1995 and today |
 
 
   Scenario: Invalid Fee code
