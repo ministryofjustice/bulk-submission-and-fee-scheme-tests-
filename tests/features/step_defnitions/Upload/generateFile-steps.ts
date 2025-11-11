@@ -41,8 +41,8 @@ Given(
           generatedFiles = await GenerateMediationFiles(
               files,
               totalOutcomes,
-              format, {
-                suffix: uniqueSuffix,
+              format,{
+              suffix: uniqueSuffix,
               }
           );
           break;
@@ -50,8 +50,8 @@ Given(
           generatedFiles = await GenerateCrimeFiles(
               files,
               totalOutcomes,
-              format, {
-                suffix: uniqueSuffix,
+              format,{
+              suffix: uniqueSuffix,
               }
           );
           break;
@@ -134,7 +134,39 @@ Given('I generate {string} {string} file with the following claims from period {
   let generatedFiles: string[] = [];
   switch (areaOfLaw) {
     case "Legal help" :
-      generatedFiles = await GenerateCivilFile(1, claims.length, format, {submissionPeriod, claims})
+      generatedFiles = await GenerateCivilFile(1, claims.length, format, {submissionPeriod,claims})
+      break
+    case "Mediation" :
+      generatedFiles = await GenerateMediationFiles(1, claims.length, format)
+      break
+    case "Crime lower" :
+      generatedFiles = await GenerateCrimeFiles(1, claims.length, format)
+      break
+    default : {
+      throw new Error(`Invalid area of law :${areaOfLaw}`)
+    }
+  }
+
+  const filePath = generatedFiles[0];
+  const fileName = path.basename(filePath);
+  this.fileName = fileName;
+  this.generatedFilePath = filePath;
+  await this.attach(`📁 Generated file for upload: ${fileName}`, 'text/plain');
+});
+
+Given('I generate {string} {string} file with the following claims from period {string} with office {string}', async function (this: CustomWorld, areaOfLaw, format, submissionPeriod, office, dataTable) {
+
+  let claims: claimOptions[] = dataTable.hashes();
+
+  for (let i = 0; i < claims.length; i++) {
+    console.log(`➕Claim to add ${i}: ${claims[i].ucn}, ${claims[i].ufn}, ${claims[i].feeCode}`);
+  }
+
+  let generatedFiles: string[] = [];
+  switch (areaOfLaw) {
+    case "Legal help" :
+      generatedFiles = await GenerateCivilFile(1, claims.length, format, {submissionPeriod,office, claims,
+      })
       break
     case "Mediation" :
       generatedFiles = await GenerateMediationFiles(1, claims.length, format)
@@ -168,7 +200,7 @@ Given('I generate {string} {string} file with the following claims from period {
       generatedFiles = await GenerateCivilFile(1, claims.length, format, {
         submissionPeriod,
         office,
-        claims,
+        claims
       })
       break
     case "Mediation" :
@@ -407,8 +439,8 @@ When(
             generatedFiles = await GenerateMediationFiles(
                 files,
                 outcomes,
-                format, {
-                  suffix: uniqueSuffix,
+                format,{
+                suffix: uniqueSuffix,
                 }
             );
             break;
@@ -416,8 +448,8 @@ When(
             generatedFiles = await GenerateCrimeFiles(
                 files,
                 outcomes,
-                format, {
-                  suffix: uniqueSuffix,
+                format,{
+                suffix: uniqueSuffix,
                 }
             );
             break;

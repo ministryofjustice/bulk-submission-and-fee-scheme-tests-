@@ -1,10 +1,12 @@
+@bulkSubmissions
+@duplicateChecks
 Feature: Duplicate checks - Legal Help - Disbursements
 
   Background:
     Given I am on the bulk import page
 
-  Scenario Outline: Should reject submission if less than 3 months - reject
-    Given I generate "Legal help" "<format>" file with the following claims from period "JUN-2025"
+  Scenario Outline: Should reject submission if less than 3 months
+    Given I generate "Legal help" "<format>" file with the following claims from period "<originalSubmissionPeriod>"
       | ucn   | feeCode | ufn   |
       | <ucn> | ICISD   | <ufn> |
     And I upload with generated file via the API
@@ -15,15 +17,21 @@ Feature: Duplicate checks - Legal Help - Disbursements
     Then I should see the following submission error messages for "Legal help":
       | Error Message  |
       | <errorMessage> |
-    # TODO: These warning messages are wrong, until BC-230 is fixed
     Examples:
-      | format | ufn        | ucn             | submissionPeriod | errorMessage                                                                               |
-      | csv    | 010725/123 | 01011998/S/CSVA | JUN-2025         | Submission already exists for Office (0P322F), Area of Law (LEGAL HELP), Period (JUN-2025) |
-      | csv    | 020825/323 | 02011998/S/CSVB | JUL-2025         | A duplicate claim was found in another submission                                          |
-      | csv    | 020825/323 | 02011998/S/CSVB | AUG-2025         | A duplicate claim was found in another submission                                          |
+      | originalSubmissionPeriod | format | ufn        | ucn             | submissionPeriod | errorMessage                                                                               |
+      # 2 Months Prior (Waiting on BC-230)
+      #| MAY-2021                 | csv    | 020825/123 | 01011998/S/CSVA | MAR-2021         | A duplicate claim was found in another submission                                          |
+      # 1 Month Prior  (Waiting on BC-230)
+      #| JUN-2021                 | csv    | 020825/223 | 02011998/S/CSVA | JUL-2021         | A duplicate claim was found in another submission                                          |
+      # Same month
+      | AUG-2021                 | csv    | 010725/323 | 03011998/S/CSVA | AUG-2021         | Submission already exists for Office (0P322F), Area of Law (LEGAL HELP), Period (AUG-2021) |
+      # 1 Month ahead
+      | SEP-2021                 | csv    | 020825/423 | 04011998/S/CSVA | OCT-2021         | A duplicate claim was found in another submission                                          |
+      # 2 Months ahead
+      | NOV-2021                 | csv    | 020825/523 | 05011998/S/CSVA | JAN-2022         | A duplicate claim was found in another submission                                          |
 
-  Scenario Outline: Should reject submission if less than 3 months - accept
-    Given I generate "Legal help" "<format>" file with the following claims from period "JUN-2025"
+  Scenario Outline: Should accept submission if more than 3 months
+    Given I generate "Legal help" "<format>" file with the following claims from period "<originalSubmissionPeriod>"
       | ucn   | feeCode | ufn   |
       | <ucn> | ICISD   | <ufn> |
     And I upload with generated file via the API
@@ -33,9 +41,15 @@ Feature: Duplicate checks - Legal Help - Disbursements
     When I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Legal help"
     Examples:
-      | format | ufn        | ucn             | submissionPeriod |
-      | csv    | 020725/123 | 01021998/S/CSVA | SEP-2025         |
-      | csv    | 020725/123 | 01021998/S/CSVA | OCT-2025         |
+      | originalSubmissionPeriod | format | ufn        | ucn             | submissionPeriod |
+      # New submission for period earlier than original submission by 3 months  (Waiting on BC-230)
+      #| MAY-2022                 | csv    | 020725/121 | 01021998/S/CSVA | FEB-2022         |
+      # New submission for period earlier than original submission by 5 months  (Waiting on BC-230)
+      #| JUN-2022                 | csv    | 020725/122 | 02021998/S/CSVA | JAN-2022         |
+      # New submission for period later than original submission by 3 months
+      | JUL-2022                 | csv    | 020725/123 | 03021998/S/CSVA | OCT-2022         |
+      # New submission for period earlier than original submission by 4 months
+      | AUG-2022                 | csv    | 020725/124 | 04021998/S/CSVA | DEC-2022         |
 
   Scenario Outline: Within file duplicates
     Given I generate "Legal help" "<format>" file with the following claims from period "<submissionPeriod>"
@@ -49,10 +63,10 @@ Feature: Duplicate checks - Legal Help - Disbursements
       | A duplicate claim was found within the same submission |
     Examples:
       | format | ufn        | ucn             | submissionPeriod |
-      | csv    | 010825/123 | 01021998/S/CSVA | AUG-2025         |
+      | csv    | 010825/123 | 01021998/S/CSVA | JAN-2025         |
 
   Scenario Outline: Not duplicate if different ufn
-    Given I generate "Legal help" "<format>" file with the following claims from period "JUN-2025"
+    Given I generate "Legal help" "<format>" file with the following claims from period "<originalSubmissionPeriod>"
       | ucn   | feeCode | ufn    |
       | <ucn> | ICISD   | <ufn>1 |
     And I upload with generated file via the API
@@ -62,12 +76,11 @@ Feature: Duplicate checks - Legal Help - Disbursements
     When I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Legal help"
     Examples:
-      | format | ufn       | ucn             | submissionPeriod |
-      | csv    | 010925/12 | 01021998/S/CSVA | JUN-2025         |
-      | csv    | 010925/13 | 01021998/S/CSVB | JUL-2025         |
+      | originalSubmissionPeriod | format | ufn       | ucn             | submissionPeriod |
+      | MAR-2023                 | csv    | 011025/12 | 01021998/S/CSVA | APR-2023         |
 
   Scenario Outline: Not duplicate if different ucn
-    Given I generate "Legal help" "<format>" file with the following claims from period "JUN-2025"
+    Given I generate "Legal help" "<format>" file with the following claims from period "<originalSubmissionPeriod>"
       | ucn    | feeCode | ufn   |
       | <ucn>A | ICISD   | <ufn> |
     And I upload with generated file via the API
@@ -77,9 +90,8 @@ Feature: Duplicate checks - Legal Help - Disbursements
     When I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Legal help"
     Examples:
-      | format | ufn        | ucn            | submissionPeriod |
-      | csv    | 011025/123 | 01021998/S/CSV | JUN-2025         |
-      | csv    | 010925/133 | 01021998/S/CSV | JUL-2025         |
+      | originalSubmissionPeriod | format | ufn        | ucn            | submissionPeriod |
+      | MAY-2023                 | csv    | 011025/123 | 01021998/S/CSV | JUN-2023         |
 
   # TODO: Test user does not have multiple offices. Disabling scenario for now
   #Scenario Outline: Not duplicate if different office
@@ -98,7 +110,7 @@ Feature: Duplicate checks - Legal Help - Disbursements
   #    | csv    | 011025/123 | 01021998/S/CSVA | JUL-2025         |
 
   Scenario Outline: Not duplicate if different fee code
-    Given I generate "Legal help" "<format>" file with the following claims from period "JUN-2025"
+    Given I generate "Legal help" "<format>" file with the following claims from period "<originalSubmissionPeriod>"
       | ucn   | feeCode | ufn   |
       | <ucn> | ICISD   | <ufn> |
     And I upload with generated file via the API
@@ -108,9 +120,8 @@ Feature: Duplicate checks - Legal Help - Disbursements
     When I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Legal help"
     Examples:
-      | format | ufn        | ucn             | submissionPeriod |
-      | csv    | 011025/123 | 01021998/S/CSVA | JUN-2025         |
-      | csv    | 010925/133 | 01021998/S/CSVB | JUL-2025         |
+      | originalSubmissionPeriod | format | ufn        | ucn             | submissionPeriod |
+      | JUL-2023                 | csv    | 301025/123 | 01021998/S/CSVA | AUG-2023         |
 
 
 
