@@ -81,7 +81,7 @@ async function restartSabcPortForwardWithWait(cfg: PortConfig) {
         // Start port-forward
         console.log(`🚀 Starting new port-forward for SaBC pod ${cfg.podName}...`);
         execSync(
-            `nohup kubectl port-forward -n laa-submit-a-bulk-claim-uat pod/uat-submit-a-bulk-claim-698449976-fjnrm 8082:8082 > pf-8082.log 2>&1 &`,
+            `nohup kubectl port-forward -n laa-submit-a-bulk-claim-uat pod/uat-submit-a-bulk-claim-698449976-gphpb 8082:8082 > pf-8082.log 2>&1 &`,
             { stdio: 'inherit', shell: '/bin/bash' }
         );
 
