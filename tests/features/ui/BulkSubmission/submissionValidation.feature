@@ -1,4 +1,4 @@
-@bulkSubmission
+@bulkSubmission @fo
 Feature: Invalid submission level validation
 
   Background:

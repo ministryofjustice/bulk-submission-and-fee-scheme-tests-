@@ -1,19 +1,139 @@
+// import { Given } from '@cucumber/cucumber';
+// import World from '../../support/world';
+// import { logoutAndWipe, recreateLoggedInContext } from './reset.helper';
+// import { execSync } from 'child_process';
+// import * as os from 'os';
+// import * as path from 'path';
+// import { checkPort } from '../../support/portForward';
+// import fs from "fs";
+//
+// const STATIC_NAMESPACE = 'laa-submit-a-bulk-claim-uat';
+// const STATIC_POD = 'uat-submit-a-bulk-claim-698449976-fjnrm';
+// const STATIC_PORT = 8082;
+// const LOCK_FILE = path.join(os.tmpdir(), 'sabc-portforward.lock');
+//
+// function tryLock() {
+//     try {
+//         const fd = fs.openSync(LOCK_FILE, fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_WRONLY);
+//         fs.writeFileSync(fd, String(process.pid));
+//         fs.closeSync(fd);
+//         return true;
+//     } catch {
+//         return false;
+//     }
+// }
+// function unlock() {
+//     try { fs.unlinkSync(LOCK_FILE); } catch {}
+// }
+//
+// async function restartPortForward() {
+//     const locked = tryLock();
+//     if (!locked) {
+//         console.log('🕒 Another worker is restarting port-forward; skipping duplicate attempt.');
+//         return;
+//     }
+//
+//     try {
+//         console.warn(`⚠️ Restarting SaBC port-forward (namespace=${STATIC_NAMESPACE}, pod=${STATIC_POD})`);
+//
+//         // Kill old process on 8082
+//         try {
+//             execSync(`lsof -ti:${STATIC_PORT} | xargs kill -9`, { stdio: 'ignore', shell: '/bin/bash' });
+//             console.log(`🧹 Killed any process using port ${STATIC_PORT}.`);
+//         } catch {
+//             console.log(`ℹ️ No existing process found on ${STATIC_PORT}.`);
+//         }
+//
+//         // Start new port-forward
+//         execSync(
+//             `nohup kubectl port-forward -n ${STATIC_NAMESPACE} pod/${STATIC_POD} ${STATIC_PORT}:${STATIC_PORT} > pf-${STATIC_PORT}.log 2>&1 &`,
+//             { stdio: 'inherit', shell: '/bin/bash' }
+//         );
+//         console.log('🚀 Port-forward command started, waiting for readiness...');
+//
+//         // Wait for port to open
+//         for (let i = 1; i <= 20; i++) {
+//             if (await checkPort(STATIC_PORT)) {
+//                 console.log(`✅ Port ${STATIC_PORT} responsive after ${i} checks.`);
+//                 return;
+//             }
+//             await new Promise(r => setTimeout(r, 2000));
+//         }
+//
+//         throw new Error(`❌ Port ${STATIC_PORT} not responding after 40s.`);
+//     } finally {
+//         unlock();
+//     }
+// }
+//
+// Given('I start from a clean logged-in state', async function (this: World) {
+//     if (!this.page || !this.browser) throw new Error('Browser/Page not available');
+//
+//     let navigationSucceeded = false;
+//
+//     // Attempt navigation with built-in timeout
+//     try {
+//         await this.page.goto(process.env.UI_BASE_URL!, {
+//             waitUntil: 'domcontentloaded',
+//             timeout: 20000,
+//         });
+//         navigationSucceeded = true;
+//     } catch (err: any) {
+//         console.warn(`⚠️ Navigation failed or timed out: ${err.message}`);
+//     }
+//
+//     // If failed, blank, or 502 — restart port-forward and retry
+//     const bodyContent = navigationSucceeded ? await this.page.content() : '';
+//     const isBlank = !bodyContent || bodyContent.trim().length < 50;
+//     const errorHeading = this.page.locator('h1', { hasText: 'Unable to display the page' });
+//
+//     if (!navigationSucceeded || isBlank || await errorHeading.isVisible().catch(() => false)) {
+//         console.warn('🔧 SaBC may be down (timeout, 502, or blank page detected) — restarting port-forward...');
+//         await restartPortForward();
+//
+//         console.log('🔁 Retrying navigation after port-forward restart...');
+//         await this.page.goto(process.env.UI_BASE_URL!, {
+//             waitUntil: 'domcontentloaded',
+//             timeout: 40000,
+//         });
+//     }
+//
+//     // Continue with reset
+//     await logoutAndWipe(this.page);
+//     try { await this.context?.close(); } catch {}
+//
+//     const { context, page } = await recreateLoggedInContext({
+//         browser: this.browser!,
+//         baseURL: process.env.UI_BASE_URL!,
+//         storageStatePath: this.workerStoragePath,
+//     });
+//
+//     this.context = context;
+//     this.page = page;
+//
+//     await this.attach('🔄 Context reset and login state reapplied', 'text/plain');
+// });
 import { Given } from '@cucumber/cucumber';
 import World from '../../support/world';
 import { logoutAndWipe, recreateLoggedInContext } from './reset.helper';
 import { execSync } from 'child_process';
-import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { checkPort } from '../../support/portForward'; // Ensure this exists
+import { checkPort } from '../../support/portForward';
+import fs from 'fs';
 
 // ───────────────────────────────
-// Constants & helpers
+// Constants
 // ───────────────────────────────
-const LOCK_FILE = path.join(os.tmpdir(), 'sabc-portforward.lock');
 const STATIC_NAMESPACE = 'laa-submit-a-bulk-claim-uat';
+const STATIC_POD = 'uat-submit-a-bulk-claim-698449976-gphpb';
+const STATIC_PORT = 8082;
+const LOCK_FILE = path.join(os.tmpdir(), 'sabc-portforward.lock');
 
-function tryAcquireLock(): boolean {
+// ───────────────────────────────
+// Lock helpers
+// ───────────────────────────────
+function tryLock() {
     try {
         const fd = fs.openSync(LOCK_FILE, fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_WRONLY);
         fs.writeFileSync(fd, String(process.pid));
@@ -23,119 +143,103 @@ function tryAcquireLock(): boolean {
         return false;
     }
 }
-function releaseLock() {
+function unlock() {
     try { fs.unlinkSync(LOCK_FILE); } catch {}
 }
 
-interface PortConfig {
-    name: string;
-    namespace: string;
-    podName: string;
-    port: number;
-    pidEnvVar: string;
-}
-
 // ───────────────────────────────
-// Get SaBC pod/port dynamically from pipeline output
+// Restart port-forward safely
 // ───────────────────────────────
-function getSabcPortConfig(): PortConfig | undefined {
-    const configPath = path.resolve('port-forward-config.json');
-    if (!fs.existsSync(configPath)) {
-        console.warn('⚠️ port-forward-config.json not found — cannot resolve SaBC port-forward config.');
-        return undefined;
-    }
-
-    const configs: PortConfig[] = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-    const sabcConfig = configs.find(c => c.name === 'sabc' || c.name.includes('sabc'));
-    if (!sabcConfig) {
-        console.warn('⚠️ No SABC entry found in port-forward-config.json.');
-        return undefined;
-    }
-
-    // Force static namespace in case pipeline JSON differs
-    sabcConfig.namespace = STATIC_NAMESPACE;
-    return sabcConfig;
-}
-
-// ───────────────────────────────
-// Restart SaBC port-forward with safety lock
-// ───────────────────────────────
-async function restartSabcPortForwardWithWait(cfg: PortConfig) {
-    const gotLock = tryAcquireLock();
-    if (!gotLock) {
-        console.log('🕒 Another worker is handling SaBC port-forward restart. Skipping this run.');
+async function restartPortForward() {
+    const locked = tryLock();
+    if (!locked) {
+        console.log('🕒 Another worker is restarting port-forward; skipping duplicate attempt.');
         return;
     }
 
     try {
-        console.warn(`⚠️ Restarting SaBC port-forward for pod ${cfg.podName} (${cfg.namespace})...`);
+        console.warn(`⚠️ Restarting SaBC port-forward (namespace=${STATIC_NAMESPACE}, pod=${STATIC_POD})`);
 
-        // Kill any process listening on the port
+        // Kill old process on 8082
         try {
-            execSync(`lsof -ti:${cfg.port} | xargs kill -9`, { stdio: 'ignore', shell: '/bin/bash' });
-            console.log(`🧹 Cleared any existing process using port ${cfg.port}.`);
+            execSync(`lsof -ti:${STATIC_PORT} | xargs kill -9`, { stdio: 'ignore', shell: '/bin/bash' });
+            console.log(`🧹 Killed any process using port ${STATIC_PORT}.`);
         } catch {
-            console.log(`ℹ️ No existing process found on port ${cfg.port}.`);
+            console.log(`ℹ️ No existing process found on ${STATIC_PORT}.`);
         }
 
-        // Start port-forward
-        console.log(`🚀 Starting new port-forward for SaBC pod ${cfg.podName}...`);
+        // Start new port-forward
         execSync(
-            `nohup kubectl port-forward -n laa-submit-a-bulk-claim-uat pod/uat-submit-a-bulk-claim-698449976-gphpb 8082:8082 > pf-8082.log 2>&1 &`,
+            `nohup kubectl port-forward -n ${STATIC_NAMESPACE} pod/${STATIC_POD} ${STATIC_PORT}:${STATIC_PORT} > pf-${STATIC_PORT}.log 2>&1 &`,
             { stdio: 'inherit', shell: '/bin/bash' }
         );
+        console.log('🚀 Port-forward command started, waiting for readiness...');
 
-        // Wait for the port to become available
-        const maxRetries = 10;
-        const retryIntervalMs = 2000;
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            if (await checkPort(cfg.port)) {
-                console.log(`✅ Port ${cfg.port} is responsive after ${attempt} checks.`);
+        // Wait for port to open
+        for (let i = 1; i <= 20; i++) {
+            if (await checkPort(STATIC_PORT)) {
+                console.log(`✅ Port ${STATIC_PORT} responsive after ${i} checks.`);
                 return;
             }
-            console.log(`⏳ Waiting for port ${cfg.port} to respond (attempt ${attempt}/${maxRetries})...`);
-            await new Promise(res => setTimeout(res, retryIntervalMs));
+            await new Promise(r => setTimeout(r, 2000));
         }
 
-        throw new Error(`❌ Port ${cfg.port} did not become responsive after ${(maxRetries * retryIntervalMs) / 1000}s.`);
+        throw new Error(`❌ Port ${STATIC_PORT} not responding after 40s.`);
     } finally {
-        releaseLock();
+        unlock();
     }
 }
 
 // ───────────────────────────────
-// Cucumber Step Definition
+// Step Definition
 // ───────────────────────────────
 Given('I start from a clean logged-in state', async function (this: World) {
     if (!this.page || !this.browser) throw new Error('Browser/Page not available');
 
+    let status: number | undefined = undefined;
+    let badStatus = false;
+
+    // Attempt navigation with built-in timeout and response capture
     try {
-        await this.page.goto(process.env.UI_BASE_URL!, { waitUntil: 'domcontentloaded', timeout: 20000 });
-    } catch {
-        console.warn('⚠️ Initial navigation failed, verifying error page.');
+        const resp = await this.page.goto(process.env.UI_BASE_URL!, {
+            waitUntil: 'domcontentloaded',
+            timeout: 30000,
+        });
+        status = resp?.status();
+        // @ts-ignore
+        badStatus = !resp || (status >= 400);
+    } catch (err: any) {
+        console.warn(`⚠️ Navigation threw (timeout or connection issue): ${err.message}`);
+        badStatus = true;
     }
 
-    // Detect SABC downtime via the error page
+    // Detect known error page text
     const errorHeading = this.page.locator('h1', { hasText: 'Unable to display the page' });
-    if (await errorHeading.isVisible().catch(() => false)) {
-        const cfg = getSabcPortConfig();
-        if (!cfg) {
-            console.warn('⚠️ No SaBC port-forward config found — cannot restart.');
-        } else {
-            await restartSabcPortForwardWithWait(cfg);
+    const showsError = await errorHeading.isVisible().catch(() => false);
 
-            console.log('🔁 Retrying navigation after SaBC port-forward restart...');
-            await this.page.goto(process.env.UI_BASE_URL!, { waitUntil: 'domcontentloaded', timeout: 20000 });
-            await this.page.locator('#main-content').waitFor({ state: 'visible', timeout: 10000 }).catch(() => {
-                console.warn('⚠️ Main content not visible after reload.');
-            });
-        }
+    if (badStatus || showsError) {
+        console.warn(`🔧 Navigation unhealthy (status=${status ?? 'none'}) — restarting SaBC port-forward...`);
+        await restartPortForward();
+
+        console.log('🔁 Retrying navigation after port-forward restart...');
+        const retryResp = await this.page.goto(process.env.UI_BASE_URL!, {
+            waitUntil: 'domcontentloaded',
+            timeout: 40000,
+        }).catch(() => null);
+
+        await this.page.locator('#main-content').waitFor({ state: 'visible', timeout: 10000 }).catch(() => {
+            console.warn('⚠️ Main content not visible after reload.');
+        });
     }
 
-    // Continue with login reset
+    // Continue with clean-up and recreation of context
     await logoutAndWipe(this.page);
 
-    try { await this.context?.close(); } catch {}
+    try {
+        await this.context?.close();
+    } catch {
+        console.warn('⚠️ Failed to close context cleanly — continuing.');
+    }
 
     const { context, page } = await recreateLoggedInContext({
         browser: this.browser!,
