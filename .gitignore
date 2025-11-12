@@ -54,3 +54,4 @@ storageState.json
 grid.log
 local.log
 log/
+browserstack.err

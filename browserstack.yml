@@ -39,6 +39,7 @@ parallelsPerPlatform: 2
 browserstackLocal: true
 browserstackLocalOptions:
   forceLocal: true
+  localIdentifier: ${BROWSERSTACK_LOCAL_IDENTIFIER}
 
 # =============================
 # Debugging and Logs

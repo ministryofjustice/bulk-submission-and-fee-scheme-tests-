@@ -4,6 +4,7 @@ Feature: Invalid submission level validation
   Background:
     Given I am on the bulk import page
 
+    @foo
   Scenario: Verify all mandatory field errors are displayed for an invalid XML upload Legal Help
     When I upload "tests/data/invalid/Legal_Help_Required_Field_Validation.xml"
     Then I should see an error banner saying "1 claim has errors for missing or incorrect information"

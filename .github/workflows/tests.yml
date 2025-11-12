@@ -175,10 +175,11 @@ jobs:
           DB_SSL=${{ secrets.DB_SSL }}
           BROWSERSTACK_USERNAME=${{secrets.BROWSERSTACK_USERNAME}}
           BROWSERSTACK_ACCESS_KEY=${{secrets.BROWSERSTACK_ACCESS_KEY}}
+          BROWSERSTACK_LOCAL_IDENTIFIER=run-${{ github.run_number }}
           GITHUB_RUN_NUMBER=${{ github.run_number }}
           HEADLESS=true
           EOF
-
+          
 
       - name: Record port-forward metadata (DSTEW DB)
         if: always()
@@ -215,18 +216,19 @@ jobs:
           jq -s '.' .portmeta/*.json > port-forward-config.json
 
       - name: Start BrowserStack Local
-        uses: browserstack/github-actions/setup-local@v1
-        with:
-          local-testing: start
-          local-identifier: ci-${{ github.run_id }}
+        run: npm run bstack:start
         env:
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+          BROWSERSTACK_LOCAL_IDENTIFIER: run-${{ github.run_number }}
 
 
       - name: Run UI Tests
         env:
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
           CUCUMBER_TAGS: ${{ inputs.tags }}
+          KUBECONFIG_SABC: ${{ secrets.KUBECONFIG_SABC }}
+          KUBECONFIG_DSTEW: ${{ secrets.KUBECONFIG_DSTEW }}
+          KUBECONFIG_FSP: ${{ secrets.KUBECONFIG_FSP }}
         run: |
           ./scripts/wait-for-port.sh 5432 dstew-db 
           ./scripts/wait-for-port.sh 8080 dstew-api 
@@ -237,14 +239,11 @@ jobs:
           npm run teardown
           npm run test:e2e:browserstack
 
+
       - name: Stop BrowserStack Local
         if: always()
-        uses: browserstack/github-actions/setup-local@v1
-        with:
-          local-testing: stop
-          local-identifier: ci-${{ github.run_id }}
-        env:
-          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+        run: npm run bstack:stop
+
 
       - name: Teardown (global cleanup)
         if: always()

@@ -9,6 +9,7 @@ import {
     ITestStepHookParameter,
     AfterAll,
 } from '@cucumber/cucumber';
+import dotenv from 'dotenv';
 import World from './world';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -20,13 +21,14 @@ import net from "net";
 import {execSync, spawn} from 'child_process';
 
 setDefaultTimeout(60 * 1000);
+dotenv.config();
 
 const submissionCleanupManager = createDataSourceManager({label: 'submissionCleanup'});
 
-async function checkPort(port: number, name: string): Promise<boolean> {
+async function checkPort(port: number): Promise<boolean> {
     return new Promise((resolve) => {
         const socket = new net.Socket();
-        socket.setTimeout(3000);
+        socket.setTimeout(2000);
         socket.once("connect", () => {
             socket.destroy();
             resolve(true);
@@ -40,7 +42,7 @@ async function checkPort(port: number, name: string): Promise<boolean> {
     });
 }
 
-export async function ensurePortsAvailable() {
+export async function ensurePortsAvailable(forceRestartFor?: string[]) {
     if (!fs.existsSync("port-forward-config.json")) {
         console.warn("⚠️ No port-forward-config.json found, skipping auto-reconnect.");
         return;
@@ -48,58 +50,63 @@ export async function ensurePortsAvailable() {
 
     const configs = JSON.parse(fs.readFileSync("port-forward-config.json", "utf8"));
 
-    for (const {name, port, namespace, podSelector, pidEnvVar} of configs) {
-        const ok = await checkPort(port, name);
+    for (const { name, port, namespace, podSelector, pidEnvVar } of configs) {
+        // If forcing restart and this service is one of them → skip checks, just restart
+        if (forceRestartFor?.includes(name)) {
+            console.log(`🔄 Force restarting ${name} port-forward...`);
+            await restartPortForward({ name, namespace, podSelector, port, pidEnvVar });
+            continue;
+        }
+
+        // Otherwise, do the usual reachability check
+        const ok = await checkPort(port);
         if (ok) {
             console.log(`✅ [${name}] localhost:${port} is reachable.`);
             continue;
         }
 
-        console.warn(`⚠️ [${name}] Port ${port} is unresponsive. Restarting port-forward...`);
-        try {
-            const oldPid = process.env[pidEnvVar];
-            if (oldPid) {
-                try {
-                    process.kill(Number(oldPid), 9);
-                    console.log(`🧹 Killed stale port-forward process ${oldPid} for ${name}`);
-                } catch {
-                    console.warn(`⚠️ Could not kill old process ${oldPid}`);
-                }
-            }
-
-            const pod = execSync(
-                `kubectl get pod -n ${namespace} -l "${podSelector}" -o jsonpath='{.items[0].metadata.name}'`,
-                {encoding: "utf-8"}
-            ).trim();
-            if (!pod) {
-                console.error(`❌ No pod found for ${name}`);
-                continue;
-            }
-
-            const proc = spawn(
-                "kubectl",
-                ["port-forward", "-n", namespace, `pod/${pod}`, `${port}:${port}`],
-                {detached: true, stdio: "ignore"}
-            );
-            proc.unref();
-            process.env[pidEnvVar] = String(proc.pid);
-            console.log(`🚀 Restarted port-forward for ${name} (PID ${proc.pid})`);
-
-            let retries = 10;
-            while (retries > 0) {
-                const alive = await checkPort(port, name);
-                if (alive) {
-                    console.log(`✅ [${name}] Port-forward restored`);
-                    break;
-                }
-                await new Promise((r) => setTimeout(r, 1000));
-                retries--;
-            }
-        } catch (err) {
-            console.error(`❌ Error restarting port-forward for ${name}:`, err);
-        }
+        console.warn(`⚠️ [${name}] Port ${port} is unresponsive. Restarting...`);
+        await restartPortForward({ name, namespace, podSelector, port, pidEnvVar });
     }
 }
+
+// @ts-ignore
+async function restartPortForward({ name, namespace, podSelector, port, pidEnvVar }) {
+    try {
+        const oldPid = process.env[pidEnvVar];
+        if (oldPid) {
+            try {
+                process.kill(Number(oldPid), 9);
+                console.log(`🧹 Killed old port-forward PID ${oldPid} for ${name}`);
+            } catch {
+                console.warn(`⚠️ Could not kill old PID ${oldPid}`);
+            }
+        }
+
+        const pod = execSync(
+            `kubectl get pod -n ${namespace} -l "${podSelector}" -o jsonpath='{.items[0].metadata.name}'`,
+            { encoding: "utf-8" }
+        ).trim();
+
+        if (!pod) {
+            console.error(`❌ No pod found for ${name} in namespace ${namespace}`);
+            return;
+        }
+
+        const proc = spawn(
+            "kubectl",
+            ["port-forward", "-n", namespace, `pod/${pod}`, `${port}:${port}`],
+            { detached: true, stdio: "ignore" }
+        );
+        proc.unref();
+        process.env[pidEnvVar] = String(proc.pid);
+        console.log(`🚀 Restarted port-forward for ${name} (PID ${proc.pid})`);
+    } catch (err: any) {
+        console.error(`❌ Error restarting port-forward for ${name}:`, err.message);
+    }
+}
+
+
 
 // ---------- Clear Down ----------
 BeforeAll(function () {
@@ -115,9 +122,9 @@ BeforeAll(function () {
 
 // ---------- UI Hooks ----------
 Before({tags: 'not @api'}, async function (this: World, scenario: ITestCaseHookParameter) {
-    if (process.env.GITHUB_RUN_NUMBER) {
-        await ensurePortsAvailable()
-    }
+    // if (process.env.GITHUB_RUN_NUMBER) {
+    //     await ensurePortsAvailable()
+    // }
 
     this.currentScenarioName = scenario.pickle.name || 'UnnamedScenario';
     await this.openBrowser();
@@ -139,9 +146,35 @@ Before({tags: 'not @api'}, async function (this: World, scenario: ITestCaseHookP
 
     // ✅ Create a page for cleanup & logout
     const page = await this.context.newPage();
-    await page.goto(process.env.UI_BASE_URL!, {waitUntil: 'domcontentloaded'});
 
-    // 🔐 If the Sign out button is visible, click it to reset the backend session
+    //if this times out . we can look to restart the sabc pod means something is becoming slow
+
+    if (process.env.GITHUB_RUN_NUMBER) {
+        try {
+            // Try navigating to the app normally
+            await page.goto(process.env.UI_BASE_URL!, {waitUntil: 'domcontentloaded', timeout: 1});
+        } catch (err) {
+            console.warn('⚠️ UI navigation timed out — likely a slow or hung SABC service.');
+            console.warn('🔄 Attempting to restart affected port-forward(s)...');
+
+            try {
+                await ensurePortsAvailable(['sabc']);
+                await ensurePortsAvailable(); // Automatically restarts any broken ones (including SABC)
+                console.log('✅ Port-forward(s) verified or restarted. Retrying navigation...');
+                await page.goto(process.env.UI_BASE_URL!, {waitUntil: 'domcontentloaded', timeout: 15000});
+            } catch (innerErr) {
+                console.error('❌ Failed to recover after restart attempt:', innerErr);
+                throw err; // rethrow original to mark scenario failed
+            }
+        }
+    } else {
+        await page.goto(process.env.UI_BASE_URL!, {waitUntil: 'domcontentloaded'});
+
+    }
+
+
+
+        // 🔐 If the Sign out button is visible, click it to reset the backend session
     const signOutButton = page.locator('button.sign-in-button:has-text("Sign out")');
     if (await signOutButton.isVisible({timeout: 3000}).catch(() => false)) {
         console.log('🔐 Signing out to reset backend session...');
