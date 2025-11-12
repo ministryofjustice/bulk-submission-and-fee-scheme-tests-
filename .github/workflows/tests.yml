@@ -80,7 +80,9 @@ jobs:
     environment: uat
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.54.2-jammy 
+      image: mcr.microsoft.com/playwright:v1.54.2-jammy
+    env:
+      NAMESPACE_SABC: laa-submit-a-bulk-claim-uat
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -132,7 +134,7 @@ jobs:
       - name: Port forward to SaBC pod
         uses: ./.github/actions/port-forward
         with:
-          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube_namespace: ${{ env.NAMESPACE_SABC }}
           pod_selector: app.kubernetes.io/name=uat-submit-a-bulk-claim
           local_port: "8082"
           pid_env_var: PORT_FORWARD_PID_SABC
@@ -190,11 +192,11 @@ jobs:
           jq -s '.' .portmeta/*.json > port-forward-config.json
           cat port-forward-config.json
 
-      - name: Start BrowserStack Local
-        run: npm run bstack:start
-        env:
-          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-          BROWSERSTACK_LOCAL_IDENTIFIER: run-${{ github.run_number }}
+#      - name: Start BrowserStack Local
+#        run: npm run bstack:start
+#        env:
+#          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+#          BROWSERSTACK_LOCAL_IDENTIFIER: run-${{ github.run_number }}
 
 
       - name: Run UI Tests
@@ -214,10 +216,10 @@ jobs:
           npm run teardown
           npm run test:e2e:browserstack
 
-
-      - name: Stop BrowserStack Local
-        if: always()
-        run: npm run bstack:stop
+#
+#      - name: Stop BrowserStack Local
+#        if: always()
+#        run: npm run bstack:stop
 
 
       - name: Teardown (global cleanup)
