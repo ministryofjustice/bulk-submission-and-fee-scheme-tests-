@@ -55,3 +55,6 @@ grid.log
 local.log
 log/
 browserstack.err
+.pf-sabc.pid
+pf-8082.log
+tests/features/support/hooksss.ts

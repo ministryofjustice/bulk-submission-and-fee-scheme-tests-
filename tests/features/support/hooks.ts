@@ -159,79 +159,63 @@ BeforeAll(function () {
 
 Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHookParameter) {
     this.currentScenarioName = scenario.pickle.name || 'UnnamedScenario';
-    await this.openBrowser();
+    console.log(`\n🚀 Preparing blank browser for: ${this.currentScenarioName}`);
 
-    const uniqueId = `${process.pid}-${Math.random().toString(36).slice(2, 8)}`;
-    const globalStorage = path.resolve('storageState.json');
-    const workerStorage = path.resolve(os.tmpdir(), `storageState-${uniqueId}.json`);
-
-    if (fs.existsSync(globalStorage) && !fs.existsSync(workerStorage)) {
-        fs.copyFileSync(globalStorage, workerStorage);
-    }
-
-    this.context = await this.browser!.newContext({
-        baseURL: process.env.UI_BASE_URL,
-        storageState: fs.existsSync(workerStorage) ? workerStorage : undefined,
-    });
-
-    const page = await this.context.newPage();
-
-    // 🧭 Only perform BrowserStack checks when running in CI (GitHub pipeline)
-    if (process.env.GITHUB_RUN_NUMBER) {
-        await page.goto(process.env.UI_BASE_URL!, { waitUntil: 'domcontentloaded', timeout: 40000 });
-
-        const errorHeading = page.locator('h1', { hasText: 'Unable to display the page' });
-        if (await errorHeading.isVisible().catch(() => false)) {
-            console.warn('⚠️ Detected "Unable to display the page" error — restarting SABC port-forward...');
-            await ensurePortsAvailable(['sabc']);
-            console.log('✅ Retrying navigation after SABC restart...');
-            await page.waitForTimeout(8000);
-            await page.goto(process.env.UI_BASE_URL!, { waitUntil: 'domcontentloaded', timeout: 20000 });
+    try {
+        // 1️⃣ Always try to open browser — no dependency on backend
+        try {
+            await this.openBrowser();
+        } catch (err) {
+            // @ts-ignore
+            console.warn('⚠️ Browser launch failed:', err?.message || err);
+            this.browser = undefined;
+            return; // don't throw, let retry logic handle it
         }
-    } else {
-        // Local run — just navigate directly
-        await page.goto(process.env.UI_BASE_URL!, { waitUntil: 'domcontentloaded', timeout: 40000 });
+
+        // 2️⃣ Prepare unique storage state (optional, safe)
+        const uniqueId = `${process.pid}-${Math.random().toString(36).slice(2, 8)}`;
+        const globalStorage = path.resolve('storageState.json');
+        const workerStorage = path.resolve(os.tmpdir(), `storageState-${uniqueId}.json`);
+        if (fs.existsSync(globalStorage)) {
+            try {
+                fs.copyFileSync(globalStorage, workerStorage);
+                this.workerStoragePath = workerStorage;
+            } catch {
+                this.workerStoragePath = undefined;
+            }
+        }
+
+        // 3️⃣ Create context + blank page
+        try {
+            this.context = await this.browser!.newContext({
+                baseURL: process.env.UI_BASE_URL || 'about:blank',
+                storageState: this.workerStoragePath,
+            });
+            this.page = await this.context.newPage();
+            // 🚫 Do NOT go to UI_BASE_URL here — stay blank
+            await this.page.goto('about:blank');
+        } catch (err) {
+            // @ts-ignore
+            console.warn('⚠️ Context/Page creation failed:', err?.message || err);
+            return;
+        }
+
+        // 4️⃣ Reset any world data
+        this.cleanupSubmissionIds?.clear?.();
+        this.submissionReference = undefined;
+        this.submissionPeriod = undefined;
+        this.officeAccount = undefined;
+        this.matterStartCounts = undefined;
+
+        await this.attach('🧭 Blank context created and ready.', 'text/plain');
+        console.log(`✅ Blank environment ready for: ${this.currentScenarioName}`);
+    } catch (outerErr) {
+        // @ts-ignore
+        console.error('💥 Unexpected error in Before hook:', outerErr?.message || outerErr);
+        // never throw
     }
-
-    // 🔐 Reset any existing session
-    const signOutButton = page.locator('button.sign-in-button:has-text("Sign out")');
-    if (await signOutButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-        console.log('🔐 Signing out to reset backend session...');
-        await signOutButton.click();
-        await page.waitForLoadState('networkidle');
-    } else {
-        console.log('ℹ️ No active session found, skipping sign out.');
-    }
-
-    // 🧹 Clear local/session storage, cookies, and service workers
-    await page.evaluate(async () => {
-        localStorage.clear();
-        sessionStorage.clear();
-        document.cookie.split(';').forEach((cookie) => {
-            const name = cookie.split('=')[0].trim();
-            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-        });
-
-        const regs = await navigator.serviceWorker.getRegistrations();
-        for (const r of regs) await r.unregister();
-
-        const dbs = await indexedDB.databases?.();
-        if (dbs) for (const db of dbs) if (db.name) indexedDB.deleteDatabase(db.name);
-    });
-
-    await page.waitForTimeout(500);
-    await page.close();
-
-    // 🌱 Create a new page for test scenario
-    this.page = await this.context.newPage();
-    this.cleanupSubmissionIds.clear();
-    this.submissionReference = undefined;
-    this.submissionPeriod = undefined;
-    this.officeAccount = undefined;
-    this.matterStartCounts = undefined;
-
-    await this.attach(`🧭 New isolated context created for: ${scenario.pickle.name}`, 'text/plain');
 });
+
 
 After({tags: 'not @api'}, async function (this: World) {
     try {

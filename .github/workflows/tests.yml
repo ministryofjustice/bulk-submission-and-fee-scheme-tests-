@@ -192,11 +192,11 @@ jobs:
           jq -s '.' .portmeta/*.json > port-forward-config.json
           cat port-forward-config.json
 
-#      - name: Start BrowserStack Local
-#        run: npm run bstack:start
-#        env:
-#          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-#          BROWSERSTACK_LOCAL_IDENTIFIER: run-${{ github.run_number }}
+      - name: Start BrowserStack Local
+        run: npm run bstack:start
+        env:
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+          BROWSERSTACK_LOCAL_IDENTIFIER: run-${{ github.run_number }}
 
 
       - name: Run UI Tests
@@ -216,10 +216,10 @@ jobs:
           npm run teardown
           npm run test:e2e:browserstack
 
-#
-#      - name: Stop BrowserStack Local
-#        if: always()
-#        run: npm run bstack:stop
+
+      - name: Stop BrowserStack Local
+        if: always()
+        run: npm run bstack:stop
 
 
       - name: Teardown (global cleanup)

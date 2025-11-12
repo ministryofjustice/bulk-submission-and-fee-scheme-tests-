@@ -1,6 +1,9 @@
 @bulkSubmission @smoke
 Feature: Bulk Submission Search
 
+  Background:
+    And I start from a clean logged-in state
+
   Scenario Outline: Search For Valid/Invalid claims using submission ref
     Given I ensure there is a "<Status>" submission for "<AreaOfLaw>"
     And I am on the Search page

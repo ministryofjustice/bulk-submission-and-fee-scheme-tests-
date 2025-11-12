@@ -1,6 +1,7 @@
 Feature: Duplicate checks - Legal Help - Disbursements
 
   Background:
+    And I start from a clean logged-in state
     Given I am on the bulk import page
 
   Scenario Outline: Should reject submission if less than 3 months - reject

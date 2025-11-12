@@ -2,6 +2,7 @@
 Feature: Invalid submission level validation
 
   Background:
+    And I start from a clean logged-in state
     Given I am on the bulk import page
 
     @foo

@@ -2,6 +2,7 @@
 Feature: Bulk Submission Upload Validation
 
   Background:
+    And I start from a clean logged-in state
     Given I am on the bulk import page
 
   Scenario: Upload fails with an empty file

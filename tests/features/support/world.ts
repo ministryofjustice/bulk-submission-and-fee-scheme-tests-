@@ -48,6 +48,7 @@ export class World {
   submissionPeriod: string | undefined;
   filePath: string | undefined;
   currentScenarioName: string | undefined;
+  workerStoragePath: string | undefined;
 
   constructor(options: IWorldOptions) {
     // @ts-ignore
