@@ -188,6 +188,7 @@ jobs:
         shell: bash
         run: |
           jq -s '.' .portmeta/*.json > port-forward-config.json
+          cat port-forward-config.json
 
       - name: Start BrowserStack Local
         run: npm run bstack:start

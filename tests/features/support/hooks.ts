@@ -50,12 +50,11 @@ export async function ensurePortsAvailable(forceRestartFor?: string[]) {
 
     const configs = JSON.parse(fs.readFileSync("port-forward-config.json", "utf8"));
 
-    for (const { name, port, namespace, podSelector, pidEnvVar } of configs) {
+    for (const { name, port, namespace, podName, pidEnvVar } of configs) {
         // If forcing restart and this service is one of them → skip checks, just restart
         if (forceRestartFor?.includes(name)) {
             console.log(`🔄 Force restarting ${name} port-forward...`);
-            // @ts-ignore
-            await restartPortForward({ name, namespace, podSelector, port, pidEnvVar });
+            await restartPortForward({ name, namespace, podName, port, pidEnvVar });
             continue;
         }
 
@@ -67,15 +66,12 @@ export async function ensurePortsAvailable(forceRestartFor?: string[]) {
         }
 
         console.warn(`⚠️ [${name}] Port ${port} is unresponsive. Restarting...`);
-        // @ts-ignore
-        await restartPortForward({ name, namespace, podSelector, port, pidEnvVar });
+        await restartPortForward({ name, namespace, podName, port, pidEnvVar });
     }
 }
 
-// @ts-ignore
-async function restartPortForward({ name, namespace, podName, port, pidEnvVar }) {
+async function restartPortForward({ name, namespace, podName, port, pidEnvVar }: any) {
     try {
-        // Kill any existing port-forward process
         const oldPid = process.env[pidEnvVar];
         if (oldPid) {
             try {
@@ -86,17 +82,20 @@ async function restartPortForward({ name, namespace, podName, port, pidEnvVar })
             }
         }
 
-        // Use the known pod name directly instead of fetching it dynamically
-        console.log(`🔄 Restarting port-forward for ${name} (pod: ${podName})...`);
+        if (!podName || podName === "unknown") {
+            console.error(`❌ Cannot restart ${name} — podName not provided`);
+            return;
+        }
 
+        console.log(`🚀 Restarting port-forward for ${name}: pod/${podName} (${port}:${port})`);
         const proc = spawn(
             "kubectl",
-            ["port-forward", "-n", namespace, `pod/${podName}`, `${port}:${port}`],
+            ["port-forward", "-n", "laa-submit-a-bulk-claim-uat", `pod/uat-submit-a-bulk-claim-698449976-fjnrm`, `${port}:${port}`],
             { detached: true, stdio: "ignore" }
         );
         proc.unref();
         process.env[pidEnvVar] = String(proc.pid);
-        console.log(`🚀 Restarted port-forward for ${name} (PID ${proc.pid})`);
+        console.log(`✅ Restarted port-forward for ${name} (PID ${proc.pid})`);
     } catch (err: any) {
         console.error(`❌ Error restarting port-forward for ${name}:`, err.message);
     }
