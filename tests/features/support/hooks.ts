@@ -54,6 +54,7 @@ export async function ensurePortsAvailable(forceRestartFor?: string[]) {
         // If forcing restart and this service is one of them → skip checks, just restart
         if (forceRestartFor?.includes(name)) {
             console.log(`🔄 Force restarting ${name} port-forward...`);
+            // @ts-ignore
             await restartPortForward({ name, namespace, podSelector, port, pidEnvVar });
             continue;
         }
@@ -66,13 +67,15 @@ export async function ensurePortsAvailable(forceRestartFor?: string[]) {
         }
 
         console.warn(`⚠️ [${name}] Port ${port} is unresponsive. Restarting...`);
+        // @ts-ignore
         await restartPortForward({ name, namespace, podSelector, port, pidEnvVar });
     }
 }
 
 // @ts-ignore
-async function restartPortForward({ name, namespace, podSelector, port, pidEnvVar }) {
+async function restartPortForward({ name, namespace, podName, port, pidEnvVar }) {
     try {
+        // Kill any existing port-forward process
         const oldPid = process.env[pidEnvVar];
         if (oldPid) {
             try {
@@ -83,19 +86,12 @@ async function restartPortForward({ name, namespace, podSelector, port, pidEnvVa
             }
         }
 
-        const pod = execSync(
-            `kubectl get pod -n ${namespace} -l "${podSelector}" -o jsonpath='{.items[0].metadata.name}'`,
-            { encoding: "utf-8" }
-        ).trim();
-
-        if (!pod) {
-            console.error(`❌ No pod found for ${name} in namespace ${namespace}`);
-            return;
-        }
+        // Use the known pod name directly instead of fetching it dynamically
+        console.log(`🔄 Restarting port-forward for ${name} (pod: ${podName})...`);
 
         const proc = spawn(
             "kubectl",
-            ["port-forward", "-n", namespace, `pod/${pod}`, `${port}:${port}`],
+            ["port-forward", "-n", namespace, `pod/${podName}`, `${port}:${port}`],
             { detached: true, stdio: "ignore" }
         );
         proc.unref();
@@ -105,7 +101,6 @@ async function restartPortForward({ name, namespace, podSelector, port, pidEnvVa
         console.error(`❌ Error restarting port-forward for ${name}:`, err.message);
     }
 }
-
 
 
 // ---------- Clear Down ----------

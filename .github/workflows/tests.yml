@@ -198,7 +198,9 @@ jobs:
         if: always()
         shell: bash
         run: |
-          echo "{\"name\": \"sabc\", \"namespace\": \"${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}\", \"podSelector\": \"app.kubernetes.io/name=uat-submit-a-bulk-claim\", \"port\": 8082, \"pidEnvVar\": \"PORT_FORWARD_PID_SABC\"}" > .portmeta/sabc.json
+          pod_name=$(kubectl get pod -n ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }} -l "app.kubernetes.io/name=uat-submit-a-bulk-claim" -o jsonpath='{.items[0].metadata.name}')
+          echo "{\"name\": \"sabc\", \"namespace\": \"${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}\", \"podName\": \"${pod_name}\", \"port\": 8082, \"pidEnvVar\": \"PORT_FORWARD_PID_SABC\"}" > .portmeta/sabc.json
+          cat .portmeta/sabc.json
 
       - name: Record port-forward metadata (FSP API)
         if: always()
