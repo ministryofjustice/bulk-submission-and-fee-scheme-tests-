@@ -179,34 +179,6 @@ jobs:
           GITHUB_RUN_NUMBER=${{ github.run_number }}
           HEADLESS=true
           EOF
-          
-
-      - name: Record port-forward metadata (DSTEW DB)
-        if: always()
-        shell: bash
-        run: |
-          mkdir -p .portmeta
-          echo "{\"name\": \"dstew-db\", \"namespace\": \"${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}\", \"podSelector\": \"run=port-forward-pod\", \"port\": 5432, \"pidEnvVar\": \"PORT_FORWARD_PID_DSTEW_DB\"}" > .portmeta/dstew-db.json
-
-      - name: Record port-forward metadata (DSTEW API)
-        if: always()
-        shell: bash
-        run: |
-          echo "{\"name\": \"dstew-api\", \"namespace\": \"${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}\", \"podSelector\": \"app.kubernetes.io/name=data-claims-api,app.kubernetes.io/instance=main\", \"port\": 8080, \"pidEnvVar\": \"PORT_FORWARD_PID_DSTEW_API\"}" > .portmeta/dstew-api.json
-
-      - name: Record port-forward metadata (SABC)
-        if: always()
-        shell: bash
-        run: |
-          pod_name=$(kubectl get pod -n ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }} -l "app.kubernetes.io/name=uat-submit-a-bulk-claim" -o jsonpath='{.items[0].metadata.name}')
-          echo "{\"name\": \"sabc\", \"namespace\": \"${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}\", \"podName\": \"${pod_name}\", \"port\": 8082, \"pidEnvVar\": \"PORT_FORWARD_PID_SABC\"}" > .portmeta/sabc.json
-          cat .portmeta/sabc.json
-
-      - name: Record port-forward metadata (FSP API)
-        if: always()
-        shell: bash
-        run: |
-          echo "{\"name\": \"fsp-api\", \"namespace\": \"${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}\", \"podSelector\": \"app.kubernetes.io/name=laa-fee-scheme-api\", \"port\": 8085, \"pidEnvVar\": \"PORT_FORWARD_PID\"}" > .portmeta/fsp-api.json
 
       - name: Install jq
         run: apt-get update && apt-get install -y jq
