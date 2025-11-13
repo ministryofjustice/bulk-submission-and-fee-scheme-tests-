@@ -31,7 +31,7 @@ platforms:
 # =============================
 # Parallelization
 # =============================
-parallelsPerPlatform: 1
+parallelsPerPlatform: 2
 
 # =============================
 # Local Testing Configuration
@@ -39,7 +39,7 @@ parallelsPerPlatform: 1
 browserstackLocal: true
 browserstackLocalOptions:
   forceLocal: true
-#  localIdentifier: ${BROWSERSTACK_LOCAL_IDENTIFIER}
+  localIdentifier: ${BROWSERSTACK_LOCAL_IDENTIFIER}
 
 # =============================
 # Debugging and Logs
