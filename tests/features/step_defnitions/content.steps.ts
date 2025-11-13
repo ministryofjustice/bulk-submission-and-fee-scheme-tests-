@@ -1,34 +1,34 @@
-import { Given, Then, When } from '@cucumber/cucumber';
-import { expect } from '@playwright/test';
-import { promises as fs } from 'fs';
+import {Given, Then, When} from '@cucumber/cucumber';
+import {expect} from '@playwright/test';
+import {promises as fs} from 'fs';
 import path from 'path';
-import type { CustomWorld } from '../support/world';
-import { BulkImportPage } from '../../pages/bulkImportPage';
+import type {CustomWorld} from '../support/world';
+import {BulkImportPage} from '../../pages/bulkImportPage';
 
 const normalizeHtml = (html: string): string => {
   const withoutDynamicAttributes = html
-    .replace(/(<input\b[^>]*name=["']?_csrf["'][^>]*?)\s+value="[^"]*"/gi,'$1')
-    .replace(/data-max-date="[^"]*"/gi, '')
-    .replace(/data-min-date="[^"]*"/gi, '')
-    .replace(/\s*data-testid="[^"]*"/gi, '')
-    .replace(/\s*style="display:\s*(?:none|block);?"/gi, '')
-    .replace(/aria-disabled="true"/gi, '')
-    .replace(/(<table\b[^>]*class=["'][^"']*moj-datepicker__calendar[^"']*["'][^>]*?)\s+role="(?:grid|application)"/gi, '$1')
-    .replace(/(<h2\b[^>]*class=["'][^"']*moj-js-datepicker-month-year[^"']*["'][^>]*>)([^<]*)(<\/h2>)/gi, '$1$3')
-    .replace(/(<span\b[^>]*class=["'][^"']*govuk-visually-hidden[^"']*["'][^>]*>)(Excluded date,[^<]*)(<\/span>)/gi, '$1$3')
-    .replace(/(<span\b[^>]*class=["'][^"']*govuk-visually-hidden[^"']*["'][^>]*>)([A-Za-z]+ \d{1,2} [A-Za-z]+ \d{4})(<\/span>)/gi, '$1$3')
-    .replace(/(<table\b[^>]*class=["'][^"']*moj-datepicker__calendar[^"']*["'][^>]*>\s*<thead>[\s\S]*?<\/thead>)[\s\S]*?(<\/table>)/gi, '$1$2');
+  .replace(/(<input\b[^>]*name=["']?_csrf["'][^>]*?)\s+value="[^"]*"/gi, '$1')
+  .replace(/data-max-date="[^"]*"/gi, '')
+  .replace(/data-min-date="[^"]*"/gi, '')
+  .replace(/\s*data-testid="[^"]*"/gi, '')
+  .replace(/\s*style="display:\s*(?:none|block);?"/gi, '')
+  .replace(/aria-disabled="true"/gi, '')
+  .replace(/(<table\b[^>]*class=["'][^"']*moj-datepicker__calendar[^"']*["'][^>]*?)\s+role="(?:grid|application)"/gi, '$1')
+  .replace(/(<h2\b[^>]*class=["'][^"']*moj-js-datepicker-month-year[^"']*["'][^>]*>)([^<]*)(<\/h2>)/gi, '$1$3')
+  .replace(/(<span\b[^>]*class=["'][^"']*govuk-visually-hidden[^"']*["'][^>]*>)(Excluded date,[^<]*)(<\/span>)/gi, '$1$3')
+  .replace(/(<span\b[^>]*class=["'][^"']*govuk-visually-hidden[^"']*["'][^>]*>)([A-Za-z]+ \d{1,2} [A-Za-z]+ \d{4})(<\/span>)/gi, '$1$3')
+  .replace(/(<table\b[^>]*class=["'][^"']*moj-datepicker__calendar[^"']*["'][^>]*>\s*<thead>[\s\S]*?<\/thead>)[\s\S]*?(<\/table>)/gi, '$1$2');
 
   return withoutDynamicAttributes
-    .replace(/\r\n/g, '\n')
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-    .join('');
+  .replace(/\r\n/g, '\n')
+  .split('\n')
+  .map((line) => line.trim())
+  .filter((line) => line.length > 0)
+  .join('');
 };
 
 Given('I am on the bulk submission landing page', async function (this: CustomWorld) {
-  await this.page!.goto('/', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await this.page!.goto('/', {waitUntil: 'domcontentloaded', timeout: 60000});
   await this.attach('🌐 Navigated to bulk submission landing page', 'text/plain');
 });
 
@@ -37,7 +37,7 @@ Then('the page content matches {string}', async function (this: CustomWorld, fix
   const expectedHtml = await fs.readFile(fixturePath, 'utf8');
 
   const mainContent = this.page!.locator('main#main-content');
-  await mainContent.waitFor({ state: 'visible', timeout: 30000 });
+  await mainContent.waitFor({state: 'visible', timeout: 30000});
   const actualHtml = await mainContent.evaluate((node) => node.outerHTML);
 
   expect(normalizeHtml(actualHtml)).toBe(normalizeHtml(expectedHtml));
@@ -57,7 +57,7 @@ When(/^I upload the generated file and wait for import in progress(?: (screen))?
   await this.bulkImportPage.clickUpload();
 
   const inProgressHeading = this.page!.locator('h1.moj-interruption-card__heading');
-  await inProgressHeading.waitFor({ state: 'visible', timeout: 60000 });
+  await inProgressHeading.waitFor({state: 'visible', timeout: 60000});
 
   if (screen) {
     await this.attach('✅ Import in progress screen displayed', 'text/plain');
@@ -79,37 +79,48 @@ When(/^I upload the generated file and wait for import in progress(?: (screen))?
 });
 
 Then('the search results table matches the expected layout', async function (this: CustomWorld) {
-    const table = this.page!.locator('table.govuk-table').first();
-    await table.waitFor({ state: 'visible', timeout: 15000 });
+  const table = this.page!.locator('table.govuk-table').first();
+  await table.waitFor({state: 'visible', timeout: 15000});
 
-    const headerTexts = await table.locator('thead tr th').allTextContents();
-    const normalizedHeaders = headerTexts.map((text) => text.trim().replace(/\s+/g, ' '));
+  const headerTexts = await table.locator('thead tr th').allTextContents();
+  const normalizedHeaders = headerTexts.map((text) => text.trim().replace(/\s+/g, ' '));
 
-    const expectedHeaders = ['Date submitted', 'Office account', 'Area of law', 'Status'];
-    expect(normalizedHeaders).toEqual(expectedHeaders);
+  const expectedHeaders = ['Date submitted', 'Office account', 'Area of law', 'Status'];
+  expect(normalizedHeaders).toEqual(expectedHeaders);
 
-    const rows = table.locator('tbody tr');
-    const rowCount = await rows.count();
-    expect(rowCount).toBeGreaterThan(0);
+  const rows = table.locator('tbody tr');
+  const rowCount = await rows.count();
+  expect(rowCount).toBeGreaterThan(0);
 
-    const allowedAreas = new Set(['Legal help', 'Mediation', 'Crime lower']);
-    const datePattern = /^\d{1,2} [A-Z][a-z]{2} \d{4} at \d{2}:\d{2}:\d{2}$/;
+  const allowedAreas = new Set(['Legal help', 'Mediation', 'Crime lower']);
+  const datePattern = /^\d{1,2} [A-Z][a-z]{2} \d{4} at \d{2}:\d{2}:\d{2}$/;
 
-    for (let i = 0; i < rowCount; i++) {
-        const cells = rows.nth(i).locator('td');
-        const cellCount = await cells.count();
-        expect(cellCount).toBeGreaterThanOrEqual(4);
+  for (let i = 0; i < rowCount; i++) {
+    const cells = rows.nth(i).locator('td');
+    const cellCount = await cells.count();
+    expect(cellCount).toBeGreaterThanOrEqual(4);
 
-        const dateSubmitted = (await cells.nth(0).innerText()).trim();
-        const officeAccount = (await cells.nth(1).innerText()).trim();
-        const areaOfLaw = (await cells.nth(2).innerText()).trim();
-        const status = (await cells.nth(3).innerText()).trim();
+    const dateSubmitted = (await cells.nth(0).innerText()).trim();
+    const officeAccount = (await cells.nth(1).innerText()).trim();
+    const areaOfLaw = (await cells.nth(2).innerText()).trim();
+    const status = (await cells.nth(3).innerText()).trim();
 
-        expect(datePattern.test(dateSubmitted)).toBeTruthy();
-        expect(officeAccount.length).toBeGreaterThan(0);
-        expect(status.length).toBeGreaterThan(0);
-        expect(allowedAreas.has(areaOfLaw)).toBeTruthy();
-    }
+    expect(datePattern.test(dateSubmitted)).toBeTruthy();
+    expect(officeAccount.length).toBeGreaterThan(0);
+    expect(status.length).toBeGreaterThan(0);
+    expect(allowedAreas.has(areaOfLaw)).toBeTruthy();
+  }
 
-    await this.attach(`✅ Verified search results table with ${rowCount} row(s).`, 'text/plain');
+  await this.attach(`✅ Verified search results table with ${rowCount} row(s).`, 'text/plain');
 });
+
+
+Then(
+    'I click on page {string}',
+    async function (this: CustomWorld, pageNumber: number) {
+      const paginationLink = this.page!.locator('.govuk-pagination__link', {hasText: pageNumber.toString()});
+      await paginationLink.waitFor({state: 'visible', timeout: 15000});
+      await paginationLink.click();
+      await this.attach(`✅ Clicked on pagination link ${pageNumber}`, 'text/plain');
+    }
+);
