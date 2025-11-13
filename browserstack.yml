@@ -27,6 +27,13 @@ platforms:
     osVersion: 11
     browserName: Chrome
     browserVersion: latest
+    browserstack.playwrightArgs:
+      - "--no-sandbox"
+      - "--disable-setuid-sandbox"
+      - "--disable-dev-shm-usage"
+      - "--disable-gpu"
+      - "--disable-infobars"
+      - "--disable-extensions"
 
 # =============================
 # Parallelization
@@ -39,7 +46,6 @@ parallelsPerPlatform: 2
 browserstackLocal: true
 browserstackLocalOptions:
   forceLocal: true
-  localIdentifier: ${BROWSERSTACK_LOCAL_IDENTIFIER}
 
 # =============================
 # Debugging and Logs

@@ -1,6 +1,4 @@
 import type { Page, Browser, BrowserContext } from '@playwright/test';
-import * as fs from 'fs';
-import * as path from 'path';
 
 export async function logoutAndWipe(page: Page) {
     // try to sign out if button visible

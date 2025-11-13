@@ -1,146 +1,145 @@
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
-import { faker } from '@faker-js/faker';
 import { createDataSourceManager } from '../db/dataSourceManager';
 
-// ---------- 🧠 Helper Cache Setup ----------
-function getCacheFile(areaOfLaw: string): string {
-  const safeArea = areaOfLaw.toLowerCase().replace(/\s+/g, '_');
-  return path.join(os.tmpdir(), `${safeArea}_used_submission_periods.json`);
-}
+const MONTHS = [
+  'JAN',
+  'FEB',
+  'MAR',
+  'APR',
+  'MAY',
+  'JUN',
+  'JUL',
+  'AUG',
+  'SEP',
+  'OCT',
+  'NOV',
+  'DEC',
+];
 
-function readUsedPeriods(areaOfLaw: string): string[] {
-  const file = getCacheFile(areaOfLaw);
-  if (!fs.existsSync(file)) fs.writeFileSync(file, JSON.stringify([]), 'utf-8');
-  try {
-    return JSON.parse(fs.readFileSync(file, 'utf-8')) || [];
-  } catch {
-    return [];
-  }
-}
+const allowedPeriods: string[] = (() => {
+  const periods: string[] = [];
+  const startYear = 2021;
+  const startMonth = 0;
 
-function writeUsedPeriods(areaOfLaw: string, periods: string[]) {
-  const file = getCacheFile(areaOfLaw);
-  const tmp = file + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify(periods, null, 2), 'utf-8');
-  fs.renameSync(tmp, file);
-  console.log(`✅ Updated used periods cache for ${areaOfLaw}: ${file}`);
-}
-
-// ---------- 🧩 Constants ----------
-const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-
-// ---------- 🗄 DB Manager ----------
-const submissionManager = createDataSourceManager({ label: 'submissionPeriodHelper' });
-
-// ---------- 🔍 DB Query ----------
-async function isSubmissionPeriodUsed(areaOfLaw: string, submissionPeriod: string, office: string): Promise<boolean> {
-  const dataSource = submissionManager.getDataSource();
-  if (!dataSource.isInitialized) return false;
-
-  const result = await dataSource.query(
-      `SELECT 1 
-       FROM claims.submission 
-      WHERE area_of_law = $1 
-        AND submission_period = $2 
-        AND office_account_number = $3 
-        AND status = 'VALIDATION_SUCCEEDED'
-      LIMIT 1`,
-      [areaOfLaw, submissionPeriod, office]
-  );
-  return result.length > 0;
-}
-
-export function buildScheduleRef(
-    office: string,
-    submissionPeriod: string,
-    areaOfLaw: string
-): string {
-  const [month, year] = submissionPeriod.split('-');
-  const shortYear = year.slice(-2);
-
-  let prefix: string;
-
-  if (areaOfLaw.toUpperCase().includes('LEGAL')) {
-    prefix = 'CIV';
-  } else if (areaOfLaw.toUpperCase().includes('MEDI')) {
-    prefix = 'MEDI';
-  } else if (areaOfLaw.toUpperCase().includes('CRIME')) {
-    prefix = 'CRM';
-  } else {
-    prefix = 'GEN'; // fallback for unknown areas
-  }
-
-  return `${office}/${prefix}${month.toUpperCase()}${shortYear}/01`;
-}
-
-// ---------- 🧮 Main Function ----------
-export async function getUniqueSubmissionPeriod(
-    office: string,
-    areaOfLaw: string
-): Promise<string> {
-  const usedPeriods = readUsedPeriods(areaOfLaw);
   const now = new Date();
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
 
-  // Don’t use current month (submissions must be past)
-  const endOfLastMonth = new Date(currentYear, currentMonth, 0);
-  const startDate = new Date('2021-01-01');
-
-  await submissionManager.ensureInitialized();
-
-  for (let attempt = 0; attempt < 50; attempt++) {
-    const submissionDate = faker.date.between({ from: startDate, to: endOfLastMonth });
-    const month = MONTHS[submissionDate.getMonth()];
-    const year = submissionDate.getFullYear();
-    const period = `${month}-${year}`;
-    const key = `${areaOfLaw}_${office}_${period}`;
-
-    const alreadyUsed = usedPeriods.includes(key);
-    const dbUsed = await isSubmissionPeriodUsed(areaOfLaw.toUpperCase(), period, office);
-
-    if (alreadyUsed || dbUsed) continue;
-
-    usedPeriods.push(key);
-    writeUsedPeriods(areaOfLaw, usedPeriods);
-    console.log(`🧩 Using new unique period for ${areaOfLaw}: ${period}`);
-    return period;
+  let endYear = currentYear;
+  let endMonth = currentMonth - 1;
+  if (endMonth < 0) {
+    endYear -= 1;
+    endMonth = 11;
   }
 
-  throw new Error(`❌ Cannot find unique submission period for ${areaOfLaw} (${office})`);
+  for (let year = startYear; year <= endYear; year++) {
+    const monthStart = year === startYear ? startMonth : 0;
+    const monthEnd = year === endYear ? endMonth : 11;
+    for (let month = monthStart; month <= monthEnd; month++) {
+      periods.push(`${MONTHS[month]}-${year}`);
+    }
+  }
+
+  return periods;
+})();
+
+const submissionManager = createDataSourceManager({ label: 'submissionPeriodHelper' });
+const usedPeriods = new Map<string, Set<string>>();
+const usedScheduleRefs = new Set<string>();
+
+const createRandomIndices = (length: number): number[] => {
+  const indices = Array.from({ length }, (_, i) => i);
+  for (let i = length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  return indices;
+};
+
+export async function getUniqueSubmissionPeriod(
+  account: string,
+  dbAreaOfLaw: string
+): Promise<string> {
+  if (allowedPeriods.length === 0) {
+    throw new Error('No allowed submission periods available.');
+  }
+
+  const accountKey = account.trim();
+  if (!usedPeriods.has(accountKey)) {
+    usedPeriods.set(accountKey, new Set());
+  }
+  const cache = usedPeriods.get(accountKey)!;
+
+  const randomizedIndices = createRandomIndices(allowedPeriods.length);
+  const hasDb = await submissionManager.ensureInitialized();
+  const dataSource = submissionManager.getDataSource();
+
+  for (const index of randomizedIndices) {
+    const candidate = allowedPeriods[index];
+    if (cache.has(candidate)) continue;
+
+    if (hasDb) {
+      const rows = await dataSource.query(
+        `SELECT 1
+         FROM claims.submission
+         WHERE area_of_law = $1
+           AND submission_period = $2
+           AND office_account_number = $3
+         LIMIT 1`,
+        [dbAreaOfLaw, candidate, accountKey]
+      );
+      if (Array.isArray(rows) && rows.length > 0) {
+        continue;
+      }
+    }
+
+    cache.add(candidate);
+    return candidate;
+  }
+
+  throw new Error(`Unable to generate unique submission period for account ${accountKey}`);
 }
 
-// ---------- 🧹 Cleanup ----------
+export function generateScheduleRef(account: string): string {
+  const sanitizedAccount = account.trim();
+  const year = new Date().getFullYear();
+  let candidate: string;
+
+  do {
+    const suffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    candidate = `${sanitizedAccount}/${year}/${suffix}`;
+  } while (usedScheduleRefs.has(candidate));
+
+  usedScheduleRefs.add(candidate);
+  return candidate;
+}
+
 export async function destroySubmissionPeriodManager() {
   await submissionManager.destroy();
 }
 
-export function resetSubmissionPeriodCache(areaOfLaw: string) {
-  const file = getCacheFile(areaOfLaw);
-  if (fs.existsSync(file)) fs.unlinkSync(file);
-  fs.writeFileSync(file, JSON.stringify([]), 'utf-8');
-  console.log(`🧹 Reset submission period cache for ${areaOfLaw}: ${file}`);
+export function resetSubmissionPeriodCache() {
+  usedPeriods.clear();
+  usedScheduleRefs.clear();
 }
+
 export function getSubmissionPeriod(monthIncrement: string, isShort?: boolean) {
-  const currentDate = new Date();
-  const formatter = new Intl.DateTimeFormat('en-GB', { month: 'long' });
-  isShort = isShort ?? true;
-  let increment = 0;
+    const currentDate = new Date();
+    const formatter = new Intl.DateTimeFormat('en-GB', { month: 'long' });
+    isShort = isShort ?? true;
+    let increment = 0;
 
-  // @ts-ignore
-  if (parseInt(monthIncrement) instanceof Number) {
-    increment = parseInt(monthIncrement);
-  } else {
-    increment = parseInt(monthIncrement.split('+')[1]);
-  }
-  // adjust the date to the new month and year
-  currentDate.setMonth( currentDate.getMonth() + increment, currentDate.getDate())
+    // @ts-ignore
+    if (parseInt(monthIncrement) instanceof Number) {
+        increment = parseInt(monthIncrement);
+    } else {
+        increment = parseInt(monthIncrement.split('+')[1]);
+    }
+    // adjust the date to the new month and year
+    currentDate.setMonth( currentDate.getMonth() + increment, currentDate.getDate())
 
-  const glue = isShort ? '-' : ' ';
-  const month = isShort? MONTHS[currentDate.getMonth()]
-      : formatter.format(currentDate);
+    const glue = isShort ? '-' : ' ';
+    const month = isShort? MONTHS[currentDate.getMonth()]
+    : formatter.format(currentDate);
 
-  return `${month}${glue}${currentDate.getFullYear()}`;
+    return `${month}${glue}${currentDate.getFullYear()}`;
 }

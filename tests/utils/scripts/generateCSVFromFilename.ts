@@ -216,3 +216,21 @@ export async function generateCSVFromFilename(
   console.log(`Generated ${fileName} from template ${template}`);
 }
 
+//
+// // 👇 Add this at the end of your file
+// if (require.main === module) {
+//   const fileName = process.argv[2];
+//
+//   if (!fileName) {
+//     console.error("❌ Please provide a file name argument. Example:");
+//     console.error("   npx ts-node src/scripts/generateCSV.ts myfile.csv");
+//     process.exit(1);
+//   }
+//
+//   generateCSVFromFilename(fileName)
+//       .then(() => console.log(`✅ CSV generated successfully for ${fileName}`))
+//       .catch((err) => {
+//         console.error("❌ Error generating CSV:", err);
+//         process.exit(1);
+//       });
+// }
