@@ -130,10 +130,67 @@ const STATIC_POD = 'uat-submit-a-bulk-claim-698449976-gphpb';
 const STATIC_PORT = 8082;
 const LOCK_FILE = path.join(os.tmpdir(), 'sabc-portforward.lock');
 
-// ───────────────────────────────
-// Lock helpers
-// ───────────────────────────────
-function tryLock() {
+// // ───────────────────────────────
+// // Lock helpers
+// // ───────────────────────────────
+// function tryLock() {
+//     try {
+//         const fd = fs.openSync(LOCK_FILE, fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_WRONLY);
+//         fs.writeFileSync(fd, String(process.pid));
+//         fs.closeSync(fd);
+//         return true;
+//     } catch {
+//         return false;
+//     }
+// }
+// function unlock() {
+//     try { fs.unlinkSync(LOCK_FILE); } catch {}
+// }
+//
+// // ───────────────────────────────
+// // Restart port-forward safely
+// // ───────────────────────────────
+// async function restartPortForward() {
+//     const locked = tryLock();
+//     if (!locked) {
+//         console.log('🕒 Another worker is restarting port-forward; skipping duplicate attempt.');
+//         return;
+//     }
+//
+//     try {
+//         console.warn(`⚠️ Restarting SaBC port-forward (namespace=${STATIC_NAMESPACE}, pod=${STATIC_POD})`);
+//
+//         // Kill old process on 8082
+//         try {
+//             execSync(`lsof -ti:${STATIC_PORT} | xargs kill -9`, { stdio: 'ignore', shell: '/bin/bash' });
+//             console.log(`🧹 Killed any process using port ${STATIC_PORT}.`);
+//         } catch {
+//             console.log(`ℹ️ No existing process found on ${STATIC_PORT}.`);
+//         }
+//
+//         // Start new port-forward
+//         execSync(
+//             `nohup kubectl port-forward -n ${STATIC_NAMESPACE} pod/${STATIC_POD} ${STATIC_PORT}:${STATIC_PORT} > pf-${STATIC_PORT}.log 2>&1 &`,
+//             { stdio: 'inherit', shell: '/bin/bash' }
+//         );
+//         console.log('🚀 Port-forward command started, waiting for readiness...');
+//
+//         // Wait for port to open
+//         for (let i = 1; i <= 20; i++) {
+//             if (await checkPort(STATIC_PORT)) {
+//                 console.log(`✅ Port ${STATIC_PORT} responsive after ${i} checks.`);
+//                 return;
+//             }
+//             await new Promise(r => setTimeout(r, 2000));
+//         }
+//
+//         throw new Error(`❌ Port ${STATIC_PORT} not responding after 40s.`);
+//     } finally {
+//         unlock();
+//     }
+// }
+
+function tryLock(): boolean {
     try {
         const fd = fs.openSync(LOCK_FILE, fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_WRONLY);
         fs.writeFileSync(fd, String(process.pid));
@@ -143,27 +200,45 @@ function tryLock() {
         return false;
     }
 }
+
 function unlock() {
-    try { fs.unlinkSync(LOCK_FILE); } catch {}
+    try {
+        fs.unlinkSync(LOCK_FILE);
+    } catch {
+        // Ignore if file already deleted
+    }
 }
 
-// ───────────────────────────────
-// Restart port-forward safely
-// ───────────────────────────────
-async function restartPortForward() {
+/**
+ * Ensures the SaBC port-forward is running and reachable.
+ * If another worker is restarting, waits until lock is released and port is live.
+ */
+async function ensurePortForwardReady() {
     const locked = tryLock();
+
     if (!locked) {
-        console.log('🕒 Another worker is restarting port-forward; skipping duplicate attempt.');
-        return;
+        console.log('🕒 Another worker is currently restarting port-forward; waiting for readiness...');
+
+        // Poll until lock disappears and port is responsive
+        for (let i = 1; i <= 30; i++) {
+            if (!fs.existsSync(LOCK_FILE) && await checkPort(STATIC_PORT)) {
+                console.log(`✅ Port-forward became ready after waiting (${i * 2}s).`);
+                return;
+            }
+            await new Promise(r => setTimeout(r, 2000));
+        }
+
+        throw new Error(`❌ Timeout: waited 60s for another worker’s port-forward, but port ${STATIC_PORT} is still unreachable.`);
     }
 
+    // If we got the lock, we perform the restart ourselves
     try {
         console.warn(`⚠️ Restarting SaBC port-forward (namespace=${STATIC_NAMESPACE}, pod=${STATIC_POD})`);
 
-        // Kill old process on 8082
+        // Kill any previous process on that port
         try {
             execSync(`lsof -ti:${STATIC_PORT} | xargs kill -9`, { stdio: 'ignore', shell: '/bin/bash' });
-            console.log(`🧹 Killed any process using port ${STATIC_PORT}.`);
+            console.log(`🧹 Cleared any existing process using ${STATIC_PORT}.`);
         } catch {
             console.log(`ℹ️ No existing process found on ${STATIC_PORT}.`);
         }
@@ -171,20 +246,16 @@ async function restartPortForward() {
         // Start new port-forward
         execSync(
             `nohup kubectl port-forward -n ${STATIC_NAMESPACE} pod/${STATIC_POD} ${STATIC_PORT}:${STATIC_PORT} > pf-${STATIC_PORT}.log 2>&1 &`,
-            { stdio: 'inherit', shell: '/bin/bash' }
+            { stdio: 'ignore', shell: '/bin/bash' }
         );
-        console.log('🚀 Port-forward command started, waiting for readiness...');
+        console.log('🚀 Port-forward command started; checking readiness...');
 
-        // Wait for port to open
-        for (let i = 1; i <= 20; i++) {
-            if (await checkPort(STATIC_PORT)) {
-                console.log(`✅ Port ${STATIC_PORT} responsive after ${i} checks.`);
-                return;
-            }
-            await new Promise(r => setTimeout(r, 2000));
+        const ready = await checkPort(STATIC_PORT, 25, 2000);
+        if (!ready) {
+            throw new Error(`❌ Port ${STATIC_PORT} did not open after restart.`);
         }
 
-        throw new Error(`❌ Port ${STATIC_PORT} not responding after 40s.`);
+        console.log(`✅ Port-forward established and port ${STATIC_PORT} is responsive.`);
     } finally {
         unlock();
     }
@@ -219,7 +290,7 @@ Given('I start from a clean logged-in state', async function (this: World) {
 
     if (badStatus || showsError) {
         console.warn(`🔧 Navigation unhealthy (status=${status ?? 'none'}) — restarting SaBC port-forward...`);
-        await restartPortForward();
+        await ensurePortForwardReady();
 
         console.log('🔁 Retrying navigation after port-forward restart...');
         const retryResp = await this.page.goto(process.env.UI_BASE_URL!, {

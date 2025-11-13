@@ -20,7 +20,8 @@ import {createDataSourceManager} from '../../utils/db/dataSourceManager';
 import {cleanSubmissionData} from '../../utils/scripts/cleanup-submissions';
 import {destroySubmissionPeriodManager} from '../../utils/scripts/submissionPeriodHelper';
 
-setDefaultTimeout(60 * 1000);
+setDefaultTimeout(180 * 1000);
+console.log('⏱️ Cucumber step timeout set to 180s');
 dotenv.config();
 
 const submissionCleanupManager = createDataSourceManager({label: 'submissionCleanup'});
