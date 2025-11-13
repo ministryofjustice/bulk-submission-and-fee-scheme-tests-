@@ -368,12 +368,24 @@ Then(
 Then(
   'I should see the following submission error messages for {string}:',
   async function (this: CustomWorld, areaOfLaw: string, dataTable) {
-    const allText = await (new SubmissionSummaryPage(this.page!))
+    let allText = await (new SubmissionSummaryPage(this.page!))
         .getPaginatedSubmissionErrors(10)
+    const paginationLink = this.page!.locator('.govuk-pagination__link', {hasText: 'Next'});
+
+    while (await paginationLink.isVisible()) {
+      await paginationLink.click();
+      await this.page!.waitForLoadState('networkidle');
+      const nextPageText = await locateErrorMessages(this);
+      allText = [...allText, ...nextPageText];
+    }
+
+    console.log(`Found ${allText.length} error messages`);
+    console.log(allText.join('\n'));
     const expectedMessages = dataTable.raw().flat().slice(1);
 
     for (const message of expectedMessages) {
       const found = allText.has(message.trim());
+      console.log(`Checking for message (${found}): ${message}`);
       expect(
         found,
         `❌ Expected error message not found for ${areaOfLaw}: "${message.trim()}"`
