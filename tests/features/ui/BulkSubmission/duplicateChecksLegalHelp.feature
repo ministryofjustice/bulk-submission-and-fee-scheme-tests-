@@ -1,10 +1,16 @@
+@duplicateChecks
+@temp
+@bulkSubmission
 Feature: Duplicate checks - Legal Help
 
   Background:
     Given I am on the bulk import page
 
   Scenario Outline: First occurrence is accepted
-    When I generate "Legal help" "<format>" file with "2" outcomes
+    When I generate "Legal help" "<format>" file with the following claims
+      | feeCode |
+      | CAPA    |
+      | CAPA    |
     And I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Legal help" with "2" claims
     Examples:
@@ -15,11 +21,12 @@ Feature: Duplicate checks - Legal Help
 
   Scenario Outline: Duplicate detected against a previously submitted claim from <format>
     Given I generate "Legal help" "<format>" file with the following claims
-      | ucn             | ufn        |
-      | 14091962/T/PERS | 010625/123 |
+      | ucn                  | feeCode | ufn        |
+      | 14091962/T/<format>S | CAPA    | 010625/123 |
     And I upload with generated file via the API
     When I upload the generated file and wait for import in progress
     Then I should have duplicate submission error for "0P322F" "Legal help"
+      | submissionPeriod |
     Examples:
       | format |
       | csv    |
@@ -43,8 +50,8 @@ Feature: Duplicate checks - Legal Help
 
   Scenario Outline: Not duplicate when previous submission was invalid from <format>
     Given I generate "Legal help" "<format>" file with the following claims
-      | ucn             |
-      | 14091962/T/PERS |
+      | ucn                  |
+      | 14091962/T/<format>S |
     And I upload with generated file via the API
     And I make the generated file invalid
     When I upload the generated file and wait for import in progress

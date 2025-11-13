@@ -338,10 +338,25 @@ When(
         // 🚀 Step 1: Upload file via API
         await this.attach(`⏳ Creating form with: ${this.generatedFilePath}/${this.fileName}`);
 
+        // Determine MIME type based on file extension
+        const getContentType = (filename: string): string => {
+          const ext = path.extname(filename).toLowerCase();
+          switch (ext) {
+            case '.xml':
+              return 'application/xml';
+            case '.csv':
+              return 'text/csv';
+            case '.txt':
+              return 'text/plain';
+            default:
+              return 'application/octet-stream';
+          }
+        };
+
         const form = new FormData();
         form.append('file', fs.createReadStream(this.generatedFilePath), {
           filename: this.fileName,
-          contentType: 'text/csv',
+          contentType: getContentType(this.fileName ?? "unknown.txt"),
         });
 
         const dstewbaseUrl = process.env.DSTEW_API_BASE_URL;
