@@ -206,7 +206,7 @@ Given('I generate {string} {string} file with the following claims with office {
   this.officeAccount = officeCode;
   console.log(`Office account: ${officeCode}`);
   let claims: claimOptions[] = dataTable.hashes();
-  
+
   const originalSubmissionPeriod = this.submissionPeriod;
   if (!originalSubmissionPeriod) {
     throw new Error('Original submission period is not set. Did you generate and upload a file first?');
