@@ -48,9 +48,13 @@ Feature: Bulk Submission Upload Validation
 
   Scenario: Upload fails with Invalid Submission Period
     Given I generate "Legal help" "csv" file with "1" outcomes
-    And I override the generated file field "submissionPeriod" with value ""
+    And I override the generated file field "submissionPeriod" with value "<value>"
     When I upload that file
-    Then the user sees an error message "Submission period is required, please check the file and try again."
+    Then the user sees an error message "<message>"
+  Examples:
+      | value           | message                                                              |
+      |                 | Submission period is required, please check the file and try again.  |
+      | blah-blah       | Submission period wrong format, should be in the format MMM-YYYY     |
 
 
     
