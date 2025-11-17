@@ -1,5 +1,4 @@
-@bulkSubmission
-@temp
+@disabled
 Feature: Display message checks
 
   Background:

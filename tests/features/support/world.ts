@@ -22,6 +22,8 @@ export class World {
   requestBody?: Record<string, any>;
   error?: AxiosError;
 
+
+
   // ===== UI state =====
   browser?: Browser;
   context?: BrowserContext;
@@ -53,14 +55,13 @@ export class World {
   constructor(options: IWorldOptions) {
     // @ts-ignore
     this.attach = options.attach;
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       Accept: 'application/json',
     };
-
     const token = process.env.FSP_API_TOKEN;
     if (token) headers.Authorization = token;
-
     this.client = axios.create({
       baseURL: process.env.FSP_API_BASE_URL,
       timeout: 10000,

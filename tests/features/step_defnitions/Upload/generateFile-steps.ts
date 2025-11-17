@@ -1,4 +1,4 @@
-import {Given, When} from '@cucumber/cucumber';
+import {Given, When, world} from '@cucumber/cucumber';
 import type {CustomWorld} from '../../support/world';
 import {GenerateCivilFile} from '../../../utils/scripts/generateCivilFiles';
 import {GenerateMediationFiles} from '../../../utils/scripts/generateMediationFiles';
@@ -9,10 +9,19 @@ import path from 'path';
 import {BulkImportPage} from '../../../pages/bulkImportPage';
 import FormData from 'form-data';
 import fs from 'fs';
-import {getSubmissionPeriod} from "../../../utils/scripts/submissionPeriodHelper";
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function addMonthsToDate(dateStr: string | undefined, months: number): string {
+  if (!dateStr) {
+    throw new Error('Date string is required for addMonthsToDate');
+  }
+  const [month, year] = dateStr.split('-');
+  const date = new Date(`${month} 1, ${year}`);
+  date.setMonth(date.getMonth() + months);
+  return date.toLocaleString('en-US', {month: 'short'}).toUpperCase() + '-' + date.getFullYear();
 }
 
 Given(
@@ -41,8 +50,8 @@ Given(
           generatedFiles = await GenerateMediationFiles(
               files,
               totalOutcomes,
-              format,{
-              suffix: uniqueSuffix,
+              format, {
+                suffix: uniqueSuffix,
               }
           );
           break;
@@ -50,8 +59,8 @@ Given(
           generatedFiles = await GenerateCrimeFiles(
               files,
               totalOutcomes,
-              format,{
-              suffix: uniqueSuffix,
+              format, {
+                suffix: uniqueSuffix,
               }
           );
           break;
@@ -119,22 +128,66 @@ Given('I generate {string} {string} file with the following claims', async funct
   await this.attach(`📁 Generated file for upload: ${fileName}`, 'text/plain');
 });
 
-Given('I generate {string} {string} file with the following claims from period {string}', async function (this: CustomWorld, areaOfLaw, format, submissionPeriod, dataTable) {
+Given('I generate {string} {string} file with the following claims with office {string}', async function (this: CustomWorld, areaOfLaw, format, officeCode, dataTable) {
 
   let claims: claimOptions[] = dataTable.hashes();
+  this.officeAccount = officeCode;
 
   for (let i = 0; i < claims.length; i++) {
     console.log(`➕Claim to add ${i}: ${claims[i].ucn}, ${claims[i].ufn}, ${claims[i].feeCode}`);
   }
 
-  if (this.currentSubmissionMonth && submissionPeriod) {
-      submissionPeriod = getSubmissionPeriod(submissionPeriod);
+  let generatedFiles: string[] = [];
+  switch (areaOfLaw) {
+    case "Legal help" :
+      generatedFiles = await GenerateCivilFile(1, claims.length, format, {
+        office: officeCode,
+        claims: claims
+      })
+      break
+    case "Mediation" :
+      generatedFiles = await GenerateMediationFiles(1, claims.length, format)
+      break
+    case "Crime lower" :
+      generatedFiles = await GenerateCrimeFiles(1, claims.length, format)
+      break
+    default : {
+      throw new Error(`Invalid area of law :${areaOfLaw}`)
+    }
+  }
+
+  const filePath = generatedFiles[0];
+  const fileName = path.basename(filePath);
+  this.fileName = fileName;
+  this.generatedFilePath = filePath;
+  await this.attach(`📁 Generated file for upload: ${fileName}`, 'text/plain');
+});
+
+Given('I generate {string} {string} file with the following claims with office {string} with a difference of {string} months from the previous submission', async function (this: CustomWorld, areaOfLaw, format, officeCode, monthsDifference : number, dataTable) {
+
+  this.officeAccount = officeCode;
+  console.log(`Office account: ${officeCode}`);
+  let claims: claimOptions[] = dataTable.hashes();
+  
+  const originalSubmissionPeriod = this.submissionPeriod;
+  if (!originalSubmissionPeriod) {
+    throw new Error('Original submission period is not set. Did you generate and upload a file first?');
+  }
+
+  const newSubmissionPeriod = addMonthsToDate(originalSubmissionPeriod, monthsDifference);
+
+  for (let i = 0; i < claims.length; i++) {
+    console.log(`➕Claim to add ${i}: ${claims[i].ucn}, ${claims[i].ufn}, ${claims[i].feeCode}`);
   }
 
   let generatedFiles: string[] = [];
   switch (areaOfLaw) {
     case "Legal help" :
-      generatedFiles = await GenerateCivilFile(1, claims.length, format, {submissionPeriod,claims})
+      generatedFiles = await GenerateCivilFile(1, claims.length, format, {
+        submissionPeriod: newSubmissionPeriod,
+        office: officeCode,
+        claims: claims
+      })
       break
     case "Mediation" :
       generatedFiles = await GenerateMediationFiles(1, claims.length, format)
@@ -165,7 +218,8 @@ Given('I generate {string} {string} file with the following claims from period {
   let generatedFiles: string[] = [];
   switch (areaOfLaw) {
     case "Legal help" :
-      generatedFiles = await GenerateCivilFile(1, claims.length, format, {submissionPeriod,office, claims,
+      generatedFiles = await GenerateCivilFile(1, claims.length, format, {
+        submissionPeriod, office, claims,
       })
       break
     case "Mediation" :
@@ -254,41 +308,41 @@ Given('I make the generated file invalid', async function (this: CustomWorld) {
 })
 
 Given(
-  'I override the generated file field {string} with value {string}',
-  async function (this: CustomWorld, field: string, value: string) {
-    const filePath = this.generatedFilePath || this.filePath;
-    if (!filePath) {
-      throw new Error('Generated file path is not set. Did you run the generator step first?');
+    'I override the generated file field {string} with value {string}',
+    async function (this: CustomWorld, field: string, value: string) {
+      const filePath = this.generatedFilePath || this.filePath;
+      if (!filePath) {
+        throw new Error('Generated file path is not set. Did you run the generator step first?');
+      }
+
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`Generated file not found at ${filePath}`);
+      }
+
+      const trimmedField = field.trim();
+      const trimmedValue = value.trim();
+
+      const content = fs.readFileSync(filePath, 'utf8');
+      const pattern = new RegExp(`(${escapeRegExp(trimmedField)}=)([^,\\r\\n]*)`, 'g');
+
+      let replacements = 0;
+      const updated = content.replace(pattern, (_match, prefix: string) => {
+        replacements++;
+        return `${prefix}${trimmedValue}`;
+      });
+
+      if (replacements === 0) {
+        throw new Error(`Field "${trimmedField}" not found in generated file ${filePath}`);
+      }
+
+      fs.writeFileSync(filePath, updated, 'utf8');
+      this.filePath = filePath;
+
+      await this.attach(
+          `✏️ Overrode field ${trimmedField} with value ${trimmedValue} in ${path.basename(filePath)}`,
+          'text/plain'
+      );
     }
-
-    if (!fs.existsSync(filePath)) {
-      throw new Error(`Generated file not found at ${filePath}`);
-    }
-
-    const trimmedField = field.trim();
-    const trimmedValue = value.trim();
-
-    const content = fs.readFileSync(filePath, 'utf8');
-    const pattern = new RegExp(`(${escapeRegExp(trimmedField)}=)([^,\\r\\n]*)`, 'g');
-
-    let replacements = 0;
-    const updated = content.replace(pattern, (_match, prefix: string) => {
-      replacements++;
-      return `${prefix}${trimmedValue}`;
-    });
-
-    if (replacements === 0) {
-      throw new Error(`Field "${trimmedField}" not found in generated file ${filePath}`);
-    }
-
-    fs.writeFileSync(filePath, updated, 'utf8');
-    this.filePath = filePath;
-
-    await this.attach(
-      `✏️ Overrode field ${trimmedField} with value ${trimmedValue} in ${path.basename(filePath)}`,
-      'text/plain'
-    );
-  }
 );
 
 
@@ -364,7 +418,7 @@ When(
 
         const uploadUrl =
             `${dstewbaseUrl}/api/v0/bulk-submissions` +
-            '?userId=Test.User-submit-a-bulk-claim-auto-test%40devl.justice.gov.uk&offices=0P322F';
+            '?userId=Test.User-submit-a-bulk-claim-auto-test%40devl.justice.gov.uk&offices=0P322F,2L849T,1T102C';
 
 
         await this.attach(`⏳ Uploading to api: ${dstewbaseUrl}/api/v0/bulk-submissions`);
@@ -376,9 +430,14 @@ When(
           },
         });
 
+        console.log(`Upload response status: ${uploadResp.status}`);
+        console.log(`Upload response data: ${uploadResp.data}`);
+
         const {bulk_submission_id, submission_ids} = uploadResp.data;
         const submissionId = submission_ids?.[0];
         this.mostRecentSubmissionId = submissionId;
+
+        console.log(`Most recent submission ID: ${submissionId} using office ${this.officeAccount}`);
 
         // ⏳ Step 2: Poll until VALIDATION_SUCCEEDED
         const maxRetries = 25;
@@ -388,7 +447,7 @@ When(
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
           const resp = await this.client.get(
-              `${dstewbaseUrl}/api/v0/submissions?offices=0P322F&submission_id=${submissionId}&page=0&size=20`,
+              `${dstewbaseUrl}/api/v0/submissions?offices=${this.officeAccount}&submission_id=${submissionId}&page=0&size=20`,
               {
                 headers: {
                   accept: 'application/json',
@@ -454,8 +513,8 @@ When(
             generatedFiles = await GenerateMediationFiles(
                 files,
                 outcomes,
-                format,{
-                suffix: uniqueSuffix,
+                format, {
+                  suffix: uniqueSuffix,
                 }
             );
             break;
@@ -463,8 +522,8 @@ When(
             generatedFiles = await GenerateCrimeFiles(
                 files,
                 outcomes,
-                format,{
-                suffix: uniqueSuffix,
+                format, {
+                  suffix: uniqueSuffix,
                 }
             );
             break;
