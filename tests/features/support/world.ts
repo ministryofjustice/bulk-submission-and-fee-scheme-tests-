@@ -8,7 +8,7 @@ import { LoginPage } from '../../pages/LoginPage';
 import { BulkImportPage } from '../../pages/bulkImportPage';
 import { BulkClaimSubmitPage } from '../../pages/BulkClaimSubmitPage';
 import { SubmissionSummaryPage } from '../../pages/SubmissionSummaryPage';
-import { SubmissionDetailPage } from '../../pages/SubmissionDetailPage';
+import { ClaimDetailPage } from '../../pages/ClaimDetailPage';
 import { BulkInProgressPage } from '../../pages/BulkInProgressPage';
 
 dotenv.config();
@@ -32,7 +32,7 @@ export class World {
   bulkImportPage?: BulkImportPage;
   bulkClaimSubmitPage?: BulkClaimSubmitPage;
   submissionSummaryPage?: SubmissionSummaryPage;
-  submissionDetailPage?: SubmissionDetailPage;
+  claimDetailPage?: ClaimDetailPage;
   bulkInProgressPage?: BulkInProgressPage;
   mostRecentSubmissionId: any;
   searchFromDate: any;
