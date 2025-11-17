@@ -308,7 +308,7 @@ Then(
       }
     }
 
-    const expectedMessage = `Submission already exists for Office (${office}), Area of Law (${areaOfLaw.toUpperCase()}), Period (${submissionPeriod})`;
+    const expectedMessage = `Submission already exists for Office (${this.officeAccount}), Area of Law (${areaOfLaw.toUpperCase()}), Period (${submissionPeriod})`;
     await this.attach(`Expecting: ${expectedMessage}`, 'text/plain');
     await this.attach(`Actual: ${errors[0]}`, 'text/plain');
 
@@ -368,24 +368,27 @@ Then(
   }
 );
 
-Then ('I should see the following submission error messages for the {string}',
-    async function (this: CustomWorld, placeHolder: string, dataTable: DataTable) {
+Then(
+    'I should see the following submission error messages for the {string}',
+    async function (this: CustomWorld, placeholder: string, dataTable: DataTable) {
         const allText = await locateErrorMessages(this);
-        const expectedMessages = dataTable.hashes().map((row) => row['Error Message']);
+        const expectedRows = dataTable.hashes();
 
-        for (const message of expectedMessages) {
-            let amendedMessage = message;
-            if (this.currentSubmissionMonth != null) {
-                amendedMessage = message.replace(placeHolder, this.currentSubmissionMonth)
+        for (const row of expectedRows) {
+            let msg = row['Error Message'].trim();
+
+            if (msg.includes('CURRENT_MONTH')) {
+                if (!this.currentSubmissionMonth) {
+                    throw new Error('currentSubmissionMonth was not set in the scenario.');
+                }
+                msg = msg.replace('CURRENT_MONTH', this.currentSubmissionMonth);
             }
-            const found = allText.some((t) => t.includes(amendedMessage.trim()));
-            expect(
-                found,
-                `❌ Expected error message not found for: "${amendedMessage.trim()}"`
-            ).toBeTruthy();
+
+            const found = allText.some((t) => t.includes(msg));
+            expect(found, `❌ Expected error message not found: "${msg}"`).toBeTruthy();
         }
     }
-)
+);
 
 Then(
   'I should see an error banner saying {string}',

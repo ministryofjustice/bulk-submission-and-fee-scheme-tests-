@@ -58,3 +58,5 @@ browserstack.err
 .pf-sabc.pid
 pf-8082.log
 tests/features/support/hooksss.ts
+.idea/
+.idea/workspace.xml

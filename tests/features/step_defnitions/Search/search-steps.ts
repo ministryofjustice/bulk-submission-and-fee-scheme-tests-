@@ -30,57 +30,64 @@ Given('I am on the Search page', async function (this: CustomWorld) {
 
 Given(
     'I ensure there is a {string} submission for {string}',
-    async function (this: CustomWorld, checkStatus:string,areaOfLaw: string) {
+    async function (this: CustomWorld, checkStatus: string, areaOfLaw: string) {
         try {
             const format = 'csv';
-            let generatedFiles: string[] = [];
-            // 🔹 Safe scenario name fallback
+            let result: { filePaths: string[]; office: string };
             const safeScenario = (this.currentScenarioName || 'Scenario')
                 .replace(/\s+/g, '_')
                 .replace(/[^a-zA-Z0-9_]/g, '');
 
             const uniqueSuffix = `${safeScenario}_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 
-            switch (areaOfLaw) {
+            // ✅ 1️⃣ Generate appropriate file + dynamic office
+            switch (areaOfLaw.toUpperCase()) {
                 case 'LEGAL HELP':
-                    if (checkStatus === "VALIDATION_FAILED"){
-                        generatedFiles = [path.resolve("tests/data/invalid/SearchLegalValidation.csv")];
-                    }else {
-                        generatedFiles = await GenerateCivilFile(1, 0, format, { suffix: uniqueSuffix });
+                    if (checkStatus === 'VALIDATION_FAILED') {
+                        result = { filePaths: [path.resolve('tests/data/invalid/SearchLegalValidation.csv')], office: '0P322F' };
+                    } else {
+                        result = await GenerateCivilFile(1, 0, format, { suffix: uniqueSuffix });
                     }
                     break;
+
                 case 'MEDIATION':
-                    if (checkStatus === "VALIDATION_FAILED"){
-                        generatedFiles = [path.resolve("tests/data/invalid/mediationFieldValidation.txt")];
-                    }else {
-                        generatedFiles=await GenerateMediationFiles(1, 0, format,{ suffix: uniqueSuffix });
+                    if (checkStatus === 'VALIDATION_FAILED') {
+                        result = { filePaths: [path.resolve('tests/data/invalid/mediationFieldValidation.txt')], office: '0P322F' };
+                    } else {
+                        result = await GenerateMediationFiles(1, 0, format, { suffix: uniqueSuffix });
                     }
                     break;
+
                 case 'CRIME LOWER':
-                    if (checkStatus === "VALIDATION_FAILED"){
-                        generatedFiles = [path.resolve("tests/data/invalid/SearchCrimeValidation.txt")];
-                    }else {
-                        generatedFiles=await GenerateCrimeFiles(1, 0, format,{ suffix: uniqueSuffix } );
+                    if (checkStatus === 'VALIDATION_FAILED') {
+                        result = { filePaths: [path.resolve('tests/data/invalid/SearchCrimeValidation.txt')], office: '0P322F' };
+                    } else {
+                        result = await GenerateCrimeFiles(1, 0, format, { suffix: uniqueSuffix });
                     }
                     break;
+
                 default:
                     throw new Error(`Invalid area of law: ${areaOfLaw}`);
             }
-            const generatedFilePath = generatedFiles.find(f => f.includes(uniqueSuffix)) || generatedFiles[0];
+
+            const { filePaths, office } = result;
+            const generatedFilePath = filePaths.find((f) => f.includes(uniqueSuffix)) || filePaths[0];
+            this.generatedFilePath = generatedFilePath;
+            this.officeAccount = office;
+
+            await this.attach(`🏢 Using office: ${office}`, 'text/plain');
             await this.attach(`📝 File generated for ${areaOfLaw}: ${generatedFilePath}`, 'text/plain');
 
-            // 🚀 Step 3: Upload file
+            // ✅ 2️⃣ Upload file dynamically for correct office
             const form = new FormData();
             form.append('file', fs.createReadStream(generatedFilePath), {
-                filename: generatedFilePath.split('/').pop(),
+                filename: path.basename(generatedFilePath),
                 contentType: 'text/csv',
             });
+
             const dstewbaseUrl = process.env.DSTEW_API_BASE_URL;
             const dstewToken = process.env.DSTEW_API_TOKEN;
-
-            const uploadUrl =
-                `${dstewbaseUrl}/api/v0/bulk-submissions` +
-                '?userId=Test.User-submit-a-bulk-claim-auto-test%40devl.justice.gov.uk&offices=0P322F';
+            const uploadUrl = `${dstewbaseUrl}/api/v0/bulk-submissions?userId=Test.User-submit-a-bulk-claim-auto-test%40devl.justice.gov.uk&offices=${office}`;
 
             const uploadResp = await this.client.post(uploadUrl, form, {
                 headers: {
@@ -92,16 +99,18 @@ Given(
 
             const { bulk_submission_id, submission_ids } = uploadResp.data;
             const submissionId = submission_ids?.[0];
+            this.mostRecentSubmissionId = submissionId;
+
             await this.attach(`📤 Uploaded bulk submission: ${bulk_submission_id}`, 'text/plain');
 
-            // ⏳ Step 4: Poll until VALIDATION_SUCCESSFUL
+            // ✅ 3️⃣ Poll until submission reaches desired status
             const maxRetries = 20;
             const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
             let status = '';
 
             for (let attempt = 0; attempt < maxRetries; attempt++) {
                 const resp = await this.client.get(
-                    `${dstewbaseUrl}/api/v0/submissions?offices=0P322F&submission_id=${submissionId}&page=0&size=20`,
+                    `${dstewbaseUrl}/api/v0/submissions?offices=${office}&submission_id=${submissionId}&page=0&size=20`,
                     {
                         headers: {
                             accept: 'application/json',
@@ -119,12 +128,10 @@ Given(
             }
 
             if (status !== checkStatus) {
-                throw new Error(`Submission never reached "${checkStatus}"  (final status: ${status})`);
+                throw new Error(`Submission never reached "${checkStatus}" (final status: ${status})`);
             }
 
-            this.mostRecentSubmissionId = submissionId;
-            console.log(this.mostRecentSubmissionId)
-            await this.attach(`✅ New "${checkStatus}"  submission created: ${submissionId}`, 'text/plain');
+            await this.attach(`✅ New "${checkStatus}" submission created: ${submissionId}`, 'text/plain');
         } catch (error: any) {
             await this.attach(`❌ Error: ${error.message}`, 'text/plain');
             throw error;
@@ -133,6 +140,7 @@ Given(
         }
     }
 );
+
 
 // --- When I search using the most recent submission reference ---
 When(

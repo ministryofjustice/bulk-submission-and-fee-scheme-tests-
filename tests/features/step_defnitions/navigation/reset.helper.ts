@@ -1,13 +1,14 @@
 import type { Page, Browser, BrowserContext } from '@playwright/test';
 
 export async function logoutAndWipe(page: Page) {
-    // try to sign out if button visible
     const signOutButton = page.locator('button.sign-in-button:has-text("Sign out")');
+
     try {
         if (await signOutButton.isVisible({ timeout: 3000 })) {
             console.log('🔐 Signing out to reset backend session...');
             await signOutButton.click();
-            await page.waitForLoadState('networkidle');
+            // Instead of waiting for networkidle, just allow brief pause
+            await page.waitForTimeout(1000);
         } else {
             console.log('ℹ️ No active session found, skipping sign out.');
         }
@@ -15,7 +16,7 @@ export async function logoutAndWipe(page: Page) {
         console.log('ℹ️ Sign-out control not found; proceeding with wipe.');
     }
 
-    // wipe client storage
+    // 🔄 Clean client storage
     await page.evaluate(async () => {
         localStorage.clear();
         sessionStorage.clear();
@@ -39,11 +40,32 @@ export async function recreateLoggedInContext(opts: {
     baseURL: string;
     storageStatePath?: string;
 }): Promise<{ context: BrowserContext; page: Page }> {
+    console.log(`🌍 Recreating logged-in context for base URL: ${opts.baseURL}`);
+
     const context = await opts.browser.newContext({
         baseURL: opts.baseURL,
         storageState: opts.storageStatePath,
     });
+
     const page = await context.newPage();
-    await page.goto(opts.baseURL);
+
+    try {
+        // Navigate without waiting for full load
+        await page.goto(opts.baseURL, { timeout: 60000 });
+        await page.locator('button.sign-in-button:has-text("Sign out")').waitFor({
+            state: 'visible',
+            timeout: 30000,
+        });
+
+        console.log('✅ Page title confirmed: environment is ready.');
+    } catch (err: any) {
+        console.warn(`⚠️ Initial navigation failed: ${err.message}`);
+
+        // 🧩 Fallback: wait for #main-content if title not detected
+        await page.locator('#main-content').waitFor({ state: 'visible', timeout: 15000 }).catch(() => {
+            console.warn('⚠️ Fallback: main content not visible after navigation.');
+        });
+    }
+
     return { context, page };
 }

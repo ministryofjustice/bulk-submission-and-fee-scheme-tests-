@@ -4,7 +4,22 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6d42be9f-3a59-44a4-a114-54197be3c5cf" name="Changes" comment="" />
+    <list default="true" id="6d42be9f-3a59-44a4-a114-54197be3c5cf" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/features/step_defnitions/Search/search-steps.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/features/step_defnitions/Search/search-steps.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/features/step_defnitions/Summary/submissionSummary-steps.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/features/step_defnitions/Summary/submissionSummary-steps.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/features/step_defnitions/Upload/generateFile-steps.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/features/step_defnitions/Upload/generateFile-steps.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/features/step_defnitions/navigation/navigation.steps.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/features/step_defnitions/navigation/navigation.steps.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/features/step_defnitions/navigation/reset.helper.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/features/step_defnitions/navigation/reset.helper.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/features/ui/BulkSubmission/bulkSubmission.feature" beforeDir="false" afterPath="$PROJECT_DIR$/tests/features/ui/BulkSubmission/bulkSubmission.feature" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/utils/scripts/generateCivilFiles.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/utils/scripts/generateCivilFiles.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/utils/scripts/generateCrimeFiles.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/utils/scripts/generateCrimeFiles.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/utils/scripts/generateMatterStartsFile.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/utils/scripts/generateMatterStartsFile.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/utils/scripts/generateMediationFiles.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/utils/scripts/generateMediationFiles.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/utils/scripts/submissionPeriodHelper.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tests/utils/scripts/submissionPeriodHelper.ts" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -60,6 +75,11 @@
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 2
 }</component>
+  <component name="ProjectCucumberState">
+    <option name="filterByTags" value="false" />
+    <option name="groupTag" value="true" />
+    <option name="sourcePathOnly" value="false" />
+  </component>
   <component name="ProjectId" id="30gQVCrM1nOGcWmvIQaxTquhLYg" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -75,6 +95,7 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "feature-browserstack-int",
     "last_opened_file_path": "/Users/temilayo.oluwaseunkufeji/Documents/bulk-submission-and-fee-scheme-tests-",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -86,7 +107,7 @@
     "project.structure.last.edited": "Project",
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.0",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "settings.editor.selected.configurable": "settings.typescriptcompiler",
     "ts.external.directory.path": "/Applications/IntelliJ IDEA.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external",
     "vue.rearranger.settings.migration": "true"
   },
@@ -110,16 +131,7 @@
       <recent name="$PROJECT_DIR$/tests" />
     </key>
   </component>
-  <component name="RunManager" selected="npm.teardown">
-    <configuration default="true" type="JetRunConfigurationType">
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
-      <option name="filePath" />
-      <method v="2" />
-    </configuration>
+  <component name="RunManager" selected="Cucumber.js.Scenario Outline: Successful bulk submission ...">
     <configuration name="Scenario Outline: Calculate fee total for a g... (1)" type="cucumber.js" factoryName="Cucumber.js" temporary="true">
       <option name="myFilePath" value="$PROJECT_DIR$/tests/features/api/fee-calc.feature" />
       <option name="myNameFilter" value="^Calculate fee total for a given payload$" />
@@ -162,11 +174,11 @@
       <option name="workingDirectory" value="$PROJECT_DIR$" />
       <method v="2" />
     </configuration>
-    <configuration name="Scenario Outline: Calculate fee total for a g..." type="cucumber.js" factoryName="Cucumber.js" temporary="true">
-      <option name="myFilePath" value="$PROJECT_DIR$/tests/features/api/fee-calc.feature" />
-      <option name="myNameFilter" value="^Calculate fee total for a given payload$" />
+    <configuration name="Scenario Outline: Successful bulk submission ..." type="cucumber.js" factoryName="Cucumber.js" temporary="true">
+      <option name="myFilePath" value="$PROJECT_DIR$/tests/features/ui/BulkSubmission/bulkSubmission.feature" />
+      <option name="myNameFilter" value="^Successful bulk submission for .*$" />
       <option name="cucumberJsArguments" value="" />
-      <option name="workingDirectory" value="$PROJECT_DIR$" />
+      <option name="workingDirectory" />
       <method v="2" />
     </configuration>
     <configuration name="teardown" type="js.build_tools.npm" temporary="true" nameIsGenerated="true">
@@ -181,11 +193,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Cucumber.js.Scenario Outline: Successful bulk submission ..." />
         <item itemvalue="npm.teardown" />
         <item itemvalue="Cucumber.js.Scenario Outline: Calculate fee total for a g... (5)" />
         <item itemvalue="Cucumber.js.Scenario Outline: Calculate fee total for a g... (3)" />
         <item itemvalue="Cucumber.js.Scenario Outline: Calculate fee total for a g... (1)" />
-        <item itemvalue="Cucumber.js.Scenario Outline: Calculate fee total for a g..." />
       </list>
     </recent_temporary>
   </component>
@@ -213,6 +225,10 @@
       <workItem from="1761239324359" duration="192633000" />
       <workItem from="1762427368029" duration="84858000" />
       <workItem from="1762925019009" duration="38781000" />
+      <workItem from="1763187102412" duration="44000" />
+      <workItem from="1763187154858" duration="115000" />
+      <workItem from="1763187278193" duration="48184000" />
+      <workItem from="1763387071184" duration="240000" />
     </task>
     <servers />
   </component>
@@ -243,5 +259,9 @@
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>

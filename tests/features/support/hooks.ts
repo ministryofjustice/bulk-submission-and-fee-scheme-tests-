@@ -26,127 +26,6 @@ dotenv.config();
 
 const submissionCleanupManager = createDataSourceManager({label: 'submissionCleanup'});
 
-// ----------------------------
-// Port & K8s helpers
-// ----------------------------
-
-async function checkPort(port: number): Promise<boolean> {
-    return new Promise((resolve) => {
-        const socket = new net.Socket();
-        socket.setTimeout(2000);
-        socket.once('connect', () => {
-            socket.destroy();
-            resolve(true);
-        });
-        socket.once('timeout', () => {
-            socket.destroy();
-            resolve(false);
-        });
-        socket.once('error', () => resolve(false));
-        socket.connect(port, '127.0.0.1');
-    });
-}
-
-export async function ensurePortsAvailable(forceRestartFor?: string[]) {
-    if (!fs.existsSync('port-forward-config.json')) {
-        console.warn('⚠️ No port-forward-config.json found, skipping auto-reconnect.');
-        return;
-    }
-
-    const configs = JSON.parse(fs.readFileSync('port-forward-config.json', 'utf8'));
-
-    for (const {name, port, namespace, podName, pidEnvVar} of configs) {
-        if (!namespace || namespace === '***') {
-            console.warn(`⚠️ Skipping ${name}: invalid namespace`);
-            continue;
-        }
-
-        if (forceRestartFor?.includes(name)) {
-            console.log(`🔄 Force restarting ${name} port-forward...`);
-            await restartPortForward({name, namespace, podName, port, pidEnvVar});
-            continue;
-        }
-
-        const ok = await checkPort(port);
-        if (ok) {
-            console.log(`✅ [${name}] localhost:${port} is reachable.`);
-        } else {
-            console.warn(`⚠️ [${name}] Port ${port} is unresponsive. Restarting...`);
-            await restartPortForward({name, namespace, podName, port, pidEnvVar});
-        }
-    }
-}
-
-async function restartPortForward({
-                                      name,
-                                      namespace,
-                                      podName,
-                                      port,
-                                      pidEnvVar,
-                                  }: {
-    name: string;
-    namespace: string;
-    podName: string;
-    port: number;
-    pidEnvVar: string;
-}) {
-    try {
-        console.log(`\n⚙️ Restarting port-forward for ${name}...`);
-        console.log(`📦 Namespace: ${namespace}`);
-        console.log(`📦 Pod: ${podName}`);
-        console.log(`📡 Port: ${port}`);
-
-        // Kill any existing process on that port
-        try {
-            execSync(`lsof -ti:${port} | xargs kill -9`, {
-                stdio: 'ignore',
-                shell: '/bin/bash',
-            });
-            console.log(`🧹 Cleared any existing process using port ${port}`);
-        } catch {
-            console.log(`ℹ️ No existing process found on port ${port}`);
-        }
-
-        if (!podName || podName === 'unknown') {
-            console.error(`❌ Cannot restart ${name} — podName not provided`);
-            return;
-        }
-
-        // Start new port-forward in background
-        execSync(
-            `nohup kubectl port-forward -n ${namespace} pod/${podName} ${port}:${port} > pf-${port}.log 2>&1 & echo $! > .pf-${name}.pid`,
-            {stdio: 'inherit', shell: '/bin/bash'},
-        );
-
-        // Save PID
-        const newPid = fs.existsSync(`.pf-${name}.pid`)
-            ? fs.readFileSync(`.pf-${name}.pid`, 'utf8').trim()
-            : undefined;
-
-        if (newPid) {
-            process.env[pidEnvVar] = newPid;
-            console.log(`🚀 Restarted port-forward for ${name} (PID ${newPid})`);
-        } else {
-            console.warn(`⚠️ Could not capture new PID for ${name}`);
-        }
-
-        await new Promise((res) => setTimeout(res, 5000));
-
-        const ok = await checkPort(port);
-        if (ok) {
-            console.log(`✅ [${name}] Port ${port} is reachable after restart`);
-        } else {
-            console.warn(`⚠️ [${name}] Port ${port} still unresponsive after restart`);
-        }
-    } catch (err: any) {
-        console.error(`❌ Error restarting port-forward for ${name}:`, err.message);
-    }
-}
-
-// ----------------------------
-// Hooks
-// ----------------------------
-
 BeforeAll(function () {
     const dir = path.join(process.cwd(), 'reports', 'attachments');
     try {
@@ -213,7 +92,6 @@ Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHoo
     } catch (outerErr) {
         // @ts-ignore
         console.error('💥 Unexpected error in Before hook:', outerErr?.message || outerErr);
-        // never throw
     }
 });
 

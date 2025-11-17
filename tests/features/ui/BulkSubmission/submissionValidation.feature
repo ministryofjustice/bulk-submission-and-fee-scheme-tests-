@@ -54,16 +54,16 @@ Feature: Invalid submission level validation
     When I upload "tests/data/invalid/mediationFieldValidation.txt"
     Then I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should now see the following detailed submission error messages for "MEDIATION":
-      """
-      Case Reference Number must contain only letters, numbers, forward slashes, periods, hyphens, and spaces, and be a maximum of 30 characters
-      Mediation Sessions Count must be between 1 and 99
-      Mediation Time Minutes must be between 0 and 99999
-      Client Postcode must be a valid UK postcode or NFA
-      Ethnicity Code must be valid
-      Disability Code must be valid
-      Client 2 Gender code must be valid
-      Invalid date value for Client2 Date of Birth (Must be between 1900-01-01 and today): 2050-04-15
-      """
+    """
+    Case Reference Number must contain only letters, numbers, forward slashes, periods, hyphens, and spaces, and be a maximum of 30 characters
+    Mediation Sessions Count must be between 1 and 99
+    Mediation Time Minutes must be between 0 and 99999
+    Client Postcode must be a valid UK postcode or NFA
+    Ethnicity Code must be valid
+    Disability Code must be valid
+    Client 2 Gender code must be valid
+    Client 2 Date of Birth must be between 01/01/1900 and today
+    """
 
 
   Scenario: Reject submission due to period prior to 2015
@@ -73,17 +73,15 @@ Feature: Invalid submission level validation
     Submissions for periods before JAN-2015 are not accepted. Please submit for a period on or after JAN-2015.
     """
 
-
-  Scenario Outline: Reject any file submission for submission periods greater than current Month
-    Given today's date/time in Europe/London falls in the "<currentMonth>"
-    And I generate "Legal help" "<format>" file with the following claims from period "<submissionPeriod>"
-      | ucn                  | feeCode | ufn   |
-      | 07081999/S/<format>E | CRI123  | <ufn> |
+  Scenario Outline: Reject submission due to invalid submission periods
+    When I stage "tests/data/invalid/submissionPeriod.txt" file for upload
+    And I update the SubmissionPeriod to "<periodType>"
     And I upload the generated file
-    Then I should see the following submission error messages for the "CURRENT_MONTH"
-      | Error Message                                                                                                      |
-      | Submissions for <errorSubText> current month (CURRENT_MONTH) are not accepted. Please submit for a previous month. |
+    Then I should see the following submission error messages for the "<errorPlaceholder>"
+      | Error Message                                                                                          |
+      | Submissions for <errorText> (<errorPlaceholder>) are not accepted. Please submit for a previous month. |
+
     Examples:
-      | format | ufn        | submissionPeriod | currentMonth  | errorSubText |
-      | csv    | 060725/123 | month+0          | month+0       | the          |
-      | txt    | 060725/122 | month+3          | month+0       | after the    |
+      | periodType   | errorPlaceholder | errorText               |
+      | CurrentMonth | CURRENT_MONTH    | the current month       |
+      | FutureDate   | CURRENT_MONTH    | after the current month |

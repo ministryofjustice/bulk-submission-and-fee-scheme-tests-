@@ -182,6 +182,7 @@ jobs:
 
       - name: Run UI Tests
         env:
+          PORT_FORWARD: true
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
           CUCUMBER_TAGS: ${{ inputs.tags }}
         run: |
