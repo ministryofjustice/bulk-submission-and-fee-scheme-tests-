@@ -20,6 +20,24 @@ const pdaClient = axios.create({
   validateStatus: () => true, // allow manual status inspection
 });
 
+
+// ===== FSP API state =====
+
+const fspHeaders: Record<string, string> = {
+  'Content-Type': 'application/json',
+  Accept: 'application/json',
+};
+const fspToken = process.env.FSP_API_TOKEN;
+
+if (fspToken) fspHeaders['Authorization'] = fspToken;
+const fspClient = axios.create({
+  baseURL: process.env.FSP_API_BASE_URL,
+  timeout: 10000,
+  headers: fspHeaders,
+  validateStatus: () => true, // allow manual status inspection
+});
+
+
 const MONTHS = [
   'JAN',
   'FEB',
@@ -40,16 +58,10 @@ const allowedPeriods: string[] = (() => {
   const startYear = 2021;
   const startMonth = 0;
 
+  
   const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
-
-  let endYear = currentYear;
-  let endMonth = currentMonth - 1;
-  if (endMonth < 0) {
-    endYear -= 1;
-    endMonth = 11;
-  }
+  const endYear = now.getFullYear();
+  const endMonth = now.getMonth();
 
   for (let year = startYear; year <= endYear; year++) {
     const monthStart = year === startYear ? startMonth : 0;
@@ -95,6 +107,18 @@ export async function getUniqueSubmissionPeriod(
   const hasDb = await submissionManager.ensureInitialized();
   const dataSource = submissionManager.getDataSource();
 
+  let categoryOfLawCode: any;
+  let isDisbursement: boolean = false;
+  if(feeCode !== undefined){
+    console.log(`Fetching fee details for ${feeCode}`);
+    const feeDetails = await fspClient.get(`/api/v1/fee-details/${feeCode}`);
+    console.log(`${JSON.stringify(feeDetails.data, null, 2)}`);
+    categoryOfLawCode = feeDetails.data.categoryOfLawCode;
+    isDisbursement = feeDetails.data.feeType == 'DISB_ONLY';
+    console.log(`Category of law for ${feeCode} is ${categoryOfLawCode}`);
+  }
+
+
   for (const index of randomizedIndices) {
     const candidate = allowedPeriods[index];
     if (cache.has(candidate)) continue;
@@ -128,17 +152,44 @@ export async function getUniqueSubmissionPeriod(
         const schedules = resp.data.schedules ?? [];
 
         if (schedules.length === 0) {
-          console.log(`No contact found for ${feeCode} within ${dbAreaOfLaw} in ${formattedDate}`);
+          console.log(`No contract found for ${feeCode} within ${dbAreaOfLaw} in ${formattedDate}`);
           continue;
         }
 
-        const firstSchedule = schedules[0];
+        console.log(
+            `Schedules found: ` +
+            `${JSON.stringify(schedules, null, 2)}`
+        );
 
-        const startDate = firstSchedule.scheduleStartDate;
-        const endDate = firstSchedule.scheduleEndDate;
+        // Find the schedule whose scheduleLines contain the matching categoryOfLaw (= feeCode)
+        const matchingSchedule = schedules.find((schedule: any) =>
+            Array.isArray(schedule.scheduleLines) &&
+            schedule.scheduleLines.some((line: any) => line.categoryOfLaw === categoryOfLawCode)
+        );
+
+        if (!matchingSchedule) {
+          console.log(`No schedule found with categoryOfLaw ${categoryOfLawCode} in ${formattedDate}`);
+          continue;
+        }
+
+        console.log(
+            `Matching schedule for feeCode ${feeCode} within ${dbAreaOfLaw} in ${formattedDate}: ` +
+            `${JSON.stringify(matchingSchedule, null, 2)}`
+        );
+
+        const startDate = matchingSchedule.scheduleStartDate;
+        const endDate = matchingSchedule.scheduleEndDate;
 
         const start = new Date(startDate);
         const end = new Date(endDate);
+
+        // If disbursement, checks we're doing also include creating a second submission up to 5
+        //  months before or after. This ensures that the second submission is also within the period.
+        if (isDisbursement) {
+          start.setMonth(end.getMonth() + 5);
+          end.setMonth(end.getMonth() - 5);
+        }
+
 
         // Check if candidate date is within contract period
         const candidateDate = new Date(parseInt(year), monthIndex, 1);

@@ -254,10 +254,11 @@ export async function GenerateCivilFile(
 
     for (let i = 1; i <= files; i++) {
       const officeInput = office ?? randomFrom(offices);
+
       const submissionPeriodInput =
         submissionPeriod ||
         (await getUniqueSubmissionPeriod(officeInput, 'LEGAL HELP',
-            officeInput));
+            claims?.[0].feeCode));
 
       const baseName = `legal_${resolvedSuffix}_${i}`;
       const intermediateFormat = format === 'xml' ? 'csv' : format;

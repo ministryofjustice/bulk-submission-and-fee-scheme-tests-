@@ -14,14 +14,18 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function addMonthsToDate(dateStr: string | undefined, months: number): string {
-  if (!dateStr) {
-    throw new Error('Date string is required for addMonthsToDate');
-  }
+function addMonthsToDate(dateStr: string, months: number): string {
+  if (!dateStr) throw new Error('Date string is required');
+  if (months === 0) return dateStr;
+
   const [month, year] = dateStr.split('-');
-  const date = new Date(`${month} 1, ${year}`);
+  const date = new Date(Date.parse(`${month} 1, ${year}`)); // e.g. "FEB 1, 2021"
+
+  // Add months
   date.setMonth(date.getMonth() + months);
-  return date.toLocaleString('en-US', {month: 'short'}).toUpperCase() + '-' + date.getFullYear();
+
+  // Return in same format "MMM-YYYY"
+  return date.toLocaleString('en-US', { month: 'short' }).toUpperCase() + '-' + date.getFullYear();
 }
 
 Given(
@@ -163,7 +167,7 @@ Given('I generate {string} {string} file with the following claims with office {
   await this.attach(`📁 Generated file for upload: ${fileName}`, 'text/plain');
 });
 
-Given('I generate {string} {string} file with the following claims with office {string} with a difference of {string} months from the previous submission', async function (this: CustomWorld, areaOfLaw, format, officeCode, monthsDifference : number, dataTable) {
+Given('I generate {string} {string} file with the following claims with office {string} with a difference of {string} months from the previous submission', async function (this: CustomWorld, areaOfLaw, format, officeCode, monthsDifference, dataTable) {
 
   this.officeAccount = officeCode;
   console.log(`Office account: ${officeCode}`);
@@ -174,7 +178,9 @@ Given('I generate {string} {string} file with the following claims with office {
     throw new Error('Original submission period is not set. Did you generate and upload a file first?');
   }
 
-  const newSubmissionPeriod = addMonthsToDate(originalSubmissionPeriod, monthsDifference);
+  const newSubmissionPeriod = addMonthsToDate(originalSubmissionPeriod, Number.parseInt(monthsDifference));
+
+  console.log(`New submission period taken from ${originalSubmissionPeriod} using diff (${monthsDifference}): ${newSubmissionPeriod}`);
 
   for (let i = 0; i < claims.length; i++) {
     console.log(`➕Claim to add ${i}: ${claims[i].ucn}, ${claims[i].ufn}, ${claims[i].feeCode}`);
@@ -418,7 +424,9 @@ When(
 
         const uploadUrl =
             `${dstewbaseUrl}/api/v0/bulk-submissions` +
-            '?userId=Test.User-submit-a-bulk-claim-auto-test%40devl.justice.gov.uk&offices=0P322F,2L849T,1T102C';
+            '?userId=Test.User-submit-a-bulk-claim-auto-test%40devl.justice.gov.uk&offices=' +
+            '0P322F,2L849T,1T102C,2L846P,2L847Q,2L848R,2M047H,2M463K,2N199K,2N493E,2N758T,2P746R,' +
+            '2P747T,2Q779P,2Q780Q';
 
 
         await this.attach(`⏳ Uploading to api: ${dstewbaseUrl}/api/v0/bulk-submissions`);
