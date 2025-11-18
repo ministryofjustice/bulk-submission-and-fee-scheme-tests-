@@ -1,5 +1,6 @@
 @bulkSubmissions
 @duplicateChecks
+  @temp
 Feature: Duplicate checks - Legal Help - Disbursements
 
   Background:
