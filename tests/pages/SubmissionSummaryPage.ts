@@ -1,5 +1,6 @@
 import {expect, Locator, Page} from '@playwright/test';
 import {BasePage} from './BasePage';
+import {goToPaginationPage} from "../utils/scripts/pageNavigation";
 
 export class SubmissionSummaryPage extends BasePage {
   readonly successBanner: Locator;
@@ -242,33 +243,12 @@ export class SubmissionSummaryPage extends BasePage {
       }
 
       const errorCount = await errorLocator.count();
-      console.log(` : Collected ${allText.values().toArray().join("+")} error messages`);
-
       if (errorCount < pageSize) break;
 
-      const nextButton = this.page.locator('a.govuk-pagination__link[rel="next"]');
-
-      if (!(await nextButton.isVisible())) {
-        console.log('🚫 No more Next button visible — stopping pagination.');
-        break;
+      if (!(await goToPaginationPage(this.page, 'next'))) {
+          console.log(` : No more errors to collect`);
+          break;
       }
-
-      // 🕒 Wait for page content to change after clicking next
-      const firstRowBefore = await this.page.locator('table.govuk-table tbody tr:first-child').innerText();
-
-      await Promise.all([
-        nextButton.click(),
-          this.page.waitForFunction(
-            (prevText) => {
-              const firstRow = document.querySelector('table.govuk-table tbody tr:first-child');
-              return firstRow && firstRow.textContent !== prevText;
-            },
-            firstRowBefore,
-            { timeout: 10000 }
-          ),
-      ]);
-
-      await this.page.waitForTimeout(500); // brief wait for stability
     }
 
     console.log(`✅ Finished pagination.`);
