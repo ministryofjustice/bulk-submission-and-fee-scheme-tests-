@@ -156,11 +156,6 @@ export async function getUniqueSubmissionPeriod(
           continue;
         }
 
-        console.log(
-            `Schedules found: ` +
-            `${JSON.stringify(schedules, null, 2)}`
-        );
-
         // Find the schedule whose scheduleLines contain the matching categoryOfLaw (= feeCode)
         const matchingSchedule = schedules.find((schedule: any) =>
             Array.isArray(schedule.scheduleLines) &&
@@ -171,11 +166,6 @@ export async function getUniqueSubmissionPeriod(
           console.log(`No schedule found with categoryOfLaw ${categoryOfLawCode} in ${formattedDate}`);
           continue;
         }
-
-        console.log(
-            `Matching schedule for feeCode ${feeCode} within ${dbAreaOfLaw} in ${formattedDate}: ` +
-            `${JSON.stringify(matchingSchedule, null, 2)}`
-        );
 
         const startDate = matchingSchedule.scheduleStartDate;
         const endDate = matchingSchedule.scheduleEndDate;
