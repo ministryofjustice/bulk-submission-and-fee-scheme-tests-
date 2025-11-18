@@ -3,7 +3,7 @@
     <office account="2Q779P">
         <schedule submissionPeriod="APR-2025" areaOfLaw="LEGAL HELP" scheduleNum="2L847Q/CIVIL">
             <outcome matterType="FAMX:FAPP">
-                <outcomeItem name="FEE_CODE">COM</outcomeItem>
+                <outcomeItem name="FEE_CODE">PPP</outcomeItem>
                 <outcomeItem name="CASE_REF_NUMBER"></outcomeItem>
                 <outcomeItem name="CASE_START_DATE">10/11/2019</outcomeItem>
                 <outcomeItem name="CASE_ID">001</outcomeItem>

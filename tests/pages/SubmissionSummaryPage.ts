@@ -1,5 +1,6 @@
 import {expect, Locator, Page} from '@playwright/test';
 import {BasePage} from './BasePage';
+import {goToPaginationPage} from "../utils/scripts/pageNavigation";
 
 export class SubmissionSummaryPage extends BasePage {
   readonly successBanner: Locator;
@@ -226,5 +227,31 @@ export class SubmissionSummaryPage extends BasePage {
     }
 
     return errors;
+  }
+
+  async getPaginatedSubmissionErrors(pageSize: number): Promise<Set<string>> {
+    const allText = new Set<string>();
+    const errorLocator = this.page!.locator(
+'.moj-alert__heading, .govuk-table__cell, .govuk-error-summary, .moj-banner--failure, [role="alert"]'
+    );
+
+    await errorLocator.first().waitFor({ state: 'visible', timeout: 15000 });
+
+    while (true) {
+      for (const text of await errorLocator.allTextContents()) {
+        allText.add(text);
+      }
+
+      const errorCount = await errorLocator.count();
+      if (errorCount < pageSize) break;
+
+      if (!(await goToPaginationPage(this.page, 'next'))) {
+          console.log(` : No more errors to collect`);
+          break;
+      }
+    }
+
+    console.log(`✅ Finished pagination.`);
+    return allText;
   }
 }
