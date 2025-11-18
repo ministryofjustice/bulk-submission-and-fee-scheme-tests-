@@ -1,5 +1,4 @@
 @bulkSubmission
-@maga
 Feature: Bulk Submission Search
 
   Scenario Outline: Search For Valid/Invalid claims using submission ref
