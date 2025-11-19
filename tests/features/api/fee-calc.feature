@@ -353,3 +353,45 @@ Feature: Fee Calculation API
       | EDUDIS  | 2024-09-01 |                                | 500                   | 6000                  | 6500.00       |
       | EDUDIS  | 2024-09-01 |                                | 200                   | 890                   | 1090.00       |
       | EDUDIS  | 2025-10-10 |                                | 56000                 | 10.5                  | 56010.50      |
+
+
+  Scenario Outline: Fee scheme platform handles error during fee calculation and returns message
+    Given I have an initialized API client
+    And a fee calculation payload with:
+      | feeCode                           | <feeCode>                          |
+      | startDate                         | <startDate>                        |
+      | netDisbursementAmount             | <netDisbursementAmount>            |
+      | disbursementVatAmount             | <disbursementVatAmount>            |
+      | vatIndicator                      | <vatIndicator>                     |
+      | numberOfMediationSessions         | <numberOfMediationSessions>        |
+      | boltOnHomeOfficeInterview         | <boltOnHomeOfficeInterview>        |
+      | boltOnAdjournedHearing            | <boltOnAdjournedHearing>           |
+      | boltOnCmrhOral                    | <boltOnCmrhOral>                   |
+      | boltOnCmrhTelephone               | <boltOnCmrhTelephone>              |
+      | boltOnSubstantiveHearing          | <boltOnSubstantiveHearing>         |
+      | netProfitCosts                    | <netProfitCosts>                   |
+      | netCostOfCounsel                  | <netCostOfCounsel>                 |
+      | travelAndWaitingCosts             | <travelAndWaitingCosts>            |
+      | uniqueFileNumber                  | <uniqueFileNumber>                 |
+      | policeStationId                   | <policeStationId>                  |
+      | policeStationSchemeId             | <policeStationSchemeId>            |
+      | representationOrderDate           | <representationOrderDate>          |
+      | netTravelCosts                    | <netTravelCosts>                   |
+      | netWaitingCosts                   | <netWaitingCosts>                  |
+      | londonRate                        | <londonRate>                       |
+      | immigrationPriorAuthorityNumber   | <immigrationPriorAuthorityNumber>  |
+      | detentionTravelAndWaitingCosts    | <detentionTravelAndWaitingCosts>   |
+      | jrFormFilling                     | <jrFormFilling>                    |
+
+    When I POST "/api/v1/fee-calculation" with the payload
+    Then the response status should be 200
+    And the JSON path "validationMessages.0.type" should equal "<validationType>"
+    And the JSON path "validationMessages.0.message" should equal "<expectedMessage>"
+
+
+    @fee_calculation_errors
+    Examples: Failing fee calculations
+      | feeCode | startDate  | policeStationId | netDisbursementAmount | validationType  | expectedMessage                         |
+      | IDDDD   | 2020-10-08 |                 | 1600                  |  ERROR          | Enter a valid Fee Code.                 |
+      | ICASD   | 2013-10-09 |                 | 1599                  |  ERROR          | Case Start Date is too far in the past. |
+      | ICASD   | 2025-10-10 | 111             | 2500                  |  WARNING        | Costs have been capped without an Immigration Priority Authority Number. Disbursement costs exceed the Disbursement Limit. |
