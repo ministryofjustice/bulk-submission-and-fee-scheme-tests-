@@ -32,6 +32,7 @@ Feature: Display message checks
       | Schedule Reference is required for Legal Help claims          |
       | Net Profit Costs Amount is required for Legal Help claims     |
 
+    # Jamie Note: There is a field called TRAVEL_COSTS which can be set, is this still used?
   @temp
   Scenario: Legal Help: Should check display messages are shown for format based errors (regex)
     Given I upload "tests/data/invalid/legal_help_regex_errors.csv"
