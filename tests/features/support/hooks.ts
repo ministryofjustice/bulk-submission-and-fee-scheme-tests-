@@ -58,6 +58,7 @@ Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHoo
   this.submissionPeriod = undefined;
   this.officeAccount = undefined;
   this.matterStartCounts = undefined;
+  this.claimDetailPage = undefined;
 
   await this.attach(`🧭 New isolated context created for: ${scenario.pickle.name}`, 'text/plain');
 });

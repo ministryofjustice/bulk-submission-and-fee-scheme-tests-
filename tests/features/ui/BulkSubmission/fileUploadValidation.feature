@@ -32,7 +32,7 @@ Feature: Bulk Submission Upload Validation
     When I upload "tests/data/invalid/invalidAreaOfLaw.csv"
     Then the user sees an error message "Area of Law must be one of: MEDIATION, CRIME LOWER, or LEGAL HELP"
 
-  Scenario: Upload fails with number format exception
+  Scenario Outline: Upload fails with number format exception
     Given I generate "<AreaOfLaw>" "csv" file with "1" outcomes
     And I override the generated file field "<field>" with value "<value>"
     When I upload that file
@@ -45,6 +45,16 @@ Feature: Bulk Submission Upload Validation
       | Legal help | WAITING_TIME    | 9999999999      | waitingTime       |
       | Legal help | TRAVEL_TIME     | NAN             | travelTime        |
       | Legal help | WAITING_TIME    | NAN             | waitingTime       |
+
+  Scenario: Upload fails with Invalid Submission Period
+    Given I generate "Legal help" "csv" file with "1" outcomes
+    And I override the generated file field "submissionPeriod" with value "<value>"
+    When I upload that file
+    Then the user sees an error message "<message>"
+  Examples:
+      | value           | message                                                              |
+      |                 | Submission period is required, please check the file and try again.  |
+      | blah-blah       | Submission period wrong format, should be in the format MMM-YYYY     |
 
 
     

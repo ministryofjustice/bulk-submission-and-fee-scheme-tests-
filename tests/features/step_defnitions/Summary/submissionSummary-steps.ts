@@ -1,8 +1,9 @@
-import { Then } from '@cucumber/cucumber';
+import { Then, When } from '@cucumber/cucumber';
 import type { DataTable } from '@cucumber/cucumber';
 import type { CustomWorld } from '../../support/world';
 import { SubmissionSummaryPage } from '../../../pages/SubmissionSummaryPage';
 import { expect } from '@playwright/test';
+import { ClaimDetailPage } from '../../../pages/ClaimDetailPage';
 
 type SummaryRecord = Record<string, string | undefined>;
 
@@ -46,6 +47,7 @@ Then(
   'I should see the submission summary for {string}',
   async function (this: CustomWorld, areaOfLaw: string) {
     const summaryPage = new SubmissionSummaryPage(this.page!);
+    this.submissionSummaryPage = summaryPage;
 
     await summaryPage.verifySuccessBanner();
 
@@ -63,6 +65,7 @@ Then(
   'I should see the submission summary for {string} with {string} claims',
   async function (this: CustomWorld, areaOfLaw: string, claimCount: string) {
     const summaryPage = new SubmissionSummaryPage(this.page!);
+    this.submissionSummaryPage = summaryPage;
 
     await summaryPage.verifySuccessBanner();
 
@@ -84,6 +87,7 @@ Then(
 
 Then(`There should be {int} warnings`, async function (this: CustomWorld, warningCount: number) {
   const summaryPage = new SubmissionSummaryPage(this.page!);
+  this.submissionSummaryPage = summaryPage;
 
   await summaryPage.verifyWarningBanner(warningCount);
 })
@@ -92,6 +96,7 @@ Then(
     'The claims should have the following information for {string}:',
     async function (this: CustomWorld, areaOfLaw: string,  dataTable) {
       const summaryPage = new SubmissionSummaryPage(this.page!);
+      this.submissionSummaryPage = summaryPage;
 
       const claims = await summaryPage.getClaimsData(areaOfLaw);
       const rows = dataTable.hashes();
@@ -132,6 +137,7 @@ Then(
   'I should see the submission summary for {string} with no matter starts message',
   async function (this: CustomWorld, areaOfLaw: string) {
     const summaryPage = new SubmissionSummaryPage(this.page!);
+    this.submissionSummaryPage = summaryPage;
 
     await summaryPage.verifySuccessBanner();
 
@@ -155,6 +161,7 @@ Then(
   'I should see the submission summary for {string} without a matter starts tab',
   async function (this: CustomWorld, areaOfLaw: string) {
     const summaryPage = new SubmissionSummaryPage(this.page!);
+    this.submissionSummaryPage = summaryPage;
 
     await summaryPage.verifySuccessBanner();
 
@@ -175,6 +182,7 @@ Then(
   'I should see the submission summary for {string} with matter starts matching the generated file',
   async function (this: CustomWorld, areaOfLaw: string) {
     const summaryPage = new SubmissionSummaryPage(this.page!);
+    this.submissionSummaryPage = summaryPage;
 
     await summaryPage.verifySuccessBanner();
 
@@ -463,4 +471,41 @@ Then(
       ).toBeTruthy();
     }
   }
+
+  
 );
+
+When('I open the first claim in the submission', async function (this: CustomWorld) {
+    if (!this.submissionSummaryPage) {
+        throw new Error('Submission summary page is not available. Ensure you opened the submission details first.');
+    }
+
+    await this.submissionSummaryPage.openClaimByIndex(0);
+    this.claimDetailPage = new ClaimDetailPage(this.page!);
+    await this.claimDetailPage.waitForPage();
+
+    await this.attach('📄 Opened the first claim from the submission', 'text/plain');
+});
+
+Then('I should see the following fee calculation headings:', async function (this: CustomWorld, dataTable) {
+    if (!this.claimDetailPage) {
+        if (!this.submissionSummaryPage) {
+            throw new Error('Submission summary page is not available, cannot open claim details.');
+        }
+        await this.submissionSummaryPage.openClaimByIndex(0);
+        this.claimDetailPage = new ClaimDetailPage(this.page!);
+        await this.claimDetailPage.waitForPage();
+    }
+
+    const expectedHeadings: string[] = dataTable.raw().slice(1).map((row: string[]) => row[0].trim().toLowerCase());
+    const actualHeadings = (await this.claimDetailPage.getFeeCalculationHeadings()).map(h => h.toLowerCase());
+
+    const missing = expectedHeadings.filter((heading: string) => !actualHeadings.includes(heading));
+
+    expect(missing, `Missing headings: ${missing.join(', ')}`).toHaveLength(0);
+
+    await this.attach(
+        `✅ Verified headings:\n${expectedHeadings.join('\n')}`,
+        'text/plain'
+    );
+});

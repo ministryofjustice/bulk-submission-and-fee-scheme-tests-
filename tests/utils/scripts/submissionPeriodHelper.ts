@@ -1,4 +1,42 @@
-import { createDataSourceManager } from '../db/dataSourceManager';
+import {createDataSourceManager} from '../db/dataSourceManager';
+import axios from 'axios';
+import dotenv from "dotenv";
+
+dotenv.config();
+
+// ===== PDA API state =====
+
+const pdaHeaders: Record<string, string> = {
+  'Content-Type': 'application/json',
+  Accept: 'application/json',
+};
+const pdaToken = process.env.PDA_API_TOKEN;
+
+if (pdaToken) pdaHeaders['X-Authorization'] = pdaToken;
+const pdaClient = axios.create({
+  baseURL: process.env.PDA_API_BASE_URL,
+  timeout: 10000,
+  headers: pdaHeaders,
+  validateStatus: () => true, // allow manual status inspection
+});
+
+
+// ===== FSP API state =====
+
+const fspHeaders: Record<string, string> = {
+  'Content-Type': 'application/json',
+  Accept: 'application/json',
+};
+const fspToken = process.env.FSP_API_TOKEN;
+
+if (fspToken) fspHeaders['Authorization'] = fspToken;
+const fspClient = axios.create({
+  baseURL: process.env.FSP_API_BASE_URL,
+  timeout: 10000,
+  headers: fspHeaders,
+  validateStatus: () => true, // allow manual status inspection
+});
+
 
 const MONTHS = [
   'JAN',
@@ -20,16 +58,10 @@ const allowedPeriods: string[] = (() => {
   const startYear = 2021;
   const startMonth = 0;
 
+  
   const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
-
-  let endYear = currentYear;
-  let endMonth = currentMonth - 1;
-  if (endMonth < 0) {
-    endYear -= 1;
-    endMonth = 11;
-  }
+  const endYear = now.getFullYear();
+  const endMonth = now.getMonth();
 
   for (let year = startYear; year <= endYear; year++) {
     const monthStart = year === startYear ? startMonth : 0;
@@ -42,12 +74,12 @@ const allowedPeriods: string[] = (() => {
   return periods;
 })();
 
-const submissionManager = createDataSourceManager({ label: 'submissionPeriodHelper' });
+const submissionManager = createDataSourceManager({label: 'submissionPeriodHelper'});
 const usedPeriods = new Map<string, Set<string>>();
 const usedScheduleRefs = new Set<string>();
 
 const createRandomIndices = (length: number): number[] => {
-  const indices = Array.from({ length }, (_, i) => i);
+  const indices = Array.from({length}, (_, i) => i);
   for (let i = length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [indices[i], indices[j]] = [indices[j], indices[i]];
@@ -55,9 +87,11 @@ const createRandomIndices = (length: number): number[] => {
   return indices;
 };
 
+
 export async function getUniqueSubmissionPeriod(
-  account: string,
-  dbAreaOfLaw: string
+    account: string,
+    dbAreaOfLaw: string,
+    feeCode: string | undefined = undefined
 ): Promise<string> {
   if (allowedPeriods.length === 0) {
     throw new Error('No allowed submission periods available.');
@@ -73,22 +107,86 @@ export async function getUniqueSubmissionPeriod(
   const hasDb = await submissionManager.ensureInitialized();
   const dataSource = submissionManager.getDataSource();
 
+  let categoryOfLawCode: any;
+  let isDisbursement: boolean = false;
+  if(feeCode !== undefined){
+    console.log(`Fetching fee details for ${feeCode}`);
+    const feeDetails = await fspClient.get(`/api/v1/fee-details/${feeCode}`);
+    console.log(`${JSON.stringify(feeDetails.data, null, 2)}`);
+    categoryOfLawCode = feeDetails.data.categoryOfLawCode;
+    isDisbursement = feeDetails.data.feeType == 'DISB_ONLY';
+    console.log(`Category of law for ${feeCode} is ${categoryOfLawCode}`);
+  }
+
+
   for (const index of randomizedIndices) {
     const candidate = allowedPeriods[index];
     if (cache.has(candidate)) continue;
 
     if (hasDb) {
       const rows = await dataSource.query(
-        `SELECT 1
-         FROM claims.submission
-         WHERE area_of_law = $1
-           AND submission_period = $2
-           AND office_account_number = $3
-         LIMIT 1`,
-        [dbAreaOfLaw, candidate, accountKey]
+          `SELECT 1
+           FROM claims.submission
+           WHERE area_of_law = $1
+             AND submission_period = $2
+             AND office_account_number = $3 LIMIT 1`,
+          [dbAreaOfLaw, candidate, accountKey]
       );
       if (Array.isArray(rows) && rows.length > 0) {
         continue;
+      }
+
+      // Only check for fee code if it's not undefined
+      if (feeCode !== undefined) {
+
+        // Convert MMM-YYYY to DD-MM-YYYY format
+        const [month, year] = candidate.split('-');
+        const monthIndex = MONTHS.indexOf(month);
+        const formattedDate = `01-${(monthIndex + 1).toString().padStart(2, '0')}-${year}`;
+
+        // Check if submission period is within contract
+        const resp = await pdaClient
+        .get(`/api/v1/provider-offices/${accountKey}/schedules` +
+            `?areaOfLaw=${dbAreaOfLaw}&effectiveDate=${formattedDate}`);
+
+        const schedules = resp.data.schedules ?? [];
+
+        if (schedules.length === 0) {
+          console.log(`No contract found for ${feeCode} within ${dbAreaOfLaw} in ${formattedDate}`);
+          continue;
+        }
+
+        // Find the schedule whose scheduleLines contain the matching categoryOfLaw (= feeCode)
+        const matchingSchedule = schedules.find((schedule: any) =>
+            Array.isArray(schedule.scheduleLines) &&
+            schedule.scheduleLines.some((line: any) => line.categoryOfLaw === categoryOfLawCode)
+        );
+
+        if (!matchingSchedule) {
+          console.log(`No schedule found with categoryOfLaw ${categoryOfLawCode} in ${formattedDate}`);
+          continue;
+        }
+
+        const startDate = matchingSchedule.scheduleStartDate;
+        const endDate = matchingSchedule.scheduleEndDate;
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        // If disbursement, checks we're doing also include creating a second submission up to 5
+        //  months before or after. This ensures that the second submission is also within the period.
+        if (isDisbursement) {
+          start.setMonth(end.getMonth() + 5);
+          end.setMonth(end.getMonth() - 5);
+        }
+
+
+        // Check if candidate date is within contract period
+        const candidateDate = new Date(parseInt(year), monthIndex, 1);
+        if (candidateDate < start || candidateDate > end) {
+          console.log(`Submission period ${candidate} is outside contract period ${startDate} to ${endDate}`);
+          continue;
+        }
       }
     }
 
@@ -123,23 +221,23 @@ export function resetSubmissionPeriodCache() {
 }
 
 export function getSubmissionPeriod(monthIncrement: string, isShort?: boolean) {
-    const currentDate = new Date();
-    const formatter = new Intl.DateTimeFormat('en-GB', { month: 'long' });
-    isShort = isShort ?? true;
-    let increment = 0;
+  const currentDate = new Date();
+  const formatter = new Intl.DateTimeFormat('en-GB', {month: 'long'});
+  isShort = isShort ?? true;
+  let increment = 0;
 
-    // @ts-ignore
-    if (parseInt(monthIncrement) instanceof Number) {
-        increment = parseInt(monthIncrement);
-    } else {
-        increment = parseInt(monthIncrement.split('+')[1]);
-    }
-    // adjust the date to the new month and year
-    currentDate.setMonth( currentDate.getMonth() + increment, currentDate.getDate())
+  // @ts-ignore
+  if (parseInt(monthIncrement) instanceof Number) {
+    increment = parseInt(monthIncrement);
+  } else {
+    increment = parseInt(monthIncrement.split('+')[1]);
+  }
+  // adjust the date to the new month and year
+  currentDate.setMonth(currentDate.getMonth() + increment, currentDate.getDate())
 
-    const glue = isShort ? '-' : ' ';
-    const month = isShort? MONTHS[currentDate.getMonth()]
-    : formatter.format(currentDate);
+  const glue = isShort ? '-' : ' ';
+  const month = isShort ? MONTHS[currentDate.getMonth()]
+      : formatter.format(currentDate);
 
-    return `${month}${glue}${currentDate.getFullYear()}`;
+  return `${month}${glue}${currentDate.getFullYear()}`;
 }

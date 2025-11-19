@@ -8,6 +8,7 @@ import 'reflect-metadata';
 import dotenv from 'dotenv';
 import { claimOptions } from './claimOptions';
 import {GenerateFileOptions} from "./generateFileOptions";
+import type {CustomWorld} from "../../features/support/world";
 
 dotenv.config();
 
@@ -67,7 +68,9 @@ const convertSubmissionPeriodToDate = (period: string): string => {
   };
   const monthIndex = months[month.toUpperCase()] ?? 0;
   const date = new Date(parseInt(year, 10), monthIndex, 1);
-  return formatDate(date);
+  const earlierDate = new Date(date.getFullYear(), date.getMonth() - 3, date.getDate());
+
+  return formatDate(earlierDate);
 };
 
 // ---------- 5️⃣ Provider API Check ----------
@@ -251,9 +254,11 @@ export async function GenerateCivilFile(
 
     for (let i = 1; i <= files; i++) {
       const officeInput = office ?? randomFrom(offices);
+
       const submissionPeriodInput =
         submissionPeriod ||
-        (await getUniqueSubmissionPeriod(officeInput, 'LEGAL HELP'));
+        (await getUniqueSubmissionPeriod(officeInput, 'LEGAL HELP',
+            claims?.[0].feeCode));
 
       const baseName = `legal_${resolvedSuffix}_${i}`;
       const intermediateFormat = format === 'xml' ? 'csv' : format;
