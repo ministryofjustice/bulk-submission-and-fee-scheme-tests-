@@ -32,7 +32,7 @@ Feature: Bulk Submission Upload Validation
     When I upload "tests/data/invalid/invalidAreaOfLaw.csv"
     Then the user sees an error message "Area of Law must be one of: MEDIATION, CRIME LOWER, or LEGAL HELP"
 
-  Scenario: Upload fails with number format exception
+  Scenario Outline: Upload fails with number format exception
     Given I generate "<AreaOfLaw>" "csv" file with "1" outcomes
     And I override the generated file field "<field>" with value "<value>"
     When I upload that file
