@@ -39,21 +39,21 @@ Feature: Bulk Submission via UI
     Examples:
       | AreaOfLaw   | Format | Outcomes |
       | LEGAL HELP  | txt    | 0        |
-      | CRIME LOWER | csv    | 0       |
+      | CRIME LOWER | csv    | 0        |
       | MEDIATION   | txt    | 0        |
 
-
+  @fo
   Scenario Outline: Duplicate Claim within the same submission <AreaOfLaw>
     When I generate "<AreaOfLaw>" "<Format>" file with "<Outcomes>" outcomes
     And I duplicate the last record in the generated file
     And I upload the generated file
 #    Then I should see an error banner saying "2 claims have errors for missing or incorrect information"
     And I should see the following submission error messages for "<AreaOfLaw>":
-      | Error Message                                   |
+      | Error Message                                          |
       | A duplicate claim was found within the same submission |
 
     Examples:
-      | AreaOfLaw   | Format | Outcomes |
-      | Legal help  | csv    | 1       |
+      | AreaOfLaw  | Format | Outcomes |
+      | Legal help | csv    | 1        |
 #      | Mediation   | csv    | 1        |
 #      | Crime lower | csv    | 1        |
