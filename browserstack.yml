@@ -44,11 +44,17 @@ parallelsPerPlatform: 2
 # Local Testing Configuration
 # =============================
 browserstackLocal: true
-"browserstack.localOptions": {
-  "enableSSL": false,
-  "force": true,
-  "verbose": true
-}
+browserstack.localOptions:
+  localIdentifier: "sabc-bstack"
+  enableSSL: false
+  force: true
+  verbose: true
+#"browserstack.localOptions": {
+#  "localIdentifier": "sabc-bstack",
+#  "enableSSL": false,
+#  "force": true,
+#  "verbose": true
+#}
 # =============================
 # Debugging and Logs
 # =============================

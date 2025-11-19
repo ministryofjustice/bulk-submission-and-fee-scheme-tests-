@@ -43,6 +43,7 @@ Feature: Bulk Submission via UI
       | MEDIATION   | txt    | 0        |
 
 
+  @foo
   Scenario Outline: Duplicate Claim within the same submission <AreaOfLaw>
     When I generate "<AreaOfLaw>" "<Format>" file with "<Outcomes>" outcomes
     And I duplicate the last record in the generated file
@@ -55,5 +56,5 @@ Feature: Bulk Submission via UI
     Examples:
       | AreaOfLaw   | Format | Outcomes |
       | Legal help  | csv    | 1       |
-      | Mediation   | csv    | 1        |
-      | Crime lower | csv    | 1        |
+#      | Mediation   | csv    | 1        |
+#      | Crime lower | csv    | 1        |

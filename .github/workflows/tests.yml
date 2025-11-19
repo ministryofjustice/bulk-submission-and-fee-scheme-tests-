@@ -1,9 +1,8 @@
 name: Run E2E Tests
 
-concurrency:
-  group: run-e2e-tests
-  cancel-in-progress: false
-
+#concurrency:
+#  group: run-e2e-tests
+#  cancel-in-progress: false
 on:
   push:
     branches: [ main, feature-browserStack-int ]
@@ -79,13 +78,10 @@ jobs:
   ui-tests:
     environment: uat
     runs-on: [self-hosted, uat, k8s]
-    env:
-      NAMESPACE_SABC: laa-submit-a-bulk-claim-uat
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.branch || github.ref }}
 
       - name: Install kubectl
         uses: azure/setup-kubectl@v3
@@ -103,10 +99,10 @@ jobs:
           DSTEW_API_TOKEN=${{ secrets.DSTEW_API_TOKEN }}
           MFA_SECRET=${{ secrets.MFA_SECRET }}
           PASSWORD=${{ secrets.PASSWORD }}
-          UI_BASE_URL="http://localhost:8082/
+          UI_BASE_URL=${{ vars.UI_BASE_URL }}
           USERNAME=${{ secrets.USERNAME }}
           DB_HOST=${{ vars.DB_HOST }}
-          DB_PORT=${{ secrets.DB_PORT }}
+          DB_PORT=${{ vars.DB_PORT }}
           DB_USER=${{ secrets.DB_USER }}
           DB_PASS=${{ secrets.DB_PASS }}
           DB_NAME=${{ secrets.DB_NAME }}
