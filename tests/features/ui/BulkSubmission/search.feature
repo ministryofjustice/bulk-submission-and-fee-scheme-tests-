@@ -64,3 +64,9 @@ Feature: Bulk Submission Search
     When I search using the valid date range
     Then I should see a message saying "No submissions were found."
     Then the Search page should pass accessibility checks
+
+
+  Scenario: Search with no filter specified
+    Given I am on the Search page
+    When I click search
+    Then I should see search results

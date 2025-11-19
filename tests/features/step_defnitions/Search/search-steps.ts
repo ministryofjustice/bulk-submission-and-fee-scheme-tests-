@@ -190,6 +190,12 @@ Then('I should see one search result for that submission', async function (this:
     );
 });
 
+Then('I should see search results', async function (this: CustomWorld) {
+  const searchPage = new SearchPage(this.page!);
+  await searchPage.expectResultsVisible();
+  await searchPage.expectTableHasCorrectHeaders();
+});
+
 When('I search using an invalid submission reference', async function (this: CustomWorld) {
     const searchPage = new SearchPage(this.page!);
 

@@ -368,12 +368,12 @@ Then(
 Then(
   'I should see the following submission error messages for {string}:',
   async function (this: CustomWorld, areaOfLaw: string, dataTable) {
-    const allText = await locateErrorMessages(this);
-
+    const allText = await (new SubmissionSummaryPage(this.page!))
+        .getPaginatedSubmissionErrors(10)
     const expectedMessages = dataTable.raw().flat().slice(1);
 
     for (const message of expectedMessages) {
-      const found = allText.some((t) => t.includes(message.trim()));
+      const found = allText.has(message.trim());
       expect(
         found,
         `❌ Expected error message not found for ${areaOfLaw}: "${message.trim()}"`
