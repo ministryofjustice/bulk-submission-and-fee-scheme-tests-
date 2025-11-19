@@ -163,6 +163,8 @@ jobs:
           FSP_API_TOKEN=${{ secrets.FSP_API_TOKEN }}
           DSTEW_API_BASE_URL=${{ secrets.DSTEW_API_BASE_URL }}
           DSTEW_API_TOKEN=${{ secrets.DSTEW_API_TOKEN }}
+          PDA_API_BASE_URL=${{ secrets.PDA_API_BASE_URL }}
+          PDA_API_TOKEN=${{ secrets.PDA_API_TOKEN }}
           MFA_SECRET=${{ secrets.MFA_SECRET }}
           PASSWORD=${{ secrets.PASSWORD }}
           UI_BASE_URL=${{ secrets.UI_BASE_URL }}
