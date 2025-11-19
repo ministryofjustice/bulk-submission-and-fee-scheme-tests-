@@ -2,7 +2,7 @@ import {expect, Locator, Page} from '@playwright/test';
 
 class BasePage {
   protected page: Page;
-  private heading: Locator;
+  protected heading: Locator;
   private primaryButton: Locator;
   private userName: Locator;
   private signOutLink: Locator;
