@@ -44,9 +44,11 @@ parallelsPerPlatform: 2
 # Local Testing Configuration
 # =============================
 browserstackLocal: true
-browserstackLocalOptions:
-  forceLocal: true
-
+"browserstack.localOptions": {
+  "enableSSL": false,
+  "force": true,
+  "verbose": true
+}
 # =============================
 # Debugging and Logs
 # =============================
