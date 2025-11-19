@@ -77,7 +77,7 @@ class LoginPage extends BasePage {
         await this.otcInput.waitFor({state: 'visible'});
         await this.resolveOneTimeCode(secret);
 
-        const expectedBaseUrl = process.env.UI_BASE_URL;
+        const expectedBaseUrl = process.env.UI_LOGIN_URL;
         if (expectedBaseUrl) {
             const normalizedExpected = expectedBaseUrl.replace(/\/$/, '');
             await this.page.waitForURL(
