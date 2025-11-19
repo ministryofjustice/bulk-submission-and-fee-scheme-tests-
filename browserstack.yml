@@ -50,8 +50,8 @@ browserstackLocalOptions:
 # Debugging and Logs
 # =============================
 debug: false
-networkLogs: true
-consoleLogs: info
+networkLogs: false
+consoleLogs: off
 
 # =============================
 # Reporting & Analytics
