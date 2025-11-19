@@ -13,7 +13,8 @@ import { generateCSVFromFilename } from '../../utils/scripts/generateCSVFromFile
 import fs from 'fs';
 
 Given('I am on the bulk import page', async function (this: CustomWorld) {
-    await this.page!.goto('/upload');
+    // @ts-ignore
+    await this.page.getByRole('button', { name: 'Start now' }).click();
     this.bulkImportPage = new BulkImportPage(this.page!);
 });
 
