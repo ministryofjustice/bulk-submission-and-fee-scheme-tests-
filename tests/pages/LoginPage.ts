@@ -27,7 +27,7 @@ class LoginPage extends BasePage {
     }
 
     async navigateTo() {
-        const targetUrl = process.env.UI_BASE_URL || '/';
+        const targetUrl = process.env.UI_LOGIN_URL || '/';
         await this.page.goto(targetUrl, {
             waitUntil: 'domcontentloaded',
             timeout: 120_000,

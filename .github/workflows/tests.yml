@@ -100,6 +100,7 @@ jobs:
           MFA_SECRET=${{ secrets.MFA_SECRET }}
           PASSWORD=${{ secrets.PASSWORD }}
           UI_BASE_URL=${{ vars.UI_BASE_URL }}
+          UI_LOGIN_URL=${{ vars.UI_LOGIN_URL }}
           USERNAME=${{ secrets.USERNAME }}
           DB_HOST=${{ vars.DB_HOST }}
           DB_PORT=${{ vars.DB_PORT }}
