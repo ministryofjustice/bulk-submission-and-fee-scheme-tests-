@@ -28,7 +28,7 @@ dotenv.config();
 
 /**
  * Rewrites storageState.json so all cookies & origins match UI_BASE_URL.
- * This is necessary because login happens via UI_LOGIN_URL (HTTPS),
+ * This is necessary because login happens via UI_BASE_URL (HTTPS),
  * but tests run against BrowserStack Local using UI_BASE_URL (HTTP :80).
  */
 function rewriteStorageState(storagePath: string, baseUrl: string) {
@@ -63,7 +63,7 @@ function rewriteStorageState(storagePath: string, baseUrl: string) {
 
 (async () => {
     console.log('🚀 Starting auth setup…');
-    console.log('🔐 Logging in using:', process.env.UI_LOGIN_URL);
+    console.log('🔐 Logging in using:', process.env.UI_BASE_URL);
     console.log('🌍 Rewriting cookies for:', process.env.UI_BASE_URL);
 
     const browser = await chromium.launch();

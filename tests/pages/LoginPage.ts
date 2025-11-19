@@ -27,8 +27,8 @@ class LoginPage extends BasePage {
     }
 
     async navigateTo() {
-        console.log(process.env.UI_LOGIN_URL)
-        const targetUrl = process.env.UI_LOGIN_URL || '/';
+        console.log(process.env.UI_BASE_URL)
+        const targetUrl = process.env.UI_BASE_URL || '/';
         await this.page.goto(targetUrl, {
             waitUntil: 'domcontentloaded',
             timeout: 120_000,
@@ -77,7 +77,7 @@ class LoginPage extends BasePage {
         await this.otcInput.waitFor({state: 'visible'});
         await this.resolveOneTimeCode(secret);
 
-        const expectedBaseUrl = process.env.UI_LOGIN_URL;
+        const expectedBaseUrl = process.env.UI_BASE_URL;
         if (expectedBaseUrl) {
             const normalizedExpected = expectedBaseUrl.replace(/\/$/, '');
             await this.page.waitForURL(
