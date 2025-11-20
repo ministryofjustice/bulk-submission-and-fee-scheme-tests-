@@ -28,6 +28,7 @@ Feature: Fee Calculation API
       | immigrationPriorAuthorityNumber   | <immigrationPriorAuthorityNumber>  |
       | detentionTravelAndWaitingCosts    | <detentionTravelAndWaitingCosts>   |
       | jrFormFilling                     | <jrFormFilling>                    |
+      | caseConcludedDate                 | <caseConcludedDate>                |
 
     When I POST "/api/v1/fee-calculation" with the payload
     Then the response status should be 200
@@ -109,7 +110,7 @@ Feature: Fee Calculation API
 
     @mags_court_designated
     Examples: Mags Court Designated
-      | feeCode | startDate   | representationOrderDate |netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal |
+      | feeCode  | startDate  | representationOrderDate |netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal |
       | PROJ5    | 2016-04-01 | 2016-04-01              |20                    | 10.50                 | true         | 0                         | 0                      | 328.95        |
       | PROJ5    | 2022-09-30 | 2022-09-30              |20                    | 10.50                 | false        | 0                         | 0                      | 316.52        |
       | PROJ6    | 2016-04-01 | 2016-04-01              |20                    | 15.50                 | true         | 0                         | 0                      | 278.14        |
@@ -178,7 +179,7 @@ Feature: Fee Calculation API
     @assoc_civil_work
     Examples: Associated Civil Work
       | feeCode  | startDate  | uniqueFileNumber  | netTravelCosts| netWaitingCosts  | netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal |
-      | ASMS     | 2016-04-01 | 110516/001        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 125.30        |
+      | ASMS     |            | 110516/001        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 125.30        |
       | ASMS     | 2016-04-01 | 010416/002        | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 109.50        |
       | ASPL     | 2016-04-01 | 110619/003        | 0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 346.30        |
       | ASPL     | 2016-04-01 | 161224/004        | 0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 294.50        |
@@ -240,12 +241,12 @@ Feature: Fee Calculation API
     @appeals_and_reviews
     Examples: Appeals and Reviews
       | feeCode  | startDate  | uniqueFileNumber  | representationOrderDate |netTravelCosts| netWaitingCosts  | netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal |
-      | PRIA     | 2022-09-30 | 110516/001        | 2022-10-01              |0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 1919.37       |
-      | PRIB1    | 2016-04-01 | 110516/002        |                         |0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 1399.25       |
-      | PRIB2    | 2016-04-01 | 121019/003        |                         |0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 364.00        |
-      | PRIC1    | 2022-09-30 | 121022/004        |                         |0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 350.31        |
-      | PRIC2    | 2022-09-30 | 131224/005        |                         |0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 660.13        |
-      | PRID1    | 2016-04-01 | 020416/006        |                         |0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 486.75        |
+      | PROH     | 2022-09-30 | 110516/001        | 2022-10-01              |0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 1919.37       |
+      | PROH     | 2016-04-01 | 110516/002        |                         |0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 1399.25       |
+      | APPA     | 2016-04-01 | 121019/003        |                         |0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 364.00        |
+      | APPA     | 2022-09-30 | 121022/004        |                         |0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 350.31        |
+      | APPB     | 2022-09-30 | 131224/005        |                         |0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 660.13        |
+      | APPB     | 2016-04-01 | 020416/006        |                         |0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 486.75        |
 
     @immigration_and_asylum_fixed_fee
     Examples: Immigration and Asylum Fixed Fee
@@ -353,3 +354,45 @@ Feature: Fee Calculation API
       | EDUDIS  | 2024-09-01 |                                | 500                   | 6000                  | 6500.00       |
       | EDUDIS  | 2024-09-01 |                                | 200                   | 890                   | 1090.00       |
       | EDUDIS  | 2025-10-10 |                                | 56000                 | 10.5                  | 56010.50      |
+
+    @sending_hearing
+    Examples: CL Sending Hearing FF
+      | feeCode  | startDate  | uniqueFileNumber  | representationOrderDate |netTravelCosts| netWaitingCosts  | netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal |
+      | PROW     | 2020-10-19 | 110516/001        | 2020-10-19              |0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 248.18        |
+      | PROW     | 2020-10-19 | 110516/002        | 2021-10-19              |0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 211.90        |
+      | PROW     | 2020-10-19 | 121019/003        | 2022-09-29              |0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 253.18        |
+      | PROW     | 2022-09-30 | 121022/004        | 2022-09-30              |0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 244.11        |
+      | PROW     | 2022-09-30 | 131224/005        | 2023-09-30              |0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 280.83        |
+      | PROW     | 2022-09-30 | 020416/006        | 2025-01-01              |0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 239.11        |
+
+    @early_cover_refused_means
+    Examples: Early Cover or Refused Means Test
+      | feeCode  | startDate  | uniqueFileNumber  | representationOrderDate |netTravelCosts| netWaitingCosts  | netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal |
+      | PROT     | 2016-04-01 | 010416/001        |                         |0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 82.13         |
+      | PROT     | 2022-09-30 | 300922/002        |                         |0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 78.71         |
+      | PROT     | 2022-09-30 | 290922/003        |                         |0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 82.13         |
+      | PROU     | 2016-04-01 | 010416/004        |                         |0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 22.81         |
+      | PROU     | 2022-09-30 | 300922/005        |                         |0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 31.48         |
+      | PROU     | 2022-09-30 | 290922/006        |                         |0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 22.81         |
+
+    @prod
+    Examples: PROD (Advocacy Assistance)
+      | feeCode | caseConcludedDate | uniqueFileNumber | representationOrderDate | netProfitCosts | netTravelCosts | netWaitingCosts | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
+      | PROD    | 2020-10-19        | 010416/001       | 2020-10-19              | 1000           | 800            | 8000            | Yes          | 20                    | 10.5                  | 11790.50      |
+      | PROD    | 2020-10-19        | 300922/002       | 2021-10-19              | 60000          |                | 0               | No           | 20                    | 10.5                  | 60030.50      |
+      | PROD    | 2020-10-19        | 290922/003       | 2022-09-29              | 200            | 5000           | 600             | Yes          | 20                    | 15.5                  | 6995.50       |
+      | PROD    | 2022-09-30        |                  |                         | 3209.54        | 499            | 323             | No           | 20                    | 15.5                  | 4067.04       |
+      | PROD    | 2022-09-30        | 300922/005       |                         | 1200           | 566            | 788             | Yes          | 20                    | 10.5                  | 3095.30       |
+      | PROD    | 2022-09-30        |                  |                         | 1600           | 40000          | 80000           | No           | 20                    | 10.5                  | 121630.50     |
+
+
+    @pre_order_cover
+    Examples: Pre Order Cover
+      | feeCode | startDate  | uniqueFileNumber | netProfitCosts | netTravelCosts | netWaitingCosts | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
+      | PROP1   | 2016-04-01 | 110516/001       | 5              | 10             | 2               | Yes          | 20                    | 10.5                  | 50.90         |
+      | PROP1   | 2022-09-30 | 290922/002       | 10             | 0              | 3               | No           | 20                    | 10.5                  | 43.50         |
+      | PROP1   | 2022-09-30 | 161223/003       | 3              | 2              | 0               | Yes          | 20                    | 15.5                  | 41.50         |
+      | PROP2   | 2016-04-01 | 020416/004       | 5              | 10             | 2               | No           | 20                    | 15.5                  | 52.50         |
+      | PROP2   | 2022-09-30 | 290922/005       | 10             | 0              | 3               | Yes          | 20                    | 10.5                  | 46.10         |
+      | PROP2   | 2022-09-30 | 161224/006       | 3              | 2              | 0               | No           | 20                    | 10.5                  | 35.50         |
+
