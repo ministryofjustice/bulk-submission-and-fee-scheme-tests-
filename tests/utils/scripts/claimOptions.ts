@@ -7,4 +7,11 @@ export interface claimOptions {
   disbursementAmount?: number;
   londonNonLondonRate?: string;
   uniqueCaseId?: string;
+  caseStartDate?: string;
+  caseConcludedDate?: string;
+  clientDateOfBirth?: string;
+  transferDate?: string;
+  vatApplicable?: string;
+  postalApplication?: string;
+  nrmAdvice?: string;
 }

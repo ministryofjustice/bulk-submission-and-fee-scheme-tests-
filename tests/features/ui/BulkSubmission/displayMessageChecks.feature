@@ -32,6 +32,32 @@ Feature: Display message checks
       | Schedule Reference is required for Legal Help claims          |
       | Net Profit Costs Amount is required for Legal Help claims     |
 
+  @temp
+  Scenario Outline: Legal Help: Should check parse errors
+    Given I generate "Legal help" "csv" file with the following claims
+      | <fieldName> |
+      | <value>     |
+    When I upload that file
+    Then the user sees an error message "<errorMessage>"
+    Examples:
+      | fieldName         | value | errorMessage                                                                                    |
+      | vatApplicable     | A     | Invalid value 'A' supplied for field 'VAT Applicable'. Valid values are 'Y' or 'N'              |
+      | postalApplication | A     | Invalid value 'A' supplied for field 'Postal Application Accepted'. Valid values are 'Y' or 'N' |
+      | nrmAdvice         | A     | Invalid value 'A' supplied for field 'NRM Advice'. Valid values are 'Y' or 'N'                  |
+      #| Legacy Case must be Y or N                                                                                                                 |
+      #| London Rate must be Y or N                                                                                                                 |
+      #| Additional Travel Payment must be Y or N                                                                                                   |
+      #| Eligible Client must be Y or N                                                                                                             |
+      #| IRC Surgery must be Y or N                                                                                                                 |
+      #| Substantive Hearing must be Y or N                                                                                                         |
+      # broken dates| Case Start Date must be a valid date in the format DD/MM/YYYY                                                                              |
+      # broken dates| Case Concluded Date must be a valid date in the format DD/MM/YYYY                                                                          |
+      # broken dates| Client Date of Birth must be a valid date in the format DD/MM/YYYY                                                                         |
+      # broken dates| Transfer Date must be a valid date in the format DD/MM/YYYY                                                                                |
+      # broken boolean | VAT Applicable must be Y or N                                                                                                              |
+      # broken boolean | Is Tolerance Applicable must be true or false                                                                                              |
+
+
     # Jamie Note: There is a field called TRAVEL_COSTS which can be set, is this still used?
   Scenario: Legal Help: Should check display messages are shown for format based errors (regex)
     Given I upload "tests/data/invalid/legal_help_regex_errors.csv"
@@ -41,15 +67,12 @@ Feature: Display message checks
       | Schedule Reference must be a maximum of 20 characters and contain only letters, numbers, forward slashes, periods, and hyphens             |
       | Case Reference Number must contain only letters, numbers, forward slashes, periods, hyphens, and spaces, and be a maximum of 30 characters |
       | Unique File Number must be in the format DDMMYY/NNN (6 digits forward slash 3 digits)                                                      |
-      # broken dates| Case Start Date must be a valid date in the format DD/MM/YYYY                                                                              |
-      # broken dates| Case Concluded Date must be a valid date in the format DD/MM/YYYY                                                                          |
       | Each Matter Type Code 1 and 2 must be 4 characters                                                                                         |
       | Fee Code must contain only letters and numbers, and be a maximum of 10 characters                                                          |
       | Procurement Area Code must be 2 uppercase letters followed by 5 digits                                                                     |
       | Access Point Code must be in the format AP##### (AP followed by 5 digits)                                                                  |
       | Client Forename must contain only letters, numbers, spaces, hyphens, apostrophes, ampersands, and be a maximum of 30 characters            |
       | Client Surname must contain only letters, numbers, spaces, hyphens, apostrophes, ampersands, and be a maximum of 30 characters             |
-      # broken dates| Client Date of Birth must be a valid date in the format DD/MM/YYYY                                                                         |
       | Unique Client Number must be in the format DDMMYY/X/ZZZZ with valid date, and be a maximum of 15 characters                                |
       | Client Postcode must be a valid UK postcode or NFA                                                                                         |
       | Gender code must be valid                                                                                                                  |
@@ -61,14 +84,10 @@ Feature: Display message checks
       | Standard Fee Category Code must be valid                                                                                                   |
       | Outcome Code must be exactly 2 characters and contain only letters, numbers, and hyphens                                                   |
       | Designated Accredited Representative Code must be valid                                                                                    |
-      # broken boolean | Postal Application Accepted must be Y or N                                                                                                 |
       | Mental Health Tribunal Reference must be in format XX/YYYY/YYYY or XXYYYZZZ                                                                |
-      # broken boolean | NRM Advice must be Y or N                                                                                                                  |
       | Follow On Work must be a single character                                                                                                  |
-      # broken dates| Transfer Date must be a valid date in the format DD/MM/YYYY                                                                                |
       | Exemption Criteria Satisfied must be 2 uppercase letters followed by 3 digits                                                              |
       | Exceptional Case Funding Reference must be 7 digits followed by 2 uppercase letters                                                        |
-      # broken boolean | Legacy Case must be Y or N                                                                                                                 |
       | Advice Time must be in minutes                                                                                                             |
       | Travel Time must be in minutes                                                                                                             |
       | Waiting Time must be in minutes                                                                                                            |
@@ -78,27 +97,20 @@ Feature: Display message checks
       | Disbursements VAT Amount must be a valid monetary value                                                                                    |
       | Travel Waiting Costs Amount must be a valid monetary value                                                                                 |
       # TODO: broken not mapped??? | Net Waiting Costs Amount must be a valid monetary value                                                                                    |
-      # broken boolean | VAT Applicable must be Y or N                                                                                                              |
-      # broken boolean | Is Tolerance Applicable must be true or false                                                                                              |
       | Prior Authority Reference must be exactly 7 alphanumeric characters                                                                        |
-      # broken boolean | London Rate must be Y or N                                                                                                                 |
       | Adjourned Hearing Fee Amount must be between 0 and 9                                                                                       |
-      # broken boolean | Additional Travel Payment must be Y or N                                                                                                   |
       | Costs Damages Recovered Amount must be a valid monetary value                                                                              |
       | Meetings Attended Code must be valid                                                                                                       |
       | Detention Travel Waiting Costs Amount must be a valid monetary value                                                                       |
       | JR Form Filling Amount must be a valid monetary value                                                                                      |
-      # broken boolean | Eligible Client must be Y or N                                                                                                             |
+      # broken date | Surgery Date is invalid                                                                                                                    |
       | Advice Type Code must be valid                                                                                                             |
       | Medical Reports Count must be between 0 and 10                                                                                             |
-      # broken boolean | IRC Surgery must be Y or N                                                                                                                 |
-      # broken date | Surgery Date is invalid                                                                                                                    |
       # TODO: Not being mapped? It's present in CsvOutcome | Surgery Clients Count must be between 1 and 20                                                                                             |
       # TODO: MISSING IN CSV OUTCOME? => | Surgery Matters Count must be between 1 and 20                                                                                             |
       | CMRH Oral Count must be between 0 and 9                                                                                                    |
       | CMRH Telephone Count must be between 0 and 9                                                                                               |
       | AIT Hearing Centre Code must be valid                                                                                                      |
-      # broken boolean | Substantive Hearing must be Y or N                                                                                                         |
       | HO Interview must be between 0 and 9                                                                                                       |
       | Local Authority Number must contain only letters and numbers, and be a maximum of 30 characters                                            |
 
@@ -133,8 +145,8 @@ Feature: Display message checks
       | DSCC Number must be exactly 10 alphanumeric characters                                                                                     |
       | MAAT ID must be up to 10 alphanumeric characters                                                                                           |
       | Prison Law Prior Approval Number must be exactly 10 alphanumeric characters                                                                |
-      # Broken boolean | Duty Solicitor must be Y or N                                                                                                               |
-      # Broken boolean | Youth Court must be Y or N                                                                                                                  |
+      | Duty Solicitor must be Y or N                                                                                                              |
+      | Youth Court must be Y or N                                                                                                                 |
       | Scheme ID must be exactly 4 alphanumeric characters                                                                                        |
       | Mediation Sessions Count must be between 1 and 99                                                                                          |
       | Mediation Time Minutes must be between 0 and 99999                                                                                         |
@@ -148,7 +160,7 @@ Feature: Display message checks
       | Gender code must be valid                                                                                                                  |
       | Ethnicity Code must be valid                                                                                                               |
       | Disability Code must be valid                                                                                                              |
-      # Broken boolean | Is Legally Aided must be Y or N                                                                                                             |
+      | Is Legally Aided must be Y or N                                                                                                            |
       | Client Type Code must be valid                                                                                                             |
       # TODO Not a value in CsvOutcome? | Home Office Client Number must contain only letters and numbers, and be a maximum of 16 characters                                          |
       | CLA Reference Number must be between 1 and 7 digits                                                                                        |
@@ -159,14 +171,14 @@ Feature: Display message checks
       | Standard Fee Category Code must be valid                                                                                                   |
       | Outcome Code must be a valid crime lower outcome code or left blank                                                                        |
       | Designated Accredited Representative Code must be valid                                                                                    |
-      # Broken boolean | Postal Application Accepted must be Y or N                                                                                                  |
+      | Postal Application Accepted must be Y or N                                                                                                 |
       | Mental Health Tribunal Reference must be in format XX/YYYY/YYYY or XXYYYZZZ                                                                |
-      # Broken boolean | NRM Advice must be Y or N                                                                                                                   |
+      | NRM Advice must be Y or N                                                                                                                  |
       | Follow On Work must be a single character                                                                                                  |
       # Broken dates| Transfer Date must be a valid date in the format DD/MM/YYYY                                                                                 |
       | Exemption Criteria Satisfied must be 2 uppercase letters followed by 3 digits                                                              |
       | Exceptional Case Funding Reference must be 7 digits followed by 2 uppercase letters                                                        |
-      # Broken boolean | Legacy Case must be Y or N                                                                                                                  |
+      | Legacy Case must be Y or N                                                                                                                 |
       | Advice Time must be in minutes                                                                                                             |
       | Travel Time must be in minutes                                                                                                             |
       | Waiting Time must be in minutes                                                                                                            |
@@ -176,26 +188,26 @@ Feature: Display message checks
       | Disbursements VAT Amount must be a valid monetary value                                                                                    |
       | Travel Waiting Costs Amount must be a valid monetary value                                                                                 |
       | Net Waiting Costs Amount must be a valid monetary value                                                                                    |
-      # Broken boolean | VAT Applicable must be Y or N                                                                                                               |
-      # Broken boolean | Is Tolerance Applicable must be true or false                                                                                               |
+      | VAT Applicable must be Y or N                                                                                                              |
+      | Is Tolerance Applicable must be true or false                                                                                              |
       | Prior Authority Reference must be exactly 7 alphanumeric characters                                                                        |
-      # Broken boolean | London Rate must be Y or N                                                                                                                  |
+      | London Rate must be Y or N                                                                                                                 |
       | Adjourned Hearing Fee Amount must be between 0 and 9                                                                                       |
-      # Broken boolean | Additional Travel Payment must be Y or N                                                                                                    |
+      | Additional Travel Payment must be Y or N                                                                                                   |
       | Costs Damages Recovered Amount must be a valid monetary value                                                                              |
       | Meetings Attended Code must be valid                                                                                                       |
       | Detention Travel Waiting Costs Amount must be a valid monetary value                                                                       |
       | JR Form Filling Amount must be a valid monetary value                                                                                      |
-      # Broken boolean | Eligible Client must be Y or N                                                                                                              |
+      | Eligible Client must be Y or N                                                                                                             |
       | Advice Type Code must be valid                                                                                                             |
       | Medical Reports Count must be between 0 and 10                                                                                             |
-      # Broken boolean | IRC Surgery must be Y or N                                                                                                                  |
+      | IRC Surgery must be Y or N                                                                                                                 |
       # Broken date | Surgery Date is invalid                                                                                                                     |
       | Surgery Matters Count must be between 1 and 20                                                                                             |
       | CMRH Oral Count must be between 0 and 9                                                                                                    |
       | CMRH Telephone Count must be between 0 and 9                                                                                               |
       | AIT Hearing Centre Code must be valid                                                                                                      |
-      # Broken boolean | Substantive Hearing must be Y or N                                                                                                          |
+      | Substantive Hearing must be Y or N                                                                                                         |
       | HO Interview must be between 0 and 9                                                                                                       |
       | Local Authority Number must contain only letters and numbers, and be a maximum of 30 characters                                            |
 
@@ -223,7 +235,6 @@ Feature: Display message checks
       | Ethnicity Code is required for Mediation claims        |
       | Gender Code is required for Mediation claims           |
 
-  @temp
   Scenario: Mediation: Should check display messages are shown for format based errors (regex)
     Given I upload "tests/data/invalid/mediation_regex_errors.csv"
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
@@ -250,14 +261,14 @@ Feature: Display message checks
       | Standard Fee Category Code must be valid                                                                                                   |
       | Outcome Code must be a valid mediation outcome code or left blank                                                                          |
       | Designated Accredited Representative Code must be valid                                                                                    |
-      # broken boolean | Postal Application Accepted must be Y or N                                                                                                 |
+      | Postal Application Accepted must be Y or N                                                                                                 |
       | Mental Health Tribunal Reference must be in format XX/YYYY/YYYY or XXYYYZZZ                                                                |
-      # broken boolean | NRM Advice must be Y or N                                                                                                                  |
+      | NRM Advice must be Y or N                                                                                                                  |
       | Follow On Work must be a single character                                                                                                  |
       # broken dates| Transfer Date must be a valid date in the format DD/MM/YYYY                                                                                |
       | Exemption Criteria Satisfied must be 2 uppercase letters followed by 3 digits                                                              |
       | Exceptional Case Funding Reference must be 7 digits followed by 2 uppercase letters                                                        |
-      # broken boolean | Legacy Case must be Y or N                                                                                                                 |
+      | Legacy Case must be Y or N                                                                                                                 |
       | Advice Time must be in minutes                                                                                                             |
       | Travel Time must be in minutes                                                                                                             |
       | Waiting Time must be in minutes                                                                                                            |
@@ -267,26 +278,26 @@ Feature: Display message checks
       | Disbursements VAT Amount must be a valid monetary value                                                                                    |
       # TODO: Not being mapped? | Travel Waiting Costs Amount must be a valid monetary value                                                                                 |
       # broken not mapped??? | Net Waiting Costs Amount must be a valid monetary value                                                                                    |
-      # broken boolean | VAT Applicable must be Y or N                                                                                                              |
-      # broken boolean | Is Tolerance Applicable must be true or false                                                                                              |
+      | VAT Applicable must be Y or N                                                                                                              |
+      | Is Tolerance Applicable must be true or false                                                                                              |
       | Prior Authority Reference must be exactly 7 alphanumeric characters                                                                        |
-      # broken boolean | London Rate must be Y or N                                                                                                                 |
+      | London Rate must be Y or N                                                                                                                 |
       | Adjourned Hearing Fee Amount must be between 0 and 9                                                                                       |
-      # broken boolean | Additional Travel Payment must be Y or N                                                                                                   |
+      | Additional Travel Payment must be Y or N                                                                                                   |
       | Costs Damages Recovered Amount must be a valid monetary value                                                                              |
       | Meetings Attended Code must be valid                                                                                                       |
       | Detention Travel Waiting Costs Amount must be a valid monetary value                                                                       |
       | JR Form Filling Amount must be a valid monetary value                                                                                      |
-      # broken boolean | Eligible Client must be Y or N                                                                                                             |
+      | Eligible Client must be Y or N                                                                                                             |
       | Advice Type Code must be valid                                                                                                             |
       | Medical Reports Count must be between 0 and 10                                                                                             |
-      # broken boolean | IRC Surgery must be Y or N                                                                                                                 |
+      | IRC Surgery must be Y or N                                                                                                                 |
       # broken date | Surgery Date is invalid                                                                                                                    |
       | Surgery Matters Count must be between 1 and 20                                                                                             |
       | CMRH Oral Count must be between 0 and 9                                                                                                    |
       | CMRH Telephone Count must be between 0 and 9                                                                                               |
       | AIT Hearing Centre Code must be valid                                                                                                      |
-      # broken boolean | Substantive Hearing must be Y or N                                                                                                         |
+      | Substantive Hearing must be Y or N                                                                                                         |
       | HO Interview must be between 0 and 9                                                                                                       |
       | Local Authority Number must contain only letters and numbers, and be a maximum of 30 characters                                            |
       | Client 2 Forename must contain only letters, numbers, spaces, hyphens, apostrophes, ampersands, and be a maximum of 30 characters          |
@@ -297,5 +308,5 @@ Feature: Display message checks
       # TODO Not mapping to CsvOutcome (Jackson?) | Client 2 Gender code must be valid                                                                                                         |
       # TODO Not mapping to CsvOutcome (Jackson?) | Client 2 Ethnicity Code must be valid                                                                                                      |
       # TODO Not mapping to CsvOutcome (Jackson?) | Client 2 Disability Code must be valid                                                                                                     |
-      # broken boolean | Client 2 Is Legally Aided must be Y or N                                                                                                   |
-      # broken boolean | Client 2 Postal Application Accepted must be Y or N                                                                                        |
+      | Client 2 Is Legally Aided must be Y or N                                                                                                   |
+      | Client 2 Postal Application Accepted must be Y or N                                                                                        |

@@ -1,14 +1,13 @@
-import { getUniqueSubmissionPeriod } from './submissionPeriodHelper';
+import {getUniqueSubmissionPeriod} from './submissionPeriodHelper';
 import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
-import { faker } from '@faker-js/faker';
-import { convertFileToXml } from './converter';
+import {faker} from '@faker-js/faker';
+import {convertFileToXml} from './converter';
 import 'reflect-metadata';
 import dotenv from 'dotenv';
-import { claimOptions } from './claimOptions';
+import {claimOptions} from './claimOptions';
 import {GenerateFileOptions} from "./generateFileOptions";
-import type {CustomWorld} from "../../features/support/world";
 
 dotenv.config();
 
@@ -20,19 +19,19 @@ const offices = ['0P322F'];
 const feeCodes = ['CAPA', 'COM'];
 const OUTPUT_DIR = 'generated_submissions_legal';
 const PROVIDER_API =
-  process.env.PROVIDER_API ||
-  'https://laa-provider-details-api-uat.apps.live.cloud-platform.service.justice.gov.uk/api/v1/provider-offices';
+    process.env.PROVIDER_API ||
+    'https://laa-provider-details-api-uat.apps.live.cloud-platform.service.justice.gov.uk/api/v1/provider-offices';
 
 // ---------- 3️⃣ Helpers ----------
 const pad = (num: number, len = 2) => num.toString().padStart(len, '0');
 const randomFrom = <T>(arr: T[]): T =>
-  arr[Math.floor(Math.random() * arr.length)];
+    arr[Math.floor(Math.random() * arr.length)];
 const randomMoney = (min: number, max: number) =>
-  faker.number.float({ min, max, fractionDigits: 2 });
+    faker.number.float({min, max, fractionDigits: 2});
 const formatDate = (date: Date) =>
-  date.toISOString().split('T')[0].split('-').reverse().join('/');
+    date.toISOString().split('T')[0].split('-').reverse().join('/');
 const sanitizeForCode = (str: string) =>
-  str.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    str.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
 
 const generateUFN = (date: Date, caseNum: number) => {
   const dd = pad(date.getDate());
@@ -80,15 +79,15 @@ const fetchProviderSchedules = async (office: string, caseStartDate: Date) => {
   const formattedDate = caseStartDate.toISOString().split('T')[0];
   try {
     const response = await axios.get(
-      `${PROVIDER_API}/${office}/schedules?effectiveDate=${formattedDate}&areaOfLaw=LEGAL%20HELP`,
-      {
-        headers: {
-          accept: 'application/json',
-          'X-Authorization':
-            process.env.PROVIDER_API_KEY || 'dpd_e42*u+gb6@rp8qNmccvDUd',
-        },
-        validateStatus: () => true,
-      }
+        `${PROVIDER_API}/${office}/schedules?effectiveDate=${formattedDate}&areaOfLaw=LEGAL%20HELP`,
+        {
+          headers: {
+            accept: 'application/json',
+            'X-Authorization':
+                process.env.PROVIDER_API_KEY || 'dpd_e42*u+gb6@rp8qNmccvDUd',
+          },
+          validateStatus: () => true,
+        }
     );
 
     if (response.status === 204) return [];
@@ -97,8 +96,8 @@ const fetchProviderSchedules = async (office: string, caseStartDate: Date) => {
     providerApiAvailable = false;
     const message = err instanceof Error ? err.message : String(err);
     console.warn(
-      '⚠️ Unable to reach provider schedules API. Falling back to local date generation.',
-      message
+        '⚠️ Unable to reach provider schedules API. Falling back to local date generation.',
+        message
     );
     return undefined;
   }
@@ -106,9 +105,10 @@ const fetchProviderSchedules = async (office: string, caseStartDate: Date) => {
 
 // ---------- 6️⃣ Outcome Generator ----------
 const generateOutcome = async (
-  office: string,
-  caseNum: number,
-  submissionYear: number
+    office: string,
+    caseNum: number,
+    submissionYear: number,
+    claimOverride?: claimOptions
 ) => {
   const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
@@ -118,9 +118,9 @@ const generateOutcome = async (
   });
 
   const minCaseStart = new Date(
-    Math.max(dob.getFullYear() + 18, 2018),
-    0,
-    1
+      Math.max(dob.getFullYear() + 18, 2018),
+      0,
+      1
   );
   const maxCaseStart = new Date(2024, 11, 31);
 
@@ -162,34 +162,37 @@ const generateOutcome = async (
     from: caseStartDate,
     to: new Date(),
   });
-  const ufn = generateUFN(caseStartDate, caseNum);
-  const ucn = generateUCN(dob, lastName, firstName[0]);
+  const ufn = claimOverride?.ufn ?? generateUFN(caseStartDate, caseNum);
+  const ucn = claimOverride?.ucn ?? generateUCN(dob, lastName, firstName[0]);
   const postcode = faker.helpers.replaceSymbols('??## #??').toUpperCase();
 
   return {
     case_ref_number: `${sanitizeForCode(firstName.slice(0, 3))}/${sanitizeForCode(lastName)}`,
-    case_start_date: formatDate(caseStartDate),
+    case_start_date: claimOverride?.caseStartDate ?? formatDate(caseStartDate),
     case_id: pad(caseNum, 3),
     ufn,
     client_forename: firstName,
     client_surname: lastName,
-    client_date_of_birth: formatDate(dob),
+    client_date_of_birth: claimOverride?.clientDateOfBirth ?? formatDate(dob),
     ucn,
     gender: randomFrom(['M', 'F']),
     ethnicity: '12',
     disability: 'NCD',
-    profit_cost: randomMoney(50, 200),
+    profit_cost: claimOverride?.profitCost ?? randomMoney(50, 200),
     disbursements_amount: randomMoney(0, 20),
     disbursements_vat: randomMoney(0, 1.98),
     counsel_cost: randomMoney(0, 50),
     travel_costs: randomMoney(0, 15),
-    work_concluded_date: formatDate(workConcludedDate),
+    work_concluded_date: claimOverride?.caseConcludedDate ?? formatDate(workConcludedDate),
+    transfer_date: formatDate(workConcludedDate),
     advice_time: 120,
     travel_time: 0,
     waiting_time: 0,
-    vat_indicator: 'Y',
-    london_nonlondon_rate: 'N',
+    vat_applicable: claimOverride?.vatApplicable ?? 'Y',
+    london_nonlondon_rate: claimOverride?.londonNonLondonRate ?? 'N',
     outcome_code: 'FX',
+    postal_application: claimOverride?.postalApplication ?? 'Y',
+    nrm_advice: claimOverride?.nrmAdvice ?? 'Y',
     schedule_ref: `${office}/${submissionYear}/${caseNum}`,
     client_post_code: postcode,
   };
@@ -197,16 +200,16 @@ const generateOutcome = async (
 
 const ensureOutputDir = () => {
   if (!fs.existsSync(OUTPUT_DIR)) {
-    fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+    fs.mkdirSync(OUTPUT_DIR, {recursive: true});
   }
 };
 
 const generateFile = async (
-  baseName: string,
-  outcomesCount: number, fileType: 'txt' | 'csv',
-  submissionPeriod: string,
-  office: string,
-  claims?: claimOptions[]
+    baseName: string,
+    outcomesCount: number, fileType: 'txt' | 'csv',
+    submissionPeriod: string,
+    office: string,
+    claims?: claimOptions[]
 ) => {
   const officeInput = office ?? randomFrom(offices);
   const submissionPeriodInput = submissionPeriod ?? await getUniqueSubmissionPeriod(officeInput, 'LEGAL HELP');
@@ -216,64 +219,56 @@ const generateFile = async (
   content += `SCHEDULE,submissionPeriod=${submissionPeriodInput},areaOfLaw=LEGAL HELP,scheduleNum=${office}/CIVIL\n`;
 
   for (let i = 0; i < outcomesCount; i++) {
-    const o = await generateOutcome(officeInput, i, submissionYear);
+    const o = await generateOutcome(officeInput, i, submissionYear, claims?.[i]);
     const claimOverride = claims?.[i];
     const feeCode = claimOverride?.feeCode ?? randomFrom(feeCodes);
-    const ucn = (claimOverride?.ucn ?? o.ucn).toUpperCase();
-    const ufn = claimOverride?.ufn ?? o.ufn;
-    const profitCost = claimOverride?.profitCost ?? o.profit_cost;
-    const londonNonLondonRate = claimOverride?.londonNonLondonRate ?? o.london_nonlondon_rate;
 
-    const caseStartDate = submissionPeriod ?
-        convertSubmissionPeriodToDate(submissionPeriod) :
-        o.case_start_date;
-
-    content += `OUTCOME,FEE_CODE=${feeCode},matterType=FAMX:FAPP,CASE_REF_NUMBER=${o.case_ref_number},CASE_START_DATE=${caseStartDate},CASE_ID=${o.case_id},UFN=${ufn},PROCUREMENT_AREA=PA00120,ACCESS_POINT=AP00000,CLIENT_FORENAME=${o.client_forename},CLIENT_SURNAME=${o.client_surname},CLIENT_DATE_OF_BIRTH=${o.client_date_of_birth},UCN=${ucn},GENDER=${o.gender},ETHNICITY=${o.ethnicity},DISABILITY=${o.disability},CLIENT_POST_CODE=${o.client_post_code},WORK_CONCLUDED_DATE=${o.work_concluded_date},CASE_STAGE_LEVEL=FPC01,ADVICE_TIME=${o.advice_time},TRAVEL_TIME=${o.travel_time},WAITING_TIME=${o.waiting_time},PROFIT_COST=${profitCost},DISBURSEMENTS_AMOUNT=${o.disbursements_amount},COUNSEL_COST=${o.counsel_cost},DISBURSEMENTS_VAT=${o.disbursements_vat},TRAVEL_WAITING_COSTS=0.00,VAT_INDICATOR=${o.vat_indicator},LONDON_NONLONDON_RATE=${londonNonLondonRate},TRAVEL_COSTS=${o.travel_costs},OUTCOME_CODE=${o.outcome_code},POSTAL_APPL_ACCP=N,SCHEDULE_REF=${o.schedule_ref}\n`;
+    content += `OUTCOME,FEE_CODE=${feeCode},matterType=FAMX:FAPP,CASE_REF_NUMBER=${o.case_ref_number},CASE_START_DATE=${o.case_start_date},CASE_ID=${o.case_id},UFN=${o.ufn},PROCUREMENT_AREA=PA00120,ACCESS_POINT=AP00000,CLIENT_FORENAME=${o.client_forename},CLIENT_SURNAME=${o.client_surname},CLIENT_DATE_OF_BIRTH=${o.client_date_of_birth},UCN=${o.ucn},GENDER=${o.gender},ETHNICITY=${o.ethnicity},DISABILITY=${o.disability},CLIENT_POST_CODE=${o.client_post_code},NATIONAL_REF_MECHANISM_ADVICE=${o.nrm_advice},WORK_CONCLUDED_DATE=${o.work_concluded_date},CASE_STAGE_LEVEL=FPC01,ADVICE_TIME=${o.advice_time},TRAVEL_TIME=${o.travel_time},WAITING_TIME=${o.waiting_time},PROFIT_COST=${o.profit_cost},DISBURSEMENTS_AMOUNT=${o.disbursements_amount},COUNSEL_COST=${o.counsel_cost},DISBURSEMENTS_VAT=${o.disbursements_vat},TRAVEL_WAITING_COSTS=0.00,VAT_INDICATOR=${o.vat_applicable},LONDON_NONLONDON_RATE=${o.london_nonlondon_rate},TRAVEL_COSTS=${o.travel_costs},OUTCOME_CODE=${o.outcome_code},POSTAL_APPL_ACCP=${o.postal_application},SCHEDULE_REF=${o.schedule_ref},TRANSFER_DATE=${o.transfer_date}\n`;
   }
 
   ensureOutputDir();
   fs.writeFileSync(
-    path.join(OUTPUT_DIR, `${baseName}.${fileType}`),
-    content,
-    'utf-8'
+      path.join(OUTPUT_DIR, `${baseName}.${fileType}`),
+      content,
+      'utf-8'
   );
 };
 
 export async function GenerateCivilFile(
-  files: number,
-  outcomes: number,
-  format: 'txt' | 'csv' | 'xml',
-  options: GenerateFileOptions = {}
+    files: number,
+    outcomes: number,
+    format: 'txt' | 'csv' | 'xml',
+    options: GenerateFileOptions = {}
 ): Promise<string[]> {
   const generatedFiles: string[] = [];
-  const { submissionPeriod, office, claims, suffix } = options;
+  const {submissionPeriod, office, claims, suffix} = options;
 
   try {
     const resolvedSuffix =
-      suffix || `${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+        suffix || `${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 
     for (let i = 1; i <= files; i++) {
       const officeInput = office ?? randomFrom(offices);
 
       const submissionPeriodInput =
-        submissionPeriod ||
-        (await getUniqueSubmissionPeriod(officeInput, 'LEGAL HELP',
-            claims?.[0].feeCode));
+          submissionPeriod ||
+          (await getUniqueSubmissionPeriod(officeInput, 'LEGAL HELP',
+              claims?.[0].feeCode));
 
       const baseName = `legal_${resolvedSuffix}_${i}`;
       const intermediateFormat = format === 'xml' ? 'csv' : format;
 
       await generateFile(
-        baseName,
-        outcomes,
-        intermediateFormat,
-        submissionPeriodInput,
-        officeInput,
-        claims
+          baseName,
+          outcomes,
+          intermediateFormat,
+          submissionPeriodInput,
+          officeInput,
+          claims
       );
       const inputFile = path.join(
-        OUTPUT_DIR,
-        `${baseName}.${intermediateFormat}`
+          OUTPUT_DIR,
+          `${baseName}.${intermediateFormat}`
       );
       const outputFile = path.join(OUTPUT_DIR, `${baseName}.xml`);
 
