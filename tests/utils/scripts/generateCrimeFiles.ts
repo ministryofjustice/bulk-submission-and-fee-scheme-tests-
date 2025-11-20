@@ -78,7 +78,8 @@ const fetchProviderSchedules = async (office: string, caseStartDate: Date) => {
   }
 };
 
-const generateOutcome = async (office: string, caseNum: number) => {
+const generateOutcome = async (office: string, caseNum: number,
+                               claimOverride?: claimOptions) => {
   const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
 
@@ -116,7 +117,7 @@ const generateOutcome = async (office: string, caseNum: number) => {
 
   // 📅 Ensure work concluded date is always after case start
   const workConcludedDate = faker.date.between({from: caseStartDate, to: ufnMax});
-  const ufn = generateUFN(caseStartDate, caseNum);
+  const ufn = claimOverride?.ufn ?? generateUFN(caseStartDate, caseNum);
   const station = randomFrom(policeStations);
 
   return {
@@ -124,11 +125,11 @@ const generateOutcome = async (office: string, caseNum: number) => {
     client_surname: lastName,
     gender: randomFrom(['M', 'F']),
     ethnicity: randomFrom(['99', '01', '02', '03', '04']),
-    profit_cost: randomMoney(10, 200),
-    disbursements_amount: randomMoney(0, 50),
+    profit_cost: claimOverride?.profitCost ?? randomMoney(10, 200),
+    disbursements_amount: claimOverride?.disbursementAmount ?? randomMoney(0, 50),
     disbursements_vat: randomMoney(0, 1.98),
-    vat_indicator: randomFrom(['Y', 'N']),
-    travel_costs: randomMoney(0, 100),
+    vat_indicator: claimOverride?.vatApplicable ?? randomFrom(['Y', 'N']),
+    travel_costs: claimOverride?.travelCost ?? randomMoney(0, 100),
     outcome_code: randomFrom(['CN04', 'CN02', 'CN01', 'CN08']),
     crime_matter_type: pad(Number(randomFrom(['1', '2', '3'])), 2),
     disability: randomFrom([
@@ -142,11 +143,21 @@ const generateOutcome = async (office: string, caseNum: number) => {
     no_of_suspects: faker.number.int({min: 1, max: 3}),
     no_of_police_station: 1,
     police_station: station.id,
-    duty_solicitor: randomFrom(['Y', 'N']),
-    youth_court: randomFrom(['Y', 'N']),
+    duty_solicitor: claimOverride?.dutySolicitor ?? randomFrom(['Y', 'N']),
+    youth_court: claimOverride?.youthCourt ?? randomFrom(['Y', 'N']),
     scheme_id: station.schemeId,
     dscc_number: randomDSCC(),
-    ufn
+    postal_application: claimOverride?.postalApplication ?? randomFrom(['Y', 'N']),
+    nrm_advice: claimOverride?.nrmAdvice ?? randomFrom(['Y', 'N']),
+    legacy_case: claimOverride?.legacyCase ?? randomFrom(['Y', 'N']),
+    london_nonlondon_rate: claimOverride?.londonNonLondonRate ?? randomFrom(['Y', 'N']),
+    additional_travel_payment: claimOverride?.additionalTravelPayment ?? randomFrom(['Y', 'N']),
+    eligible_client_indicator: claimOverride?.eligibleClientIndicator ?? randomFrom(['Y', 'N']),
+    irc_surgery: claimOverride?.ircSurgery ?? randomFrom(['Y', 'N']),
+    substantive_hearing: claimOverride?.substantiveHearing ?? randomFrom(['Y', 'N']),
+    tolerance_indicator: claimOverride?.toleranceIndicator ?? randomFrom(['Y', 'N']),
+    client_legally_aided: claimOverride?.clientLegallyAided ?? randomFrom(['Y', 'N']),
+    ufn: ufn
   };
 };
 
@@ -162,15 +173,12 @@ const generateFile = async (fileName: string,
   content += `SCHEDULE,submissionPeriod=${submissionPeriod},areaOfLaw=CRIME LOWER,scheduleNum=${office}/CRM\n`;
 
   for (let i = 0; i < outcomesCount; i++) {
-    const o = await generateOutcome(office, i);
     const claimOverride = options.claims?.[i];
+    const o = await generateOutcome(office, i,  claimOverride);
     const feeCode = claimOverride?.feeCode ?? randomFrom(feeCodes);
-    const profitCost = claimOverride?.profitCost ?? o.profit_cost;
-    const travelCost = claimOverride?.travelCost ?? o.travel_costs;
-    const disbursementAmount = claimOverride?.disbursementAmount ?? o.disbursements_amount;
     const matterType = feeCode.substring(0, 4);
 
-    content += `OUTCOME,FEE_CODE=${feeCode},matterType=${matterType},UFN=${o.ufn},CLIENT_FORENAME=${o.client_forename},CLIENT_SURNAME=${o.client_surname},GENDER=${o.gender},ETHNICITY=${o.ethnicity},DISABILITY=${o.disability},CASE_START_DATE=${o.case_start_date},PROFIT_COST=${profitCost},DISBURSEMENTS_AMOUNT=${disbursementAmount},DISBURSEMENTS_VAT=${o.disbursements_vat},VAT_INDICATOR=${o.vat_indicator},TRAVEL_COSTS=${travelCost},OUTCOME_CODE=${o.outcome_code},CRIME_MATTER_TYPE=${o.crime_matter_type},TRAVEL_WAITING_COSTS=${o.travel_waiting_costs},WORK_CONCLUDED_DATE=${o.work_concluded_date},NO_OF_SUSPECTS=${o.no_of_suspects},NO_OF_POLICE_STATION=${o.no_of_police_station},POLICE_STATION=${o.police_station},DUTY_SOLICITOR=${o.duty_solicitor},YOUTH_COURT=${o.youth_court},SCHEME_ID=${o.scheme_id},DSCC_NUMBER=${o.dscc_number}\n`;
+    content += `OUTCOME,FEE_CODE=${feeCode},matterType=${matterType},UFN=${o.ufn},CLIENT_FORENAME=${o.client_forename},CLIENT_SURNAME=${o.client_surname},GENDER=${o.gender},ETHNICITY=${o.ethnicity},DISABILITY=${o.disability},CASE_START_DATE=${o.case_start_date},PROFIT_COST=${o.profit_cost},DISBURSEMENTS_AMOUNT=${o.disbursements_amount},DISBURSEMENTS_VAT=${o.disbursements_vat},VAT_INDICATOR=${o.vat_indicator},TRAVEL_COSTS=${o.travel_costs},OUTCOME_CODE=${o.outcome_code},CRIME_MATTER_TYPE=${o.crime_matter_type},TRAVEL_WAITING_COSTS=${o.travel_waiting_costs},WORK_CONCLUDED_DATE=${o.work_concluded_date},NO_OF_SUSPECTS=${o.no_of_suspects},NO_OF_POLICE_STATION=${o.no_of_police_station},POLICE_STATION=${o.police_station},DUTY_SOLICITOR=${o.duty_solicitor},YOUTH_COURT=${o.youth_court},SCHEME_ID=${o.scheme_id},DSCC_NUMBER=${o.dscc_number},POSTAL_APPL_ACCP=${o.postal_application},NATIONAL_REF_MECHANISM_ADVICE=${o.nrm_advice},LEGACY_CASE=${o.legacy_case},LONDON_NONLONDON_RATE=${o.london_nonlondon_rate},ADDITIONAL_TRAVEL_PAYMENT=${o.additional_travel_payment},ELIGIBLE_CLIENT_INDICATOR=${o.eligible_client_indicator},IRC_SURGERY=${o.irc_surgery},SUBSTANTIVE_HEARING=${o.substantive_hearing},TOLERANCE_INDICATOR=${o.tolerance_indicator},DUTY_SOLICITOR=${o.duty_solicitor},YOUTH_COURT=${o.youth_court},CLIENT_LEGALLY_AIDED=${o.client_legally_aided}\n`;
   }
 
   if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);

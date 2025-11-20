@@ -174,6 +174,7 @@ const generateOutcome = async (
     client_forename: firstName,
     client_surname: lastName,
     client_date_of_birth: claimOverride?.clientDateOfBirth ?? formatDate(dob),
+    eligible_client_indicator: claimOverride?.eligibleClientIndicator ?? 'Y',
     ucn,
     gender: randomFrom(['M', 'F']),
     ethnicity: '12',
@@ -184,7 +185,8 @@ const generateOutcome = async (
     counsel_cost: randomMoney(0, 50),
     travel_costs: randomMoney(0, 15),
     work_concluded_date: claimOverride?.caseConcludedDate ?? formatDate(workConcludedDate),
-    transfer_date: formatDate(workConcludedDate),
+    transfer_date: claimOverride?.transferDate ?? formatDate(workConcludedDate),
+    surgery_date: claimOverride?.surgeryDate ?? formatDate(workConcludedDate),
     advice_time: 120,
     travel_time: 0,
     waiting_time: 0,
@@ -195,6 +197,11 @@ const generateOutcome = async (
     nrm_advice: claimOverride?.nrmAdvice ?? 'Y',
     schedule_ref: `${office}/${submissionYear}/${caseNum}`,
     client_post_code: postcode,
+    legacy_case: claimOverride?.legacyCase ?? 'N',
+    additional_travel_payment: claimOverride?.additionalTravelPayment ?? 'N',
+    irc_surgery: claimOverride?.ircSurgery ?? 'N',
+    substantive_hearing: claimOverride?.substantiveHearing ?? 'N',
+    tolerance_indicator: claimOverride?.toleranceIndicator ?? 'N',
   };
 };
 
@@ -223,7 +230,7 @@ const generateFile = async (
     const claimOverride = claims?.[i];
     const feeCode = claimOverride?.feeCode ?? randomFrom(feeCodes);
 
-    content += `OUTCOME,FEE_CODE=${feeCode},matterType=FAMX:FAPP,CASE_REF_NUMBER=${o.case_ref_number},CASE_START_DATE=${o.case_start_date},CASE_ID=${o.case_id},UFN=${o.ufn},PROCUREMENT_AREA=PA00120,ACCESS_POINT=AP00000,CLIENT_FORENAME=${o.client_forename},CLIENT_SURNAME=${o.client_surname},CLIENT_DATE_OF_BIRTH=${o.client_date_of_birth},UCN=${o.ucn},GENDER=${o.gender},ETHNICITY=${o.ethnicity},DISABILITY=${o.disability},CLIENT_POST_CODE=${o.client_post_code},NATIONAL_REF_MECHANISM_ADVICE=${o.nrm_advice},WORK_CONCLUDED_DATE=${o.work_concluded_date},CASE_STAGE_LEVEL=FPC01,ADVICE_TIME=${o.advice_time},TRAVEL_TIME=${o.travel_time},WAITING_TIME=${o.waiting_time},PROFIT_COST=${o.profit_cost},DISBURSEMENTS_AMOUNT=${o.disbursements_amount},COUNSEL_COST=${o.counsel_cost},DISBURSEMENTS_VAT=${o.disbursements_vat},TRAVEL_WAITING_COSTS=0.00,VAT_INDICATOR=${o.vat_applicable},LONDON_NONLONDON_RATE=${o.london_nonlondon_rate},TRAVEL_COSTS=${o.travel_costs},OUTCOME_CODE=${o.outcome_code},POSTAL_APPL_ACCP=${o.postal_application},SCHEDULE_REF=${o.schedule_ref},TRANSFER_DATE=${o.transfer_date}\n`;
+    content += `OUTCOME,FEE_CODE=${feeCode},matterType=FAMX:FAPP,CASE_REF_NUMBER=${o.case_ref_number},CASE_START_DATE=${o.case_start_date},CASE_ID=${o.case_id},UFN=${o.ufn},PROCUREMENT_AREA=PA00120,ACCESS_POINT=AP00000,CLIENT_FORENAME=${o.client_forename},CLIENT_SURNAME=${o.client_surname},CLIENT_DATE_OF_BIRTH=${o.client_date_of_birth},UCN=${o.ucn},GENDER=${o.gender},ETHNICITY=${o.ethnicity},DISABILITY=${o.disability},CLIENT_POST_CODE=${o.client_post_code},NATIONAL_REF_MECHANISM_ADVICE=${o.nrm_advice},WORK_CONCLUDED_DATE=${o.work_concluded_date},CASE_STAGE_LEVEL=FPC01,ADVICE_TIME=${o.advice_time},TRAVEL_TIME=${o.travel_time},WAITING_TIME=${o.waiting_time},PROFIT_COST=${o.profit_cost},DISBURSEMENTS_AMOUNT=${o.disbursements_amount},COUNSEL_COST=${o.counsel_cost},DISBURSEMENTS_VAT=${o.disbursements_vat},TRAVEL_WAITING_COSTS=0.00,VAT_INDICATOR=${o.vat_applicable},LONDON_NONLONDON_RATE=${o.london_nonlondon_rate},TRAVEL_COSTS=${o.travel_costs},OUTCOME_CODE=${o.outcome_code},POSTAL_APPL_ACCP=${o.postal_application},SCHEDULE_REF=${o.schedule_ref},TRANSFER_DATE=${o.transfer_date},LEGACY_CASE=${o.legacy_case},LONDON_NONLONDON_RATE=${o.london_nonlondon_rate},ADDITIONAL_TRAVEL_PAYMENT=${o.additional_travel_payment},ELIGIBLE_CLIENT_INDICATOR=${o.eligible_client_indicator},IRC_SURGERY=${o.irc_surgery},SUBSTANTIVE_HEARING=${o.substantive_hearing},TOLERANCE_INDICATOR=${o.tolerance_indicator},SURGERY_DATE=${o.surgery_date}\n`;
   }
 
   ensureOutputDir();
