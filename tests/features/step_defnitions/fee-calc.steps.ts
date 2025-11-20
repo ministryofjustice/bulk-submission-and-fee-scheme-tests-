@@ -51,6 +51,7 @@ Given('a fee calculation payload with:', function (this: World, table: DataTable
   const policeStationSchemeId = maybeStr(rows, 'policeStationSchemeId');
   const representationOrderDate = maybeStr(rows, 'representationOrderDate');
   const immigrationPriorAuthorityNumber = maybeStr(rows, 'immigrationPriorAuthorityNumber');
+  const caseConcludedDate = maybeStr(rows, 'caseConcludedDate');
 
   if (feeCode !== undefined) payload.feeCode = feeCode;
   if (startDate !== undefined) payload.startDate = startDate;
@@ -59,6 +60,7 @@ Given('a fee calculation payload with:', function (this: World, table: DataTable
   if (policeStationSchemeId !== undefined) payload.policeStationSchemeId = policeStationSchemeId;
   if (representationOrderDate !== undefined) payload.representationOrderDate = representationOrderDate;
   if (immigrationPriorAuthorityNumber !== undefined) payload.immigrationPriorAuthorityNumber = immigrationPriorAuthorityNumber;
+  if (caseConcludedDate !== undefined) payload.caseConcludedDate = caseConcludedDate;
 
   // Numbers (preserve 0, omit when row absent/blank/placeholder)
   const netProfitCosts = maybeNum(rows, 'netProfitCosts');
