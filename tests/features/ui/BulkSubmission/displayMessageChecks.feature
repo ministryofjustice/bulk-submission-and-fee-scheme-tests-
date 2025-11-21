@@ -6,6 +6,7 @@ Feature: Display message checks
 
   Scenario: Legal Help: Should check display messages are shown for missing field based errors
     Given I upload "tests/data/invalid/legal_help_missing_fields.csv"
+    And I wait on validation in progress screen
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "LEGAL HELP":
       | Error Message                                                 |
@@ -58,9 +59,9 @@ Feature: Display message checks
       #| transferDate            | abc   | Invalid value 'A' supplied for field 'Tolerance Applicable'. Valid values are 'Y' or 'N'        |
       #| surgeryDate            | abc   | Invalid value 'A' supplied for field 'Surgery Date'. Valid values are 'Y' or 'N'        |
 
-    # Jamie Note: There is a field called TRAVEL_COSTS which can be set, is this still used?
   Scenario: Legal Help: Should check display messages are shown for format based errors (regex)
     Given I upload "tests/data/invalid/legal_help_regex_errors.csv"
+    And I wait on validation in progress screen
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "LEGAL HELP":
       | Error Message                                                                                                                              |
@@ -79,7 +80,7 @@ Feature: Display message checks
       | Ethnicity Code must be valid                                                                                                               |
       | Disability Code must be valid                                                                                                              |
       | Case ID must be exactly 3 digits                                                                                                           |
-      # TODO This is missing from CsvOutcome? => Case Stage/Level Code must be valid                                                                                                        |
+      | Case Stage/Level Code must be valid                                                                                                        |
       | Stage Reached Code must be exactly 2 alphanumeric characters for Legal Help claims                                                         |
       | Standard Fee Category Code must be valid                                                                                                   |
       | Outcome Code must be exactly 2 characters and contain only letters, numbers, and hyphens                                                   |
@@ -96,7 +97,6 @@ Feature: Display message checks
       | Net Counsel Costs Amount must be a valid monetary value                                                                                    |
       | Disbursements VAT Amount must be a valid monetary value                                                                                    |
       | Travel Waiting Costs Amount must be a valid monetary value                                                                                 |
-      # TODO: broken not mapped??? | Net Waiting Costs Amount must be a valid monetary value                                                                                    |
       | Prior Authority Reference must be exactly 7 alphanumeric characters                                                                        |
       | Adjourned Hearing Fee Amount must be between 0 and 9                                                                                       |
       | Costs Damages Recovered Amount must be a valid monetary value                                                                              |
@@ -105,8 +105,8 @@ Feature: Display message checks
       | JR Form Filling Amount must be a valid monetary value                                                                                      |
       | Advice Type Code must be valid                                                                                                             |
       | Medical Reports Count must be between 0 and 10                                                                                             |
-      # TODO: Not being mapped? It's present in CsvOutcome | Surgery Clients Count must be between 1 and 20                                                                                             |
-      # TODO: MISSING IN CSV OUTCOME? => | Surgery Matters Count must be between 1 and 20                                                                                             |
+      | Surgery Clients Count must be between 1 and 20                                                                                             |
+      | Surgery Matters Count must be between 1 and 20                                                                                             |
       | CMRH Oral Count must be between 0 and 9                                                                                                    |
       | CMRH Telephone Count must be between 0 and 9                                                                                               |
       | AIT Hearing Centre Code must be valid                                                                                                      |
@@ -115,6 +115,7 @@ Feature: Display message checks
 
   Scenario: Crime Lower: Should check display messages are shown for missing field based errors
     Given I upload "tests/data/invalid/crime_lower_missing_fields.csv"
+    And I wait on validation in progress screen
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "CRIME LOWER":
       | Error Message                                              |
@@ -154,19 +155,20 @@ Feature: Display message checks
 
   Scenario: Crime Lower: Should check display messages are shown for format based errors (regex)
     Given I upload "tests/data/invalid/crime_lower_regex_errors.csv"
+    And I wait on validation in progress screen
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "CRIME LOWER":
       | Error Message                                                                                                                              |
       | Case Reference Number must contain only letters, numbers, forward slashes, periods, hyphens, and spaces, and be a maximum of 30 characters |
       | Unique File Number must be in the format DDMMYY/NNN (6 digits forward slash 3 digits)                                                      |
-      #TODO Doesn't seem to map to claim entity in Claims API? | Crime Lower Matter Type Code must be exactly 2 digits                                                                                       |
+      # TODO: Uncomment once DSTEW-840 fixed | Crime Lower Matter Type Code must be exactly 2 digits                                                                                       |
       | Fee Code must contain only letters and numbers, and be a maximum of 10 characters                                                          |
       | Procurement Area Code must be 2 uppercase letters followed by 5 digits                                                                     |
       | Access Point Code must be in the format AP##### (AP followed by 5 digits)                                                                  |
       | Delivery Location must be 2 uppercase letters followed by 5 digits                                                                         |
       | Suspects Defendants Count must be between 0 and 99                                                                                         |
-      # TODO Not a field on CsvOutcome? | Police Station Court Attendances Count must be between 0 and 99                                                                             |
-      # TODO Not a field on CsvOutcome? | Police Station Court Prison ID must be 1–6 alphanumeric characters and contain at least one letter                                          |
+      | Police Station Court Attendances Count must be between 0 and 99                                                                            |
+      | Police Station Court Prison ID must be 1–6 alphanumeric characters and contain at least one letter                                         |
       | DSCC Number must be exactly 10 alphanumeric characters                                                                                     |
       | MAAT ID must be up to 10 alphanumeric characters                                                                                           |
       | Prison Law Prior Approval Number must be exactly 10 alphanumeric characters                                                                |
@@ -183,12 +185,12 @@ Feature: Display message checks
       | Ethnicity Code must be valid                                                                                                               |
       | Disability Code must be valid                                                                                                              |
       | Client Type Code must be valid                                                                                                             |
-      # TODO Not a value in CsvOutcome? | Home Office Client Number must contain only letters and numbers, and be a maximum of 16 characters                                          |
+      | Home Office Client Number must contain only letters and numbers, and be a maximum of 16 characters                                         |
       | CLA Reference Number must be between 1 and 7 digits                                                                                        |
       | CLA Exemption Code must be exactly 4 characters                                                                                            |
       | Case ID must be exactly 3 digits                                                                                                           |
-# what is this?      | Case Stage/Level Code must be valid                                                                                                         |
-      # TODO Not being mapped as expected? | Stage Reached Code must be exactly 4 uppercase letters for Crime Lower claims                                                               |
+      | Case Stage/Level Code must be valid                                                                                                        |
+      | Stage Reached Code must be exactly 4 uppercase letters for Crime Lower claims                                                              |
       | Standard Fee Category Code must be valid                                                                                                   |
       | Outcome Code must be a valid crime lower outcome code or left blank                                                                        |
       | Designated Accredited Representative Code must be valid                                                                                    |
@@ -203,7 +205,6 @@ Feature: Display message checks
       | Net Disbursement Amount must be a valid monetary value                                                                                     |
       | Net Counsel Costs Amount must be a valid monetary value                                                                                    |
       | Disbursements VAT Amount must be a valid monetary value                                                                                    |
-      | Travel Waiting Costs Amount must be a valid monetary value                                                                                 |
       | Net Waiting Costs Amount must be a valid monetary value                                                                                    |
       | Prior Authority Reference must be exactly 7 alphanumeric characters                                                                        |
       | Adjourned Hearing Fee Amount must be between 0 and 9                                                                                       |
@@ -222,6 +223,7 @@ Feature: Display message checks
 
   Scenario: Mediation: Should check display messages are shown for missing field based errors
     Given I upload "tests/data/invalid/mediation_missing_fields.csv"
+    And I wait on validation in progress screen
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "MEDIATION":
       | Error Message                                          |
@@ -251,22 +253,22 @@ Feature: Display message checks
     When I upload that file
     Then the user sees an error message "<errorMessage>"
     Examples:
-      | fieldName                                           | value | errorMessage                                                                                    |
-      | vatApplicable                                       | A     | Invalid value 'A' supplied for field 'VAT Applicable'. Valid values are 'Y' or 'N'              |
-      | postalApplication                                   | A     | Invalid value 'A' supplied for field 'Postal Application Accepted'. Valid values are 'Y' or 'N' |
-      | client2PostalApplication                            | A     | Invalid value 'A' supplied for field 'Client 2 Postal Application Accepted'. Valid values are 'Y' or 'N' |
-      | nrmAdvice                                           | A     | Invalid value 'A' supplied for field 'NRM Advice'. Valid values are 'Y' or 'N'                  |
-      | legacyCase                                          | A     | Invalid value 'A' supplied for field 'Legacy Case'. Valid values are 'Y' or 'N'                 |
-      | londonNonLondonRate                                 | A     | Invalid value 'A' supplied for field 'London Rate'. Valid values are 'Y' or 'N'                 |
-      | additionalTravelPayment                             | A     | Invalid value 'A' supplied for field 'Additional Travel Payment'. Valid values are 'Y' or 'N'   |
-      | eligibleClientIndicator                             | A     | Invalid value 'A' supplied for field 'Eligible Client'. Valid values are 'Y' or 'N'             |
-      | ircSurgery                                          | A     | Invalid value 'A' supplied for field 'IRC Surgery'. Valid values are 'Y' or 'N'                 |
-      | substantiveHearing                                  | A     | Invalid value 'A' supplied for field 'Substantive Hearing'. Valid values are 'Y' or 'N'         |
-      | toleranceIndicator                                  | A     | Invalid value 'A' supplied for field 'Tolerance Applicable'. Valid values are 'Y' or 'N'        |
-      | dutySolicitor                                       | A     | Invalid value 'A' supplied for field 'Duty Solicitor'. Valid values are 'Y' or 'N'              |
-      | youthCourt                                          | A     | Invalid value 'A' supplied for field 'Youth Court'. Valid values are 'Y' or 'N'                 |
-      | clientLegallyAided                                  | A     | Invalid value 'A' supplied for field 'Is Legally Aided'. Valid values are 'Y' or 'N'            |
-      | client2LegallyAided                                 | A     | Invalid value 'A' supplied for field 'Client 2 Legally Aided'. Valid values are 'Y' or 'N'            |
+      | fieldName                | value | errorMessage                                                                                             |
+      | vatApplicable            | A     | Invalid value 'A' supplied for field 'VAT Applicable'. Valid values are 'Y' or 'N'                       |
+      | postalApplication        | A     | Invalid value 'A' supplied for field 'Postal Application Accepted'. Valid values are 'Y' or 'N'          |
+      | client2PostalApplication | A     | Invalid value 'A' supplied for field 'Client 2 Postal Application Accepted'. Valid values are 'Y' or 'N' |
+      | nrmAdvice                | A     | Invalid value 'A' supplied for field 'NRM Advice'. Valid values are 'Y' or 'N'                           |
+      | legacyCase               | A     | Invalid value 'A' supplied for field 'Legacy Case'. Valid values are 'Y' or 'N'                          |
+      | londonNonLondonRate      | A     | Invalid value 'A' supplied for field 'London Rate'. Valid values are 'Y' or 'N'                          |
+      | additionalTravelPayment  | A     | Invalid value 'A' supplied for field 'Additional Travel Payment'. Valid values are 'Y' or 'N'            |
+      | eligibleClientIndicator  | A     | Invalid value 'A' supplied for field 'Eligible Client'. Valid values are 'Y' or 'N'                      |
+      | ircSurgery               | A     | Invalid value 'A' supplied for field 'IRC Surgery'. Valid values are 'Y' or 'N'                          |
+      | substantiveHearing       | A     | Invalid value 'A' supplied for field 'Substantive Hearing'. Valid values are 'Y' or 'N'                  |
+      | toleranceIndicator       | A     | Invalid value 'A' supplied for field 'Tolerance Applicable'. Valid values are 'Y' or 'N'                 |
+      | dutySolicitor            | A     | Invalid value 'A' supplied for field 'Duty Solicitor'. Valid values are 'Y' or 'N'                       |
+      | youthCourt               | A     | Invalid value 'A' supplied for field 'Youth Court'. Valid values are 'Y' or 'N'                          |
+      | clientLegallyAided       | A     | Invalid value 'A' supplied for field 'Is Legally Aided'. Valid values are 'Y' or 'N'                     |
+      | client2LegallyAided      | A     | Invalid value 'A' supplied for field 'Client 2 Legally Aided'. Valid values are 'Y' or 'N'               |
       # TODO: Uncomment and implement when DSTEW-807 is merged
       # broken dates| Case Start Date must be a valid date in the format DD/MM/YYYY                                                                              |
       # broken dates| Case Concluded Date must be a valid date in the format DD/MM/YYYY                                                                          |
@@ -277,6 +279,7 @@ Feature: Display message checks
 
   Scenario: Mediation: Should check display messages are shown for format based errors (regex)
     Given I upload "tests/data/invalid/mediation_regex_errors.csv"
+    And I wait on validation in progress screen
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "MEDIATION":
       | Error Message                                                                                                                              |
@@ -294,7 +297,6 @@ Feature: Display message checks
       | Ethnicity Code must be valid                                                                                                               |
       | Disability Code must be valid                                                                                                              |
       | Case ID must be exactly 3 digits                                                                                                           |
-      # TODO This is missing from CsvOutcome? => Case Stage/Level Code must be valid                                                                                                        |
       | Standard Fee Category Code must be valid                                                                                                   |
       | Outcome Code must be a valid mediation outcome code or left blank                                                                          |
       | Designated Accredited Representative Code must be valid                                                                                    |
@@ -308,9 +310,7 @@ Feature: Display message checks
       | Net Profit Costs Amount must be a valid monetary value                                                                                     |
       | Net Disbursement Amount must be a valid monetary value                                                                                     |
       | Net Counsel Costs Amount must be a valid monetary value                                                                                    |
-      | Disbursements VAT Amount must be a valid monetary value                                                                                    |
-      # TODO: Not being mapped? | Travel Waiting Costs Amount must be a valid monetary value                                                                                 |
-      # broken not mapped??? | Net Waiting Costs Amount must be a valid monetary value                                                                                    |
+      | Disbursements VAT Amount must be a valid monetary value                                                                                                        |
       | Prior Authority Reference must be exactly 7 alphanumeric characters                                                                        |
       | Adjourned Hearing Fee Amount must be between 0 and 9                                                                                       |
       | Costs Damages Recovered Amount must be a valid monetary value                                                                              |

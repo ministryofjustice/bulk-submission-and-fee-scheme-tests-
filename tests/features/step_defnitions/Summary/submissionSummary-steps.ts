@@ -418,6 +418,8 @@ Then('I should see the following submission error messages for the {string}',
 Then(
     'I should see an error banner saying {string}',
     async function (this: CustomWorld, expectedMessage: string) {
+
+
       const bannerLocator = this.page!.locator(
           '.govuk-error-summary, .moj-banner--failure, .moj-alert__heading, [role="alert"]'
       );
