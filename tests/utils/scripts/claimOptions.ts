@@ -6,4 +6,24 @@ export interface claimOptions {
   travelCost?: number;
   disbursementAmount?: number;
   londonNonLondonRate?: string;
+  caseStartDate?: string;
+  caseConcludedDate?: string;
+  clientDateOfBirth?: string;
+  client2DateOfBirth?: string;
+  transferDate?: string;
+  vatApplicable?: string;
+  postalApplication?: string;
+  client2PostalApplication?: string;
+  nrmAdvice?: string;
+  legacyCase?: string;
+  additionalTravelPayment?: string;
+  eligibleClientIndicator?: string;
+  ircSurgery?: string;
+  substantiveHearing?: string;
+  toleranceIndicator?: string;
+  surgeryDate?: string;
+  dutySolicitor?: string;
+  youthCourt?: string;
+  clientLegallyAided?: string;
+  client2LegallyAided?: string;
 }

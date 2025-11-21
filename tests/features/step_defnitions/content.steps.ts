@@ -78,6 +78,22 @@ When(/^I upload the generated file and wait for import in progress(?: (screen))?
   await this.attach('✅ Import in progress screen displayed and completed', 'text/plain');
 });
 
+When(`I wait on validation in progress screen`, async function (this: CustomWorld) {
+  // Wait for submission loading if it's present
+  const inProgressHeading = this.page!.locator('h1.moj-interruption-card__heading');
+  await inProgressHeading.waitFor({state: 'visible', timeout: 20000});
+  const startTime = Date.now();
+  const maxWaitTime = 60 * 1000; // 1 minute
+
+  while (await inProgressHeading.isVisible()) {
+    if (Date.now() - startTime > maxWaitTime) {
+      throw new Error('Timeout waiting for import to complete after 5 minutes');
+    }
+    await this.page!.waitForTimeout(1000);
+    await this.page!.reload();
+  }
+})
+
 Then('the search results table matches the expected layout', async function (this: CustomWorld) {
     const table = this.page!.locator('table.govuk-table').first();
     await table.waitFor({ state: 'visible', timeout: 15000 });
