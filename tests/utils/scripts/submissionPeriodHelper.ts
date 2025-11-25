@@ -58,6 +58,7 @@ const allowedPeriods: string[] = (() => {
   const startYear = 2021;
   const startMonth = 0;
 
+
   const now = new Date();
   const endYear = now.getFullYear();
   const endMonth = now.getMonth();

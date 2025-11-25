@@ -161,7 +161,7 @@ Feature: Display message checks
       | Error Message                                                                                                                              |
       | Case Reference Number must contain only letters, numbers, forward slashes, periods, hyphens, and spaces, and be a maximum of 30 characters |
       | Unique File Number must be in the format DDMMYY/NNN (6 digits forward slash 3 digits)                                                      |
-      # TODO: Uncomment once DSTEW-840 fixed | Crime Lower Matter Type Code must be exactly 2 digits                                                                                       |
+      | Crime Lower Matter Type Code must be exactly 2 digits                                                                                      |
       | Fee Code must contain only letters and numbers, and be a maximum of 10 characters                                                          |
       | Procurement Area Code must be 2 uppercase letters followed by 5 digits                                                                     |
       | Access Point Code must be in the format AP##### (AP followed by 5 digits)                                                                  |
@@ -310,7 +310,7 @@ Feature: Display message checks
       | Net Profit Costs Amount must be a valid monetary value                                                                                     |
       | Net Disbursement Amount must be a valid monetary value                                                                                     |
       | Net Counsel Costs Amount must be a valid monetary value                                                                                    |
-      | Disbursements VAT Amount must be a valid monetary value                                                                                                        |
+      | Disbursements VAT Amount must be a valid monetary value                                                                                    |
       | Prior Authority Reference must be exactly 7 alphanumeric characters                                                                        |
       | Adjourned Hearing Fee Amount must be between 0 and 9                                                                                       |
       | Costs Damages Recovered Amount must be a valid monetary value                                                                              |
