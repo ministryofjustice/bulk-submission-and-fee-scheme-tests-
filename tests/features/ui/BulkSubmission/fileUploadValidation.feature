@@ -1,7 +1,8 @@
-@bulkSubmission
+@bulkSubmission @stable
 Feature: Bulk Submission Upload Validation
 
   Background:
+    Given I start from a clean logged-in state
     Given I am on the bulk import page
 
   Scenario: Upload fails with an empty file
@@ -46,7 +47,7 @@ Feature: Bulk Submission Upload Validation
       | Legal help | TRAVEL_TIME     | NAN             | travelTime        |
       | Legal help | WAITING_TIME    | NAN             | waitingTime       |
 
-  Scenario: Upload fails with Invalid Submission Period
+  Scenario Outline: Upload fails with Invalid Submission Period
     Given I generate "Legal help" "csv" file with "1" outcomes
     And I override the generated file field "submissionPeriod" with value "<value>"
     When I upload that file

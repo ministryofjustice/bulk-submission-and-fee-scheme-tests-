@@ -2,6 +2,7 @@
 Feature: Display message checks
 
   Background:
+    Given I start from a clean logged-in state
     Given I am on the bulk import page
 
   Scenario: Legal Help: Should check display messages are shown for format based errors (regex)

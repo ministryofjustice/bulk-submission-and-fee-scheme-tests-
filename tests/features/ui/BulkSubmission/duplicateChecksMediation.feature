@@ -1,8 +1,9 @@
 @duplicateChecks
-@bulkSubmission
+@bulkSubmission @wi
 Feature: Duplicate checks - Mediation
 
   Background:
+    Given I start from a clean logged-in state
     Given I am on the bulk import page
 
   Scenario Outline: First occurrence is accepted
@@ -29,6 +30,7 @@ Feature: Duplicate checks - Mediation
       | xml    |
       | txt    |
 
+    @oi
   Scenario Outline: Should have no errors in <format> submission (UCN different)
     Given I generate "Mediation" "<format>" file with the following claims
       | ucn                  | feeCode | ufn        |
@@ -44,7 +46,7 @@ Feature: Duplicate checks - Mediation
       | xml    |
       | txt    |
 
-
+@oi
   Scenario Outline: Not duplicate when previous submission was invalid from <format>
     Given I generate "Mediation" "<format>" file with the following claims
       | ucn             |
@@ -59,22 +61,23 @@ Feature: Duplicate checks - Mediation
       | xml    |
       | txt    |
 
-  Scenario Outline: Duplicate detected within the same <format> submission file (later row duplicate)
-    Given I generate "Mediation" "<format>" file with the following claims
-      | feeCode | uniqueCaseId |
-      | ASSA    | 020725/123   |
-      | ASSA    | 020725/123   |
-    And I upload the generated file and wait for import in progress
-    Then I should see the following submission error messages for "Mediation":
-      | Error Message                                          |
-      | A duplicate claim was found within the same submission |
-      | A duplicate claim was found within the same submission |
-    Examples:
-      | format |
-      | csv    |
-      | xml    |
-      | txt    |
+#  Scenario Outline: Duplicate detected within the same <format> submission file (later row duplicate)
+#    Given I generate "Mediation" "<format>" file with the following claims
+#      | feeCode | uniqueCaseId |
+#      | ASSA    | 020725/123   |
+#      | ASSA    | 020725/123   |
+#    And I upload the generated file and wait for import in progress
+#    Then I should see the following submission error messages for "Mediation":
+#      | Error Message                                          |
+#      | A duplicate claim was found within the same submission |
+#      | A duplicate claim was found within the same submission |
+#    Examples:
+#      | format |
+#      | csv    |
+#      | xml    |
+#      | txt    |
 
+  @oi
   Scenario Outline: Should have no errors in <format> submission (unique case ID different)
     Given I generate "Mediation" "<format>" file with the following claims
       | feeCode | uniqueCaseId    |

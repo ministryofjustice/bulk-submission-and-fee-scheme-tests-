@@ -27,7 +27,6 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
-.idea
 
 # vercel
 .vercel
@@ -51,3 +50,14 @@ generated_submissions
 tests/data/generated_csv
 
 storageState.json
+
+grid.log
+local.log
+log/
+browserstack.err
+.pf-sabc.pid
+pf-8082.log
+tests/features/support/hooksss.ts
+.idea/
+.idea/workspace.xml
+tests/generated

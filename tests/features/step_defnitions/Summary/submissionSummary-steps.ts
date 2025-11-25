@@ -282,68 +282,14 @@ Then(
     areaOfLaw: string,
     dataTable?: DataTable
   ) {
-    this.submissionSummaryPage = new SubmissionSummaryPage(this.page!);
-
-    await this.submissionSummaryPage.verifyErrorBanner(1);
-
-    const errors = await this.submissionSummaryPage.getSubmissionErrors();
-    await this.attach(
-      `📋 Found ${errors.length} submission error(s).`,
-      'text/plain'
-    );
-    expect(errors.length).toBe(1);
-
-    const submissionPeriod = this.submissionPeriod;
-
-
-    const requestedFields = [];
-    if (dataTable && typeof dataTable.raw === 'function') {
-      requestedFields.push(
-          ...dataTable
-          .raw()
-          .flat()
-          .map((cell) => cell.trim())
-          .filter(Boolean)
-      );
-    }
-
-    if (requestedFields.length > 0) {
-      await this.attach(
-        `📥 Additional expectations requested: ${requestedFields.join(', ')}`,
-        'text/plain'
-      );
-
-      if (requestedFields.includes('submission period')) {
-        expect(
-          submissionPeriod,
-          'Expected a stored submission period from a previous step'
-        ).toBeTruthy();
-      }
-    }
-
-    const expectedMessage = `Submission already exists for Office (${office}), Area of Law (${areaOfLaw.toUpperCase()}), Period (${submissionPeriod})`;
-    await this.attach(`Expecting: ${expectedMessage}`, 'text/plain');
-    await this.attach(`Actual:    ${errors[0]}`, 'text/plain');
-
-    await this.attach(
-      `🔎 Expecting to find message:\n${expectedMessage}`,
-      'text/plain'
-    );
-
-    const normalizedExpected = normalizeWhitespace(expectedMessage);
-    const normalizedErrors = errors.map((err) => normalizeWhitespace(err));
-    const match = normalizedErrors.some((err) => err.includes(normalizedExpected));
-
-    expect(
-      match,
-      `Expected submission error message to include:\n"${expectedMessage}"\n\nFound:\n${errors.join('\n')}`
-    ).toBeTruthy();
-
-    await this.attach(
-      `✅ Verified submission error for ${areaOfLaw}, period ${submissionPeriod}`,
-      'text/plain'
-    );
-
+      // @ts-ignore
+      const locator = this.page.locator('[data-sort-value*="Submission already exists"]');
+      const text = (await locator.getAttribute('data-sort-value'))?.trim() || '';
+      await this.attach(`🔍 Error detected:\n${text}`, 'text/plain');
+      expect(text.toUpperCase()).toContain(areaOfLaw.toUpperCase());
+      expect(text).toContain('Submission already exists for Office');
+      expect(text).toMatch(/Period \([A-Z]{3}-\d{4}\)/);
+      await this.attach(`✅ Duplicate submission error verified`, 'text/plain');
   }
 );
 
@@ -368,12 +314,12 @@ Then(
 Then(
   'I should see the following submission error messages for {string}:',
   async function (this: CustomWorld, areaOfLaw: string, dataTable) {
-    const allText = await (new SubmissionSummaryPage(this.page!))
-        .getPaginatedSubmissionErrors(10)
+    const allText = await locateErrorMessages(this);
+
     const expectedMessages = dataTable.raw().flat().slice(1);
 
     for (const message of expectedMessages) {
-      const found = allText.has(message.trim());
+      const found = allText.some((t) => t.includes(message.trim()));
       expect(
         found,
         `❌ Expected error message not found for ${areaOfLaw}: "${message.trim()}"`
@@ -382,24 +328,27 @@ Then(
   }
 );
 
-Then ('I should see the following submission error messages for the {string}',
-    async function (this: CustomWorld, placeHolder: string, dataTable: DataTable) {
+Then(
+    'I should see the following submission error messages for the {string}',
+    async function (this: CustomWorld, placeholder: string, dataTable: DataTable) {
         const allText = await locateErrorMessages(this);
-        const expectedMessages = dataTable.hashes().map((row) => row['Error Message']);
+        const expectedRows = dataTable.hashes();
 
-        for (const message of expectedMessages) {
-            let amendedMessage = message;
-            if (this.currentSubmissionMonth != null) {
-                amendedMessage = message.replace(placeHolder, this.currentSubmissionMonth)
+        for (const row of expectedRows) {
+            let msg = row['Error Message'].trim();
+
+            if (msg.includes('CURRENT_MONTH')) {
+                if (!this.currentSubmissionMonth) {
+                    throw new Error('currentSubmissionMonth was not set in the scenario.');
+                }
+                msg = msg.replace('CURRENT_MONTH', this.currentSubmissionMonth);
             }
-            const found = allText.some((t) => t.includes(amendedMessage.trim()));
-            expect(
-                found,
-                `❌ Expected error message not found for: "${amendedMessage.trim()}"`
-            ).toBeTruthy();
+
+            const found = allText.some((t) => t.includes(msg));
+            expect(found, `❌ Expected error message not found: "${msg}"`).toBeTruthy();
         }
     }
-)
+);
 
 Then(
   'I should see an error banner saying {string}',

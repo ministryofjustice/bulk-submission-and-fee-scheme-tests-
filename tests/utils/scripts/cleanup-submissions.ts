@@ -146,12 +146,13 @@ async function getRecentSubmissionIdsForUser(
 // ---------- 4️⃣ Execute Automatically ----------
 if (require.main === module) {
     (async () => {
-        const providerUser = 'Test.User-submit-a-bulk-claim-auto-test@devl.justice.gov.uk';
+        const providerUser = process.env.USERNAME;
 
         try {
             await AppDataSource.initialize();
             console.log('✅ Database connection established');
 
+            // @ts-ignore
             const submissionIdsToDelete = await getRecentSubmissionIdsForUser(AppDataSource, providerUser);
 
             if (submissionIdsToDelete.length === 0) {
