@@ -1,5 +1,5 @@
 @duplicateChecks
-@bulkSubmission @wi
+@bulkSubmission @stable @wip
 Feature: Duplicate checks - Mediation
 
   Background:
@@ -16,6 +16,7 @@ Feature: Duplicate checks - Mediation
       | xml    |
       | txt    |
 
+
   Scenario Outline: Duplicate detected against a previously submitted claim from <format>
     Given I generate "Mediation" "<format>" file with the following claims
       | ucn             | ufn        |
@@ -30,13 +31,13 @@ Feature: Duplicate checks - Mediation
       | xml    |
       | txt    |
 
-    @oi
   Scenario Outline: Should have no errors in <format> submission (UCN different)
     Given I generate "Mediation" "<format>" file with the following claims
       | ucn                  | feeCode | ufn        |
       | 07081996/S/<format>E | ASSA    | 010725/123 |
       | 07081997/S/<format>E | ASSA    | 010725/123 |
-    And I upload with generated file via the API
+    And I upload the generated file
+      And click import
     When I upload the generated file and wait for import in progress
     Then I should have duplicate submission error for "0P322F" "Mediation"
       | submission period |
@@ -46,7 +47,7 @@ Feature: Duplicate checks - Mediation
       | xml    |
       | txt    |
 
-@oi
+
   Scenario Outline: Not duplicate when previous submission was invalid from <format>
     Given I generate "Mediation" "<format>" file with the following claims
       | ucn             |
@@ -58,26 +59,24 @@ Feature: Duplicate checks - Mediation
     Examples:
       | format |
       | csv    |
+
+  Scenario Outline: Duplicate detected within the same <format> submission file (later row duplicate)
+    Given I generate "Mediation" "<format>" file with the following claims
+      | feeCode | uniqueCaseId |
+      | ASSA    | 020725/123   |
+      | ASSA    | 020725/123   |
+    And I upload the generated file and wait for import in progress
+    Then I should see the following submission error messages for "Mediation":
+      | Error Message                                          |
+      | A duplicate claim was found within the same submission |
+      | A duplicate claim was found within the same submission |
+    Examples:
+      | format |
+      | csv    |
       | xml    |
       | txt    |
 
-#  Scenario Outline: Duplicate detected within the same <format> submission file (later row duplicate)
-#    Given I generate "Mediation" "<format>" file with the following claims
-#      | feeCode | uniqueCaseId |
-#      | ASSA    | 020725/123   |
-#      | ASSA    | 020725/123   |
-#    And I upload the generated file and wait for import in progress
-#    Then I should see the following submission error messages for "Mediation":
-#      | Error Message                                          |
-#      | A duplicate claim was found within the same submission |
-#      | A duplicate claim was found within the same submission |
-#    Examples:
-#      | format |
-#      | csv    |
-#      | xml    |
-#      | txt    |
 
-  @oi
   Scenario Outline: Should have no errors in <format> submission (unique case ID different)
     Given I generate "Mediation" "<format>" file with the following claims
       | feeCode | uniqueCaseId    |
@@ -125,10 +124,11 @@ Feature: Duplicate checks - Mediation
     Given I generate "Mediation" "<format>" file with the following claims
       | ucn                  | feeCode | ufn        |
       | 07081996/S/<format>E | ASSA    | 080725/123 |
-    And I upload with generated file via the API
+    And I upload the generated file
+    And click import
     Given I generate "Mediation" "<format>" file with the following claims
       | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>E | ASST    | 080725/124 |
+      | 07081996/S/<format>E | ASST    | 080725/123 |
     When I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Mediation"
     Examples:

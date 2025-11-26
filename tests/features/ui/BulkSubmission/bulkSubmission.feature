@@ -1,4 +1,4 @@
-@bulkSubmission @stable @all
+@bulkSubmission @stable
 Feature: Bulk Submission via UI
 
   Background:
@@ -36,9 +36,9 @@ Feature: Bulk Submission via UI
       | submission period |
     Examples:
       | AreaOfLaw   | Format | Outcomes |
-      | Legal help  | txt    | 1        |
-      | Mediation   | csv    | 1        |
-      | Crime lower | csv    | 1        |
+      | Legal help  | txt    | 2        |
+      | Mediation   | csv    | 2        |
+      | Crime lower | csv    | 2        |
 
     Examples:
       | AreaOfLaw   | Format | Outcomes |

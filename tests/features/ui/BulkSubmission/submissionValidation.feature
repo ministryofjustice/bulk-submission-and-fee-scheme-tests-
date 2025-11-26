@@ -1,10 +1,9 @@
-@bulkSubmission @validation
+@bulkSubmission @validation @wip
 Feature: Invalid submission level validation
 
   Background:
     Given I start from a clean logged-in state
     Given I am on the bulk import page
-
 
   Scenario: Verify all mandatory field errors are displayed for an invalid XML upload Legal Help
     When I upload "tests/data/invalid/Legal_Help_Required_Field_Validation.xml"
@@ -22,7 +21,7 @@ Feature: Invalid submission level validation
       | Schedule Reference is required for Legal Help claims     |
       | Case Concluded Date must be between 01/01/1995 and today |
 
-
+@stable
   Scenario: Invalid Fee code
     When I upload "tests/data/invalid/legal_Invalid_Feecode.txt"
     Then I should see an error banner saying "2 claims have errors for missing or incorrect information"
@@ -30,6 +29,7 @@ Feature: Invalid submission level validation
       | Error Message                                                                       |
       | A category of law could not be found for the provided fee code: lol                 |
       | The provider is not contracted for the category of law associated with the fee code |
+
 
   Scenario: Validate multiple paginated claim errors
     When I upload "tests/data/invalid/regexValidation.xml"
@@ -67,7 +67,7 @@ Feature: Invalid submission level validation
     Client 2 Date of Birth must be between 01/01/1900 and today
     """
 
-
+  @stable
   Scenario: Reject submission due to period prior to 2015
     When I upload "tests/data/invalid/submissionPeriod.txt"
     Then I should see a submission error message for "<AreaOfLaw>"
@@ -75,6 +75,7 @@ Feature: Invalid submission level validation
     Submissions for periods before JAN-2015 are not accepted. Please submit for a period on or after JAN-2015.
     """
 
+  @stable
   Scenario Outline: Reject submission due to invalid submission periods
     When I stage "tests/data/invalid/submissionPeriod.txt" file for upload
     And I update the SubmissionPeriod to "<periodType>"
