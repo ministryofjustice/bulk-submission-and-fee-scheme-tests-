@@ -50,16 +50,16 @@ const generateOutcome = async (
 
   const caseStartDate = faker.date.between({ from: start, to: end });
   const medConcluded = faker.date.between({ from: caseStartDate, to: end });
-  const workConcluded = faker.date.between({ from: caseStartDate, to: medConcluded });
+  const workConcluded =  faker.date.between({ from: caseStartDate, to: medConcluded });
 
   const ufn = claimOverride?.ufn ?? generateUFN(caseStartDate, caseNum);
 
-  const ucn1 = `${pad(dob1.getDate())}${pad(dob1.getMonth() + 1)}${dob1.getFullYear()}/${client1Last[0].toUpperCase()}/${clean(client1Last).slice(0, 4)}`;
-  const ucn2 = `${pad(dob2.getDate())}${pad(dob2.getMonth() + 1)}${dob2.getFullYear()}/${client2Last[0].toUpperCase()}/${clean(client2Last).slice(0, 4)}`;
+  const ucn1 = claimOverride?.ucn ?? `${pad(dob1.getDate())}${pad(dob1.getMonth() + 1)}${dob1.getFullYear()}/${client1Last[0].toUpperCase()}/${clean(client1Last).slice(0, 4)}`;
+  const ucn2 = claimOverride?.ucn ?? `${pad(dob2.getDate())}${pad(dob2.getMonth() + 1)}${dob2.getFullYear()}/${client2Last[0].toUpperCase()}/${clean(client2Last).slice(0, 4)}`;
 
   return {
     case_ref_number: faker.number.int({ min: 1000, max: 9999 }),
-    case_start_date: formatDate(caseStartDate),
+    case_start_date: claimOverride?.caseStartDate ?? formatDate(caseStartDate),
     case_id: pad(caseNum, 3),
     ufn,
     client1_first: client1First,
@@ -73,21 +73,21 @@ const generateOutcome = async (
     client1_postalApplAccp: claimOverride?.postalApplication ?? 'Y',
     client2_first: client2First,
     client2_last: client2Last,
-    client2_dob: formatDate(dob2),
+    client2_dob: claimOverride?.client2DateOfBirth ?? formatDate(dob2),
     client2_gender: randomFrom(['M', 'F']),
     client2_ethnicity: '01',
     client2_disability: randomFrom(['NCD', 'ILL']),
     client2_postcode: faker.helpers.replaceSymbols('??## #??').toUpperCase(),
     client2_legally_aided: claimOverride?.client2LegallyAided ?? randomFrom(['Y', 'N']),
     client2_postalApplAccp: claimOverride?.client2PostalApplication ?? randomFrom(['Y', 'N']),
-    med_concluded_date: formatDate(medConcluded),
-    work_concluded_date: formatDate(workConcluded),
-    outcome_code: 'B',
-    number_of_sessions: faker.number.int({ min: 1, max: 5 }),
+    med_concluded_date: claimOverride?.medConcludedDate ?? formatDate(medConcluded),
+    work_concluded_date: claimOverride?.workConcludedDate ?? formatDate(workConcluded),
+    outcome_code: claimOverride?.outcomeCode ?? 'B',
+    number_of_sessions: claimOverride?.sessions ?? faker.number.int({ min: 1, max: 5 }),
     mediation_time: faker.number.int({ min: 60, max: 240 }),
-    fee_code: randomFrom(feeCodes),
-    disbursements_amount: faker.number.float({ min: 0, max: 200, fractionDigits: 2 }),
-    disbursements_vat: faker.number.float({ min: 0, max: 50, fractionDigits: 2 }),
+    fee_code: claimOverride?.feeCode ?? randomFrom(feeCodes),
+    disbursements_amount: claimOverride?.disbursementAmount ?? faker.number.float({ min: 0, max: 200, fractionDigits: 2 }),
+    disbursements_vat:  claimOverride?.disbursementVat ?? faker.number.float({ min: 0, max: 50, fractionDigits: 2 }),
     vat_indicator: claimOverride?.vatApplicable ?? randomFrom(['Y', 'N']),
     unique_case_id: `${ufn}`,
     outreach: faker.helpers.arrayElement(['000', '001', '002']),
@@ -135,32 +135,18 @@ const generateFile = async (
     const o = await generateOutcome(office, i, scheduleStart, scheduleEnd, override);
 
 
-    const feeCode = override?.feeCode ?? o.fee_code;
-    const ufn = override?.ufn ?? o.ufn;
-
-    // NEW — override UCN for both clients
-    const ucn1 = override?.ucn ?? o.ucn1;
-    const ucn2 = override?.ucn ?? o.ucn2;
-
-    const disbAmt = override?.disbursementAmount ?? o.disbursements_amount;
-    // @ts-ignore
-    const disbVat = override?.disbursementVat ?? o.disbursements_vat;
-    // @ts-ignore
-    const oc = override?.outcomeCode ?? o.outcome_code;
-    // @ts-ignore
-    const sessions = override?.sessions ?? o.number_of_sessions;
 
     content +=
         `OUTCOME,` +
-        `FEE_CODE=${feeCode},` +
+        `FEE_CODE=${o.fee_code},` +
         `matterType=MEDI:MDCS,` +
         `CASE_START_DATE=${o.case_start_date},` +
         `CASE_ID=${o.case_id},` +
-        `UFN=${ufn},` +
+        `UFN=${o.ufn},` +
         `CLIENT_FORENAME=${o.client1_first},` +
         `CLIENT_SURNAME=${o.client1_last},` +
         `CLIENT_DATE_OF_BIRTH=${o.client1_dob},` +
-        `UCN=${ucn1},` +
+        `UCN=${o.ucn1},` +
         `GENDER=${o.client1_gender},` +
         `ETHNICITY=${o.client1_ethnicity},` +
         `DISABILITY=${o.client1_disability},` +
@@ -169,7 +155,7 @@ const generateFile = async (
         `CLIENT2_FORENAME=${o.client2_first},` +
         `CLIENT2_SURNAME=${o.client2_last},` +
         `CLIENT2_DATE_OF_BIRTH=${o.client2_dob},` +
-        `CLIENT2_UCN=${ucn2},` +
+        `CLIENT2_UCN=${o.ucn2},` +
         `CLIENT2_GENDER=${o.client2_gender},` +
         `CLIENT2_ETHNICITY=${o.client2_ethnicity},` +
         `CLIENT2_DISABILITY=${o.client2_disability},` +
@@ -177,12 +163,12 @@ const generateFile = async (
         `CLIENT2_LEGALLY_AIDED=${o.client2_legally_aided},` +
         `MED_CONCLUDED_DATE=${o.med_concluded_date},` +
         `WORK_CONCLUDED_DATE=${o.work_concluded_date},` +
-        `NUMBER_OF_MEDIATION_SESSIONS=${sessions},` +
+        `NUMBER_OF_MEDIATION_SESSIONS=${o.number_of_sessions},` +
         `MEDIATION_TIME=${o.mediation_time},` +
         `CASE_REF_NUMBER=${o.case_ref_number},` +
-        `OUTCOME_CODE=${oc},` +
-        `DISBURSEMENTS_AMOUNT=${disbAmt},` +
-        `DISBURSEMENTS_VAT=${disbVat},` +
+        `OUTCOME_CODE=${o.outcome_code},` +
+        `DISBURSEMENTS_AMOUNT=${o.disbursements_amount},` +
+        `DISBURSEMENTS_VAT=${o.disbursements_vat},` +
         `VAT_INDICATOR=${o.vat_indicator},` +
         `UNIQUE_CASE_ID=${o.unique_case_id},` +
         `OUTREACH=${o.outreach},` +
@@ -198,7 +184,7 @@ const generateFile = async (
         `IRC_SURGERY=${o.irc_surgery}, `+
         `SUBSTANTIVE_HEARING=${o.substantive_hearing}, `+
         `TOLERANCE_INDICATOR=${o.tolerance_indicator}, ` +
-        `DUTY_SOLICITOR=${o.duty_solicitor}, `+
+        `DUTY_SOLICITOR=${o.duty_solicitor}, ` +
         `YOUTH_COURT=${o.youth_court}\n`;
   }
 

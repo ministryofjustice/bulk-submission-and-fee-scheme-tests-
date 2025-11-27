@@ -76,9 +76,15 @@ async function generateOutcome(
   const ufn = claimOverride?.ufn ?? makeUFN(caseStart, caseNum);
   const station = random(policeStations);
 
+  const dob = faker.date.between({
+    from: new Date('1960-01-01'),
+    to: new Date('2005-12-31'),
+  });
+
   return {
     client_forename: first,
     client_surname: last,
+    client_date_of_birth: claimOverride?.clientDateOfBirth ?? dateFmt(dob),
     gender: random(['M', 'F']),
     ethnicity: random(['99', '01', '02', '03', '04']),
     profit_cost: claimOverride?.profitCost ?? money(10, 200),
@@ -93,8 +99,11 @@ async function generateOutcome(
     ]),
     stage_reached_code: random(['INVC', 'PROD', 'PROK']),
     travel_waiting_costs: money(0, 40),
-    case_start_date: dateFmt(caseStart),
-    work_concluded_date: dateFmt(concluded),
+    case_start_date: claimOverride?.caseStartDate ?? dateFmt(caseStart),
+    rep_order_date: claimOverride?.repOrderDate ?? dateFmt(caseStart),
+    work_concluded_date: claimOverride?.workConcludedDate ?? dateFmt(concluded),
+    transfer_date: claimOverride?.transferDate ?? dateFmt(concluded),
+    surgery_date: claimOverride?.surgeryDate ?? dateFmt(concluded),
     no_of_suspects: faker.number.int({ min: 1, max: 3 }),
     police_station: claimOverride?.policeStation ?? station.id,
     no_of_police_station: 1,
@@ -166,6 +175,7 @@ async function generateFile(
         `UFN=${base.ufn},` +
         `CLIENT_FORENAME=${base.client_forename},` +
         `CLIENT_SURNAME=${base.client_surname},` +
+        `CLIENT_DATE_OF_BIRTH=${base.client_date_of_birth},` +
         `GENDER=${base.gender},` +
         `ETHNICITY=${base.ethnicity},` +
         `DISABILITY=${base.disability},` +
@@ -197,6 +207,9 @@ async function generateFile(
         `TOLERANCE_INDICATOR=${base.tolerance_indicator}, `+
         `DUTY_SOLICITOR=${base.duty_solicitor}, ` +
         `YOUTH_COURT=${base.youth_court}, ` +
+        `REP_ORDER_DATE=${base.rep_order_date}, ` +
+        `TRANSFER_DATE=${base.transfer_date}, ` +
+        `SURGERY_DATE=${base.surgery_date}, ` +
         `CLIENT_LEGALLY_AIDED=${base.client_legally_aided}\n`;
   }
 

@@ -10,6 +10,8 @@ export interface claimOptions {
   uniqueCaseId?: string;
   caseStartDate?: string;
   caseConcludedDate?: string;
+  workConcludedDate?: string;
+  medConcludedDate?: string;
   clientDateOfBirth?: string;
   client2DateOfBirth?: string;
   transferDate?: string;
@@ -31,4 +33,6 @@ export interface claimOptions {
   outcomeCode?: string;
   policeStation?: string;
   schemeId?: string;
+  repOrderDate?: string;
+  sessions?: string;
 }

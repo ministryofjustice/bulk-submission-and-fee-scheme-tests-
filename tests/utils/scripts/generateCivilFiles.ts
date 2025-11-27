@@ -85,7 +85,7 @@ async function generateOutcome(
     disbursements_vat: money(0, 1.98),
     counsel_cost: money(0, 50),
     travel_costs: money(0, 15),
-    work_concluded_date: claimOverride?.caseConcludedDate ?? fmt(concluded),
+    work_concluded_date: claimOverride?.workConcludedDate ?? fmt(concluded),
     transfer_date: claimOverride?.transferDate ?? fmt(concluded),
     surgery_date: claimOverride?.surgeryDate ?? fmt(concluded),
     advice_time: 120,
@@ -179,6 +179,7 @@ async function generateFile(
         `SUBSTANTIVE_HEARING=${baseRow.substantive_hearing},` +
         `TOLERANCE_INDICATOR=${baseRow.tolerance_indicator}, ` +
         `SURGERY_DATE=${baseRow.surgery_date},` +
+        `TRANSFER_DATE=${baseRow.transfer_date},` +
         `SCHEDULE_REF=${baseRow.schedule_ref}\n`;
   }
 

@@ -1,3 +1,4 @@
+@temp
 Feature: Display message checks
 
   Background:
@@ -51,12 +52,11 @@ Feature: Display message checks
       | ircSurgery              | A     | Invalid value 'A' supplied for field 'IRC Surgery'. Valid values are 'Y' or 'N'                 |
       | substantiveHearing      | A     | Invalid value 'A' supplied for field 'Substantive Hearing'. Valid values are 'Y' or 'N'         |
       | toleranceIndicator      | A     | Invalid value 'A' supplied for field 'Tolerance Applicable'. Valid values are 'Y' or 'N'        |
-      # TODO: Uncomment when DSTEW-807 is merged
-      #| caseStartDate           | abc   | Invalid value 'A' supplied for field 'Tolerance Applicable'. Valid values are 'Y' or 'N'        |
-      #| caseConcludedDate       | abc   | Invalid value 'A' supplied for field 'Tolerance Applicable'. Valid values are 'Y' or 'N'        |
-      #| clientDateOfBirth       | abc   | Invalid value 'A' supplied for field 'Tolerance Applicable'. Valid values are 'Y' or 'N'        |
-      #| transferDate            | abc   | Invalid value 'A' supplied for field 'Tolerance Applicable'. Valid values are 'Y' or 'N'        |
-      #| surgeryDate            | abc   | Invalid value 'A' supplied for field 'Surgery Date'. Valid values are 'Y' or 'N'        |
+      | caseStartDate           | abc   | Case Start Date must be a valid date in the format DD/MM/YYYY                                   |
+      | workConcludedDate       | abc   | Work Concluded Date must be a valid date in the format DD/MM/YYYY                               |
+      | clientDateOfBirth       | abc   | Client Date of Birth must be a valid date in the format DD/MM/YYYY                              |
+      | transferDate            | abc   | Transfer Date must be a valid date in the format DD/MM/YYYY                                     |
+      | surgeryDate             | abc   | Surgery Date must be a valid date in the format DD/MM/YYYY                                      |
 
   Scenario: Legal Help: Should check display messages are shown for format based errors (regex)
     Given I upload "tests/data/invalid/legal_help_regex_errors.csv"
@@ -131,6 +131,12 @@ Feature: Display message checks
     Then the user sees an error message "<errorMessage>"
     Examples:
       | fieldName               | value | errorMessage                                                                                    |
+      | caseStartDate           | abc   | Case Start Date must be a valid date in the format DD/MM/YYYY                                   |
+      | workConcludedDate       | abc   | Work Concluded Date must be a valid date in the format DD/MM/YYYY                               |
+      | repOrderDate            | abc   | Rep Order Date must be a valid date in the format DD/MM/YYYY                                    |
+      | clientDateOfBirth       | abc   | Client Date of Birth must be a valid date in the format DD/MM/YYYY                              |
+      | transferDate            | abc   | Transfer Date must be a valid date in the format DD/MM/YYYY                                     |
+      | surgeryDate             | abc   | Surgery Date must be a valid date in the format DD/MM/YYYY                                      |
       | vatApplicable           | A     | Invalid value 'A' supplied for field 'VAT Applicable'. Valid values are 'Y' or 'N'              |
       | postalApplication       | A     | Invalid value 'A' supplied for field 'Postal Application Accepted'. Valid values are 'Y' or 'N' |
       | nrmAdvice               | A     | Invalid value 'A' supplied for field 'NRM Advice'. Valid values are 'Y' or 'N'                  |
@@ -144,13 +150,6 @@ Feature: Display message checks
       | dutySolicitor           | A     | Invalid value 'A' supplied for field 'Duty Solicitor'. Valid values are 'Y' or 'N'              |
       | youthCourt              | A     | Invalid value 'A' supplied for field 'Youth Court'. Valid values are 'Y' or 'N'                 |
       | clientLegallyAided      | A     | Invalid value 'A' supplied for field 'Is Legally Aided'. Valid values are 'Y' or 'N'            |
-      # TODO: Uncomment and implement when DSTEW-807 is merged
-      #| caseStartDate           | abc   | Invalid value 'A' supplied for field 'Tolerance Applicable'. Valid values are 'Y' or 'N'        |
-      #| caseConcludedDate       | abc   | Invalid value 'A' supplied for field 'Tolerance Applicable'. Valid values are 'Y' or 'N'        |
-      # Broken dates| Representation Order Date must be a valid date in the format DD/MM/YYYY                                            |
-      #| clientDateOfBirth       | abc   | Invalid value 'A' supplied for field 'Tolerance Applicable'. Valid values are 'Y' or 'N'        |
-      #| transferDate            | abc   | Invalid value 'A' supplied for field 'Tolerance Applicable'. Valid values are 'Y' or 'N'        |
-      #| surgeryDate            | abc   | Invalid value 'A' supplied for field 'Surgery Date'. Valid values are 'Y' or 'N'        |
 
   Scenario: Crime Lower: Should check display messages are shown for format based errors (regex)
     Given I upload "tests/data/invalid/crime_lower_regex_errors.csv"
@@ -245,7 +244,6 @@ Feature: Display message checks
       | Ethnicity Code is required for Mediation claims        |
       | Gender Code is required for Mediation claims           |
 
-  @temp
   Scenario Outline: Mediation: Should check parse errors for <fieldName>
     Given I generate "Mediation" "csv" file with the following claims
       | <fieldName> |
@@ -254,6 +252,11 @@ Feature: Display message checks
     Then the user sees an error message "<errorMessage>"
     Examples:
       | fieldName                | value | errorMessage                                                                                             |
+      | caseStartDate            | abc   | Case Start Date must be a valid date in the format DD/MM/YYYY                                            |
+      | medConcludedDate         | abc   | Med Concluded Date must be a valid date in the format DD/MM/YYYY                                         |
+      | workConcludedDate        | abc   | Work Concluded Date must be a valid date in the format DD/MM/YYYY                                        |
+      | clientDateOfBirth        | abc   | Client Date of Birth must be a valid date in the format DD/MM/YYYY                                       |
+      | client2DateOfBirth       | abc   | Client 2 Date of Birth must be a valid date in the format DD/MM/YYYY                                     |
       | vatApplicable            | A     | Invalid value 'A' supplied for field 'VAT Applicable'. Valid values are 'Y' or 'N'                       |
       | postalApplication        | A     | Invalid value 'A' supplied for field 'Postal Application Accepted'. Valid values are 'Y' or 'N'          |
       | client2PostalApplication | A     | Invalid value 'A' supplied for field 'Client 2 Postal Application Accepted'. Valid values are 'Y' or 'N' |
@@ -269,13 +272,6 @@ Feature: Display message checks
       | youthCourt               | A     | Invalid value 'A' supplied for field 'Youth Court'. Valid values are 'Y' or 'N'                          |
       | clientLegallyAided       | A     | Invalid value 'A' supplied for field 'Is Legally Aided'. Valid values are 'Y' or 'N'                     |
       | client2LegallyAided      | A     | Invalid value 'A' supplied for field 'Client 2 Legally Aided'. Valid values are 'Y' or 'N'               |
-      # TODO: Uncomment and implement when DSTEW-807 is merged
-      # broken dates| Case Start Date must be a valid date in the format DD/MM/YYYY                                                                              |
-      # broken dates| Case Concluded Date must be a valid date in the format DD/MM/YYYY                                                                          |
-      # broken dates| Client Date of Birth must be a valid date in the format DD/MM/YYYY                                                                         |
-      # broken dates| Transfer Date must be a valid date in the format DD/MM/YYYY                                                                                |
-      # broken date | Surgery Date is invalid                                                                                                                    |
-      # broken date | Client 2 Date of Birth must be a valid date in the format DD/MM/YYYY                                                                       |
 
   Scenario: Mediation: Should check display messages are shown for format based errors (regex)
     Given I upload "tests/data/invalid/mediation_regex_errors.csv"
