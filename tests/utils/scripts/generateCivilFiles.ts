@@ -184,7 +184,7 @@ const generateOutcome = async (
     disbursements_vat: randomMoney(0, 1.98),
     counsel_cost: randomMoney(0, 50),
     travel_costs: randomMoney(0, 15),
-    work_concluded_date: claimOverride?.caseConcludedDate ?? formatDate(workConcludedDate),
+    work_concluded_date: claimOverride?.workConcludedDate ?? formatDate(workConcludedDate),
     transfer_date: claimOverride?.transferDate ?? formatDate(workConcludedDate),
     surgery_date: claimOverride?.surgeryDate ?? formatDate(workConcludedDate),
     advice_time: 120,
@@ -230,7 +230,56 @@ const generateFile = async (
     const claimOverride = claims?.[i];
     const feeCode = claimOverride?.feeCode ?? randomFrom(feeCodes);
 
-    content += `OUTCOME,FEE_CODE=${feeCode},matterType=FAMX:FAPP,CASE_REF_NUMBER=${o.case_ref_number},CASE_START_DATE=${o.case_start_date},CASE_ID=${o.case_id},UFN=${o.ufn},PROCUREMENT_AREA=PA00120,ACCESS_POINT=AP00000,CLIENT_FORENAME=${o.client_forename},CLIENT_SURNAME=${o.client_surname},CLIENT_DATE_OF_BIRTH=${o.client_date_of_birth},UCN=${o.ucn},GENDER=${o.gender},ETHNICITY=${o.ethnicity},DISABILITY=${o.disability},CLIENT_POST_CODE=${o.client_post_code},NATIONAL_REF_MECHANISM_ADVICE=${o.nrm_advice},WORK_CONCLUDED_DATE=${o.work_concluded_date},CASE_STAGE_LEVEL=FPC01,ADVICE_TIME=${o.advice_time},TRAVEL_TIME=${o.travel_time},WAITING_TIME=${o.waiting_time},PROFIT_COST=${o.profit_cost},DISBURSEMENTS_AMOUNT=${o.disbursements_amount},COUNSEL_COST=${o.counsel_cost},DISBURSEMENTS_VAT=${o.disbursements_vat},TRAVEL_WAITING_COSTS=0.00,VAT_INDICATOR=${o.vat_applicable},LONDON_NONLONDON_RATE=${o.london_nonlondon_rate},TRAVEL_COSTS=${o.travel_costs},OUTCOME_CODE=${o.outcome_code},POSTAL_APPL_ACCP=${o.postal_application},SCHEDULE_REF=${o.schedule_ref},TRANSFER_DATE=${o.transfer_date},LEGACY_CASE=${o.legacy_case},LONDON_NONLONDON_RATE=${o.london_nonlondon_rate},ADDITIONAL_TRAVEL_PAYMENT=${o.additional_travel_payment},ELIGIBLE_CLIENT_INDICATOR=${o.eligible_client_indicator},IRC_SURGERY=${o.irc_surgery},SUBSTANTIVE_HEARING=${o.substantive_hearing},TOLERANCE_INDICATOR=${o.tolerance_indicator},SURGERY_DATE=${o.surgery_date}\n`;
+    content +=
+        `OUTCOME,` +
+        `FEE_CODE=${feeCode},` +
+        `matterType=FAMX:FAPP,` +
+        // @ts-ignore
+        `CASE_REF_NUMBER=${o.case_ref_number},` +
+        // @ts-ignore
+        `CASE_START_DATE=${o.case_start_date},` +
+        `CASE_ID=${o.case_id},` +
+        `UFN=${o.ufn},` +
+        `PROCUREMENT_AREA=PA00120,` +
+        `ACCESS_POINT=AP00000,` +
+        `CLIENT_FORENAME=${o.client_forename},` +
+        `CLIENT_SURNAME=${o.client_surname},` +
+        `CLIENT_DATE_OF_BIRTH=${o.client_date_of_birth},` +
+        `UCN=${o.ucn.toUpperCase()},` +
+        `GENDER=${o.gender},` +
+        `ETHNICITY=${o.ethnicity},` +
+        `DISABILITY=${o.disability},` +
+        // @ts-ignore
+        `CLIENT_POST_CODE=${o.client_post_code},` +
+        // @ts-ignore
+        `WORK_CONCLUDED_DATE=${o.work_concluded_date},` +
+        `CASE_STAGE_LEVEL=FPC01,` +
+        `ADVICE_TIME=${o.advice_time},` +
+        `TRAVEL_TIME=${o.travel_time},` +
+        `WAITING_TIME=${o.waiting_time},` +
+        `PROFIT_COST=${o.profit_cost},` +
+        `DISBURSEMENTS_AMOUNT=${o.disbursements_amount},` +
+        // @ts-ignore
+        `COUNSEL_COST=${o.counsel_cost},` +
+        // @ts-ignore
+        `DISBURSEMENTS_VAT=${o.disbursements_vat},` +
+        `TRAVEL_WAITING_COSTS=0.00,` +
+        `VAT_INDICATOR=${o.vat_applicable},` +
+        `LONDON_NONLONDON_RATE=${o.london_nonlondon_rate},` +
+        `TRAVEL_COSTS=${o.travel_costs},` +
+        // @ts-ignore
+        `OUTCOME_CODE=${o.outcome_code},` +
+        `POSTAL_APPL_ACCP=${o.postal_application},` +
+        `NATIONAL_REF_MECHANISM_ADVICE=${o.nrm_advice},` +
+        `LEGACY_CASE=${o.legacy_case},` +
+        `ADDITIONAL_TRAVEL_PAYMENT=${o.additional_travel_payment},` +
+        `ELIGIBLE_CLIENT_INDICATOR=${o.eligible_client_indicator},` +
+        `IRC_SURGERY=${o.irc_surgery},` +
+        `SUBSTANTIVE_HEARING=${o.substantive_hearing},` +
+        `TOLERANCE_INDICATOR=${o.tolerance_indicator}, ` +
+        `SURGERY_DATE=${o.surgery_date},` +
+        `TRANSFER_DATE=${o.transfer_date},` +
+        `SCHEDULE_REF=${o.schedule_ref}\n`;
   }
 
   ensureOutputDir();

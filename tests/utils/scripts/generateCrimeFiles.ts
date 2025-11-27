@@ -119,10 +119,15 @@ const generateOutcome = async (office: string, caseNum: number,
   const workConcludedDate = faker.date.between({from: caseStartDate, to: ufnMax});
   const ufn = claimOverride?.ufn ?? generateUFN(caseStartDate, caseNum);
   const station = randomFrom(policeStations);
+  const dob = faker.date.between({
+    from: new Date('1960-01-01'),
+    to: new Date('2005-12-31'),
+  });
 
   return {
     client_forename: firstName,
     client_surname: lastName,
+    client_date_of_birth: claimOverride?.clientDateOfBirth ?? formatDate(dob),
     gender: randomFrom(['M', 'F']),
     ethnicity: randomFrom(['99', '01', '02', '03', '04']),
     profit_cost: claimOverride?.profitCost ?? randomMoney(10, 200),
@@ -138,8 +143,11 @@ const generateOutcome = async (office: string, caseNum: number,
     ]),
     stage_reached_code: randomFrom(['INVC', 'PROD', 'PROK']),
     travel_waiting_costs: randomMoney(0, 40),
-    case_start_date: formatDate(caseStartDate),
-    work_concluded_date: formatDate(workConcludedDate),
+    case_start_date: claimOverride?.caseStartDate ?? formatDate(caseStartDate),
+    rep_order_date: claimOverride?.repOrderDate ?? '',
+    work_concluded_date: claimOverride?.workConcludedDate ?? formatDate(workConcludedDate),
+    transfer_date: claimOverride?.transferDate ?? formatDate(workConcludedDate),
+    surgery_date: claimOverride?.surgeryDate ?? formatDate(workConcludedDate),
     no_of_suspects: faker.number.int({min: 1, max: 3}),
     no_of_police_station: 1,
     police_station: station.id,
@@ -178,7 +186,49 @@ const generateFile = async (fileName: string,
     const feeCode = claimOverride?.feeCode ?? randomFrom(feeCodes);
     const matterType = feeCode.substring(0, 4);
 
-    content += `OUTCOME,FEE_CODE=${feeCode},matterType=${matterType},UFN=${o.ufn},CLIENT_FORENAME=${o.client_forename},CLIENT_SURNAME=${o.client_surname},GENDER=${o.gender},ETHNICITY=${o.ethnicity},DISABILITY=${o.disability},CASE_START_DATE=${o.case_start_date},PROFIT_COST=${o.profit_cost},DISBURSEMENTS_AMOUNT=${o.disbursements_amount},DISBURSEMENTS_VAT=${o.disbursements_vat},VAT_INDICATOR=${o.vat_indicator},TRAVEL_COSTS=${o.travel_costs},OUTCOME_CODE=${o.outcome_code},CRIME_MATTER_TYPE=${o.crime_matter_type},TRAVEL_WAITING_COSTS=${o.travel_waiting_costs},WORK_CONCLUDED_DATE=${o.work_concluded_date},NO_OF_SUSPECTS=${o.no_of_suspects},NO_OF_POLICE_STATION=${o.no_of_police_station},POLICE_STATION=${o.police_station},DUTY_SOLICITOR=${o.duty_solicitor},YOUTH_COURT=${o.youth_court},SCHEME_ID=${o.scheme_id},DSCC_NUMBER=${o.dscc_number},POSTAL_APPL_ACCP=${o.postal_application},NATIONAL_REF_MECHANISM_ADVICE=${o.nrm_advice},LEGACY_CASE=${o.legacy_case},LONDON_NONLONDON_RATE=${o.london_nonlondon_rate},ADDITIONAL_TRAVEL_PAYMENT=${o.additional_travel_payment},ELIGIBLE_CLIENT_INDICATOR=${o.eligible_client_indicator},IRC_SURGERY=${o.irc_surgery},SUBSTANTIVE_HEARING=${o.substantive_hearing},TOLERANCE_INDICATOR=${o.tolerance_indicator},DUTY_SOLICITOR=${o.duty_solicitor},YOUTH_COURT=${o.youth_court},CLIENT_LEGALLY_AIDED=${o.client_legally_aided}\n`;
+    content +=
+        `OUTCOME,` +
+        `FEE_CODE=${feeCode},` +
+        `matterType=${matterType},` +
+        `UFN=${o.ufn},` +
+        `CLIENT_FORENAME=${o.client_forename},` +
+        `CLIENT_SURNAME=${o.client_surname},` +
+        `CLIENT_DATE_OF_BIRTH=${o.client_date_of_birth},` +
+        `GENDER=${o.gender},` +
+        `ETHNICITY=${o.ethnicity},` +
+        `DISABILITY=${o.disability},` +
+        `CASE_START_DATE=${o.case_start_date},` +
+        `PROFIT_COST=${o.profit_cost},` +
+        `DISBURSEMENTS_AMOUNT=${o.disbursements_amount},` +
+        `DISBURSEMENTS_VAT=${o.disbursements_vat},` +
+        `VAT_INDICATOR=${o.vat_indicator},` +
+        `TRAVEL_COSTS=${o.travel_costs},` +
+        `OUTCOME_CODE=${o.outcome_code},` +
+        `CRIME_MATTER_TYPE=${o.crime_matter_type},` +
+        `TRAVEL_WAITING_COSTS=${o.travel_waiting_costs},` +
+        `WORK_CONCLUDED_DATE=${o.work_concluded_date},` +
+        `NO_OF_SUSPECTS=${o.no_of_suspects},` +
+        `NO_OF_POLICE_STATION=${o.no_of_police_station},` +
+        `POLICE_STATION=${o.police_station},` +
+        `DUTY_SOLICITOR=${o.duty_solicitor},` +
+        `YOUTH_COURT=${o.youth_court},` +
+        `SCHEME_ID=${o.scheme_id},` +
+        `DSCC_NUMBER=${o.dscc_number},` +
+        `POSTAL_APPL_ACCP=${o.postal_application}, `+
+        `NATIONAL_REF_MECHANISM_ADVICE=${o.nrm_advice}, `+
+        `LEGACY_CASE=${o.legacy_case}, ` +
+        `LONDON_NONLONDON_RATE=${o.london_nonlondon_rate}, `+
+        `ADDITIONAL_TRAVEL_PAYMENT=${o.additional_travel_payment}, ` +
+        `ELIGIBLE_CLIENT_INDICATOR=${o.eligible_client_indicator}, ` +
+        `IRC_SURGERY=${o.irc_surgery}, ` +
+        `SUBSTANTIVE_HEARING=${o.substantive_hearing}, `+
+        `TOLERANCE_INDICATOR=${o.tolerance_indicator}, `+
+        `DUTY_SOLICITOR=${o.duty_solicitor}, ` +
+        `YOUTH_COURT=${o.youth_court}, ` +
+        `REP_ORDER_DATE=${o.rep_order_date}, ` +
+        `TRANSFER_DATE=${o.transfer_date}, ` +
+        `SURGERY_DATE=${o.surgery_date}, ` +
+        `CLIENT_LEGALLY_AIDED=${o.client_legally_aided}\n`;  
   }
 
   if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);

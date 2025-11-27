@@ -5,10 +5,13 @@ export interface claimOptions {
   profitCost?: number;
   travelCost?: number;
   disbursementAmount?: number;
+  disbursementVat?: number;
   londonNonLondonRate?: string;
   uniqueCaseId?: string;
   caseStartDate?: string;
   caseConcludedDate?: string;
+  workConcludedDate?: string;
+  medConcludedDate?: string;
   clientDateOfBirth?: string;
   client2DateOfBirth?: string;
   transferDate?: string;
@@ -27,4 +30,9 @@ export interface claimOptions {
   youthCourt?: string;
   clientLegallyAided?: string;
   client2LegallyAided?: string;
+  outcomeCode?: string;
+  policeStation?: string;
+  schemeId?: string;
+  repOrderDate?: string;
+  sessions?: string;
 }

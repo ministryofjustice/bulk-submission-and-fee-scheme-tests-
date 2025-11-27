@@ -113,7 +113,7 @@ const generateOutcome = async (office: string, caseNum: number,
 
   return {
     case_ref_number: faker.number.int({min: 1000, max: 9999}),
-    case_start_date: formatDate(caseStartDate),
+    case_start_date: claimOverride?.caseStartDate ?? formatDate(caseStartDate),
     case_id: pad(caseNum, 3),
     ufn,
     client1_first: client1First,
@@ -127,15 +127,15 @@ const generateOutcome = async (office: string, caseNum: number,
     client1_postalApplAccp: claimOverride?.postalApplication ?? 'Y',
     client2_first: client2First,
     client2_last: client2Last,
-    client2_dob: formatDate(dob2),
+    client2_dob: claimOverride?.client2DateOfBirth ?? formatDate(dob2),
     client2_gender: randomFrom(['M', 'F']),
     client2_ethnicity: '01',
     client2_disability: randomFrom(['NCD', 'ILL']),
     client2_postcode: faker.helpers.replaceSymbols('??## #??').toUpperCase(),
     client2_legally_aided: claimOverride?.client2LegallyAided ?? randomFrom(['Y', 'N']),
     client2_postalApplAccp: claimOverride?.client2PostalApplication ?? randomFrom(['Y', 'N']),
-    med_concluded_date: formatDate(medConcluded),
-    work_concluded_date: formatDate(workConcluded),
+    med_concluded_date: claimOverride?.medConcludedDate ?? formatDate(medConcluded),
+    work_concluded_date: claimOverride?.workConcludedDate ?? formatDate(workConcluded),
     outcome_code: 'B',
     number_of_sessions: faker.number.int({min: 1, max: 5}),
     mediation_time: faker.number.int({min: 60, max: 240}),
@@ -187,8 +187,56 @@ const generateFile = async (fileName: string,
 
     const feeCode = claimOverride?.feeCode ?? randomFrom(feeCodes);
     const uniqueCaseId = claimOverride?.uniqueCaseId ?? o.unique_case_id;
-
-    content += `OUTCOME,FEE_CODE=${feeCode},matterType=MEDI:MDCS,CASE_START_DATE=${o.case_start_date},CASE_ID=${o.case_id},UFN=${o.ufn},CLIENT_FORENAME=${o.client1_first},CLIENT_SURNAME=${o.client1_last},CLIENT_DATE_OF_BIRTH=${o.client1_dob},UCN=${o.ucn1},GENDER=${o.client1_gender},ETHNICITY=${o.client1_ethnicity},DISABILITY=${o.client1_disability},CLIENT_POST_CODE=${o.client1_postcode},CLIENT_LEGALLY_AIDED=${o.client1_legally_aided},CLIENT2_FORENAME=${o.client2_first},CLIENT2_SURNAME=${o.client2_last},CLIENT2_DATE_OF_BIRTH=${o.client2_dob},CLIENT2_UCN=${o.ucn2},CLIENT2_GENDER=${o.client2_gender},CLIENT2_ETHNICITY=${o.client2_ethnicity},CLIENT2_DISABILITY=${o.client2_disability},CLIENT2_POST_CODE=${o.client2_postcode},CLIENT2_LEGALLY_AIDED=${o.client2_legally_aided},MED_CONCLUDED_DATE=${o.med_concluded_date},WORK_CONCLUDED_DATE=${o.work_concluded_date},NUMBER_OF_MEDIATION_SESSIONS=${o.number_of_sessions},MEDIATION_TIME=${o.mediation_time},CASE_REF_NUMBER=${o.case_ref_number},OUTCOME_CODE=${o.outcome_code},DISBURSEMENTS_AMOUNT=${o.disbursements_amount},DISBURSEMENTS_VAT=${o.disbursements_vat},VAT_INDICATOR=${o.vat_indicator},UNIQUE_CASE_ID=${uniqueCaseId},OUTREACH=${o.outreach},REFERRAL=${o.referral},POSTAL_APPL_ACCP=${o.client1_postalApplAccp},CLIENT2_POSTAL_APPL_ACCP=${o.client2_postalApplAccp},SCHEDULE_REF=${scheduleNum},NATIONAL_REF_MECHANISM_ADVICE=${o.nrm_advice},LEGACY_CASE=${o.legacy_case},LONDON_NONLONDON_RATE=${o.london_nonlondon_rate},ADDITIONAL_TRAVEL_PAYMENT=${o.additional_travel_payment},ELIGIBLE_CLIENT_INDICATOR=${o.eligible_client_indicator},IRC_SURGERY=${o.irc_surgery},SUBSTANTIVE_HEARING=${o.substantive_hearing},TOLERANCE_INDICATOR=${o.tolerance_indicator},DUTY_SOLICITOR=${o.duty_solicitor},YOUTH_COURT=${o.youth_court}\n`;
+    content +=
+        `OUTCOME,` +
+        `FEE_CODE=${o.fee_code},` +
+        `matterType=MEDI:MDCS,` +
+        `CASE_START_DATE=${o.case_start_date},` +
+        `CASE_ID=${o.case_id},` +
+        `UFN=${o.ufn},` +
+        `CLIENT_FORENAME=${o.client1_first},` +
+        `CLIENT_SURNAME=${o.client1_last},` +
+        `CLIENT_DATE_OF_BIRTH=${o.client1_dob},` +
+        `UCN=${o.ucn1},` +
+        `GENDER=${o.client1_gender},` +
+        `ETHNICITY=${o.client1_ethnicity},` +
+        `DISABILITY=${o.client1_disability},` +
+        `CLIENT_POST_CODE=${o.client1_postcode},` +
+        `CLIENT_LEGALLY_AIDED=${o.client1_legally_aided},` +
+        `CLIENT2_FORENAME=${o.client2_first},` +
+        `CLIENT2_SURNAME=${o.client2_last},` +
+        `CLIENT2_DATE_OF_BIRTH=${o.client2_dob},` +
+        `CLIENT2_UCN=${o.ucn2},` +
+        `CLIENT2_GENDER=${o.client2_gender},` +
+        `CLIENT2_ETHNICITY=${o.client2_ethnicity},` +
+        `CLIENT2_DISABILITY=${o.client2_disability},` +
+        `CLIENT2_POST_CODE=${o.client2_postcode},` +
+        `CLIENT2_LEGALLY_AIDED=${o.client2_legally_aided},` +
+        `MED_CONCLUDED_DATE=${o.med_concluded_date},` +
+        `WORK_CONCLUDED_DATE=${o.work_concluded_date},` +
+        `NUMBER_OF_MEDIATION_SESSIONS=${o.number_of_sessions},` +
+        `MEDIATION_TIME=${o.mediation_time},` +
+        `CASE_REF_NUMBER=${o.case_ref_number},` +
+        `OUTCOME_CODE=${o.outcome_code},` +
+        `DISBURSEMENTS_AMOUNT=${o.disbursements_amount},` +
+        `DISBURSEMENTS_VAT=${o.disbursements_vat},` +
+        `VAT_INDICATOR=${o.vat_indicator},` +
+        `UNIQUE_CASE_ID=${o.unique_case_id},` +
+        `OUTREACH=${o.outreach},` +
+        `REFERRAL=${o.referral},` +
+        `POSTAL_APPL_ACCP=${o.client1_postalApplAccp},` +
+        `CLIENT2_POSTAL_APPL_ACCP=${o.client2_postalApplAccp},` +
+        `SCHEDULE_REF=${scheduleNum},` +
+        `NATIONAL_REF_MECHANISM_ADVICE=${o.nrm_advice}, ` +
+        `LEGACY_CASE=${o.legacy_case}, `+
+        `LONDON_NONLONDON_RATE=${o.london_nonlondon_rate}, ` +
+        `ADDITIONAL_TRAVEL_PAYMENT=${o.additional_travel_payment}, `+
+        `ELIGIBLE_CLIENT_INDICATOR=${o.eligible_client_indicator}, ` +
+        `IRC_SURGERY=${o.irc_surgery}, `+
+        `SUBSTANTIVE_HEARING=${o.substantive_hearing}, `+
+        `TOLERANCE_INDICATOR=${o.tolerance_indicator}, ` +
+        `DUTY_SOLICITOR=${o.duty_solicitor}, ` +
+        `YOUTH_COURT=${o.youth_court}\n`;
   }
 
 
