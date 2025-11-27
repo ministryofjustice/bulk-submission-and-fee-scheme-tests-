@@ -54,7 +54,8 @@ async function generateOutcome(
     office: string,
     caseNum: number,
     scheduleStart?: string,
-    scheduleEnd?: string
+    scheduleEnd?: string,
+    claimOverride?: claimOptions
 ) {
   const first = faker.person.firstName();
   const last = faker.person.lastName();
@@ -72,7 +73,7 @@ async function generateOutcome(
   const caseStart = faker.date.between({ from: start, to: end });
   const concluded = faker.date.between({ from: caseStart, to: end });
 
-  const ufn = makeUFN(caseStart, caseNum);
+  const ufn = claimOverride?.ufn ?? makeUFN(caseStart, caseNum);
   const station = random(policeStations);
 
   return {
@@ -80,12 +81,12 @@ async function generateOutcome(
     client_surname: last,
     gender: random(['M', 'F']),
     ethnicity: random(['99', '01', '02', '03', '04']),
-    profit_cost: money(10, 200),
-    disbursements_amount: money(0, 50),
-    disbursements_vat: money(0, 1.98),
-    vat_indicator: random(['Y', 'N']),
-    travel_costs: money(0, 100),
-    outcome_code: random(['CN04', 'CN02', 'CN01', 'CN08']),
+    profit_cost: claimOverride?.profitCost ?? money(10, 200),
+    disbursements_amount: claimOverride?.disbursementAmount ?? money(0, 50),
+    disbursements_vat: claimOverride?.disbursementVat ?? money(0, 1.98),
+    vat_indicator: claimOverride?.vatApplicable ?? random(['Y', 'N']),
+    travel_costs: claimOverride?.travelCost ?? money(0, 100),
+    outcome_code: claimOverride?.outcomeCode ?? random(['CN04', 'CN02', 'CN01', 'CN08']),
     crime_matter_type: pad(Number(random(['1', '2', '3'])), 2),
     disability: random([
       'NCD', 'MOB', 'DEA', 'HEA', 'VIS', 'BLI', 'MHC', 'LDD', 'COG', 'ILL', 'OTH', 'UKN', 'PHY', 'SEN'
@@ -95,12 +96,22 @@ async function generateOutcome(
     case_start_date: dateFmt(caseStart),
     work_concluded_date: dateFmt(concluded),
     no_of_suspects: faker.number.int({ min: 1, max: 3 }),
-    police_station: station.id,
+    police_station: claimOverride?.policeStation ?? station.id,
     no_of_police_station: 1,
-    duty_solicitor: random(['Y', 'N']),
-    youth_court: random(['Y', 'N']),
-    scheme_id: station.schemeId,
+    duty_solicitor: claimOverride?.dutySolicitor ?? random(['Y', 'N']),
+    youth_court: claimOverride?.youthCourt ?? random(['Y', 'N']),
+    scheme_id: claimOverride?.schemeId ?? station.schemeId,
     dscc_number: dscc(),
+    postal_application: claimOverride?.postalApplication ?? random(['Y', 'N']),
+    nrm_advice: claimOverride?.nrmAdvice ?? random(['Y', 'N']),
+    legacy_case: claimOverride?.legacyCase ?? random(['Y', 'N']),
+    london_nonlondon_rate: claimOverride?.londonNonLondonRate ?? random(['Y', 'N']),
+    additional_travel_payment: claimOverride?.additionalTravelPayment ?? random(['Y', 'N']),
+    eligible_client_indicator: claimOverride?.eligibleClientIndicator ?? random(['Y', 'N']),
+    irc_surgery: claimOverride?.ircSurgery ?? random(['Y', 'N']),
+    substantive_hearing: claimOverride?.substantiveHearing ?? random(['Y', 'N']),
+    tolerance_indicator: claimOverride?.toleranceIndicator ?? random(['Y', 'N']),
+    client_legally_aided: claimOverride?.clientLegallyAided ?? random(['Y', 'N']),
     ufn,
   };
 }
@@ -141,57 +152,52 @@ async function generateFile(
   out += `SCHEDULE,submissionPeriod=${submissionPeriod},areaOfLaw=CRIME LOWER,scheduleNum=${office}/CRM\n`;
 
   for (let i = 0; i < outcomesCount; i++) {
-    const base = await generateOutcome(office, i, scheduleStart, scheduleEnd);
-
     const o = options.claims?.[i];
+    const base = await generateOutcome(office, i, scheduleStart, scheduleEnd, o);
 
-    // ------------------------
-    // OVERRIDES SECTION
-    // ------------------------
+
     const feeCode = o?.feeCode ?? random(feeCodes);
     const matterType = feeCode.substring(0, 4);
-
-    const ufn = o?.ufn ?? base.ufn;
-    const profitCost = o?.profitCost ?? base.profit_cost;
-    const travelCost = o?.travelCost ?? base.travel_costs;
-    const disbAmt = o?.disbursementAmount ?? base.disbursements_amount;
-    // @ts-ignore
-    const disbVat = o?.disbursementVat ?? base.disbursements_vat;
-    // @ts-ignore
-    const oc = o?.outcomeCode ?? base.outcome_code;
-
-    // @ts-ignore
-    const policeStation = o?.policeStation ?? base.police_station;
-    // @ts-ignore
-    const schemeId = o?.schemeId ?? base.scheme_id;
 
     out +=
         `OUTCOME,` +
         `FEE_CODE=${feeCode},` +
         `matterType=${matterType},` +
-        `UFN=${ufn},` +
+        `UFN=${base.ufn},` +
         `CLIENT_FORENAME=${base.client_forename},` +
         `CLIENT_SURNAME=${base.client_surname},` +
         `GENDER=${base.gender},` +
         `ETHNICITY=${base.ethnicity},` +
         `DISABILITY=${base.disability},` +
         `CASE_START_DATE=${base.case_start_date},` +
-        `PROFIT_COST=${profitCost},` +
-        `DISBURSEMENTS_AMOUNT=${disbAmt},` +
-        `DISBURSEMENTS_VAT=${disbVat},` +
+        `PROFIT_COST=${base.profit_cost},` +
+        `DISBURSEMENTS_AMOUNT=${base.disbursements_amount},` +
+        `DISBURSEMENTS_VAT=${base.disbursements_vat},` +
         `VAT_INDICATOR=${base.vat_indicator},` +
-        `TRAVEL_COSTS=${travelCost},` +
-        `OUTCOME_CODE=${oc},` +
+        `TRAVEL_COSTS=${base.travel_costs},` +
+        `OUTCOME_CODE=${base.outcome_code},` +
         `CRIME_MATTER_TYPE=${base.crime_matter_type},` +
         `TRAVEL_WAITING_COSTS=${base.travel_waiting_costs},` +
         `WORK_CONCLUDED_DATE=${base.work_concluded_date},` +
         `NO_OF_SUSPECTS=${base.no_of_suspects},` +
         `NO_OF_POLICE_STATION=${base.no_of_police_station},` +
-        `POLICE_STATION=${policeStation},` +
+        `POLICE_STATION=${base.police_station},` +
         `DUTY_SOLICITOR=${base.duty_solicitor},` +
         `YOUTH_COURT=${base.youth_court},` +
-        `SCHEME_ID=${schemeId},` +
-        `DSCC_NUMBER=${base.dscc_number}\n`;
+        `SCHEME_ID=${base.scheme_id},` +
+        `DSCC_NUMBER=${base.dscc_number},` +
+        `POSTAL_APPL_ACCP=${base.postal_application}, `+
+        `NATIONAL_REF_MECHANISM_ADVICE=${base.nrm_advice}, `+
+        `LEGACY_CASE=${base.legacy_case}, ` +
+        `LONDON_NONLONDON_RATE=${base.london_nonlondon_rate}, `+
+        `ADDITIONAL_TRAVEL_PAYMENT=${base.additional_travel_payment}, ` +
+        `ELIGIBLE_CLIENT_INDICATOR=${base.eligible_client_indicator}, ` +
+        `IRC_SURGERY=${base.irc_surgery}, ` +
+        `SUBSTANTIVE_HEARING=${base.substantive_hearing}, `+
+        `TOLERANCE_INDICATOR=${base.tolerance_indicator}, `+
+        `DUTY_SOLICITOR=${base.duty_solicitor}, ` +
+        `YOUTH_COURT=${base.youth_court}, ` +
+        `CLIENT_LEGALLY_AIDED=${base.client_legally_aided}\n`;
   }
 
   if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);

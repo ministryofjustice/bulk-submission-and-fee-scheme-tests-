@@ -312,20 +312,34 @@ Then(
 );
 
 Then(
-  'I should see the following submission error messages for {string}:',
-  async function (this: CustomWorld, areaOfLaw: string, dataTable) {
-    const allText = await locateErrorMessages(this);
+    'I should see the following submission error messages for {string}:',
+    async function (this: CustomWorld, areaOfLaw: string, dataTable) {
+      const allText = await (new SubmissionSummaryPage(this.page!))
+      .getPaginatedSubmissionErrors(10)
+      const expectedMessages = dataTable.raw().flat().slice(1);
 
-    const expectedMessages = dataTable.raw().flat().slice(1);
+      const messagesNotFound: Set<string> = new Set();
+      for (const message of expectedMessages) {
+        const found = allText.has(message.trim());
+        if (!found) {
+          messagesNotFound.add(message.trim());
+        }
+      }
 
-    for (const message of expectedMessages) {
-      const found = allText.some((t) => t.includes(message.trim()));
+      console.log(`Messages not found for ${areaOfLaw}: ${messagesNotFound.size}`);
+      console.log(Array.from(messagesNotFound).join('\n'));
+
+      if (messagesNotFound.size > 0) {
+        console.log(`\nMessages existing: ${allText.size}`);
+        console.log(Array.from(allText).join('\n'));
+      }
+
       expect(
-        found,
-        `❌ Expected error message not found for ${areaOfLaw}: "${message.trim()}"`
+          messagesNotFound.size === 0,
+          `❌ ${messagesNotFound.size} error messages not found for ${areaOfLaw}:\n${Array.from(messagesNotFound).join('\n')}`
       ).toBeTruthy();
+
     }
-  }
 );
 
 Then(

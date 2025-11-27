@@ -152,6 +152,7 @@ async function hasValidContract(
       return { valid: false };
     }
 
+
     const effDate = new Date(effectiveDate);
 
     const match = schedules.find((s: any) => {

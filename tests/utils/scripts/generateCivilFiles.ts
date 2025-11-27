@@ -37,7 +37,8 @@ async function generateOutcome(
     office: string,
     caseNum: number,
     scheduleStart?: string,
-    scheduleEnd?: string
+    scheduleEnd?: string,
+    claimOverride?: claimOptions
 ) {
   const first = faker.person.firstName();
   const last = faker.person.lastName();
@@ -65,32 +66,43 @@ async function generateOutcome(
     to: new Date('2005-12-31'),
   });
 
+
   return {
     case_ref_number: `${clean(first.slice(0, 3))}/${clean(last)}`,
-    case_start_date: fmt(caseStart),
+    case_start_date: claimOverride?.caseStartDate ?? fmt(caseStart),
     case_id: pad(caseNum, 3),
-    ufn: makeUFN(caseStart, caseNum),
+    ufn: claimOverride?.ufn ?? makeUFN(caseStart, caseNum),
     client_forename: first,
     client_surname: last,
-    client_date_of_birth: fmt(dob),
-    ucn: makeUCN(dob, last, first[0]),
+    client_date_of_birth: claimOverride?.clientDateOfBirth ?? fmt(dob),
+    eligible_client_indicator: claimOverride?.eligibleClientIndicator ?? 'Y',
+    ucn: claimOverride?.ucn ?? makeUCN(dob, last, first[0]),
     gender: random(['M', 'F']),
     ethnicity: '12',
     disability: 'NCD',
-    profit_cost: money(50, 200),
+    profit_cost: claimOverride?.profitCost ?? money(50, 200),
     disbursements_amount: money(0, 20),
     disbursements_vat: money(0, 1.98),
     counsel_cost: money(0, 50),
     travel_costs: money(0, 15),
-    work_concluded_date: fmt(concluded),
+    work_concluded_date: claimOverride?.caseConcludedDate ?? fmt(concluded),
+    transfer_date: claimOverride?.transferDate ?? fmt(concluded),
+    surgery_date: claimOverride?.surgeryDate ?? fmt(concluded),
     advice_time: 120,
     travel_time: 0,
     waiting_time: 0,
-    vat_indicator: 'Y',
-    london_nonlondon_rate: 'N',
+    vat_applicable: claimOverride?.vatApplicable ?? 'Y',
+    london_nonlondon_rate: claimOverride?.londonNonLondonRate ?? 'N',
     outcome_code: 'FX',
+    postal_application: claimOverride?.postalApplication ?? 'Y',
+    nrm_advice: claimOverride?.nrmAdvice ?? 'Y',
     schedule_ref: `${office}/${new Date().getFullYear()}/${caseNum}`,
     client_post_code: faker.helpers.replaceSymbols('??## #??').toUpperCase(),
+    legacy_case: claimOverride?.legacyCase ?? 'N',
+    additional_travel_payment: claimOverride?.additionalTravelPayment ?? 'N',
+    irc_surgery: claimOverride?.ircSurgery ?? 'N',
+    substantive_hearing: claimOverride?.substantiveHearing ?? 'N',
+    tolerance_indicator: claimOverride?.toleranceIndicator ?? 'N',
   };
 }
 
@@ -113,8 +125,8 @@ async function generateFile(
   out += `SCHEDULE,submissionPeriod=${period},areaOfLaw=LEGAL HELP,scheduleNum=${office}/CIVIL\n`;
 
   for (let i = 0; i < count; i++) {
-    const baseRow = await generateOutcome(office, i, scheduleStart, scheduleEnd);
     const override = claims?.[i];
+    const baseRow = await generateOutcome(office, i, scheduleStart, scheduleEnd, override);
 
     const feeCode = override?.feeCode ?? random(feeCodes);
 
@@ -124,41 +136,49 @@ async function generateFile(
         `FEE_CODE=${feeCode},` +
         `matterType=FAMX:FAPP,` +
         // @ts-ignore
-        `CASE_REF_NUMBER=${override?.caseRefNumber ?? baseRow.case_ref_number},` +
+        `CASE_REF_NUMBER=${baseRow.case_ref_number},` +
         // @ts-ignore
-        `CASE_START_DATE=${override?.caseStartDate ?? baseRow.case_start_date},` +
+        `CASE_START_DATE=${baseRow.case_start_date},` +
         `CASE_ID=${baseRow.case_id},` +
-        `UFN=${override?.ufn ?? baseRow.ufn},` +
+        `UFN=${baseRow.ufn},` +
         `PROCUREMENT_AREA=PA00120,` +
         `ACCESS_POINT=AP00000,` +
         `CLIENT_FORENAME=${baseRow.client_forename},` +
         `CLIENT_SURNAME=${baseRow.client_surname},` +
         `CLIENT_DATE_OF_BIRTH=${baseRow.client_date_of_birth},` +
-        `UCN=${(override?.ucn ?? baseRow.ucn).toUpperCase()},` +
+        `UCN=${baseRow.ucn.toUpperCase()},` +
         `GENDER=${baseRow.gender},` +
         `ETHNICITY=${baseRow.ethnicity},` +
         `DISABILITY=${baseRow.disability},` +
         // @ts-ignore
-        `CLIENT_POST_CODE=${override?.clientPostCode ?? baseRow.client_post_code},` +
+        `CLIENT_POST_CODE=${baseRow.client_post_code},` +
         // @ts-ignore
-        `WORK_CONCLUDED_DATE=${override?.workConcludedDate ?? baseRow.work_concluded_date},` +
+        `WORK_CONCLUDED_DATE=${baseRow.work_concluded_date},` +
         `CASE_STAGE_LEVEL=FPC01,` +
         `ADVICE_TIME=${baseRow.advice_time},` +
         `TRAVEL_TIME=${baseRow.travel_time},` +
         `WAITING_TIME=${baseRow.waiting_time},` +
-        `PROFIT_COST=${override?.profitCost ?? baseRow.profit_cost},` +
-        `DISBURSEMENTS_AMOUNT=${override?.disbursementAmount ?? baseRow.disbursements_amount},` +
+        `PROFIT_COST=${baseRow.profit_cost},` +
+        `DISBURSEMENTS_AMOUNT=${baseRow.disbursements_amount},` +
         // @ts-ignore
-        `COUNSEL_COST=${override?.counselCost ?? baseRow.counsel_cost},` +
+        `COUNSEL_COST=${baseRow.counsel_cost},` +
         // @ts-ignore
-        `DISBURSEMENTS_VAT=${override?.disbursementVat ?? baseRow.disbursements_vat},` +
+        `DISBURSEMENTS_VAT=${baseRow.disbursements_vat},` +
         `TRAVEL_WAITING_COSTS=0.00,` +
-        `VAT_INDICATOR=${baseRow.vat_indicator},` +
-        `LONDON_NONLONDON_RATE=${override?.londonNonLondonRate ?? baseRow.london_nonlondon_rate},` +
-        `TRAVEL_COSTS=${override?.travelCost ?? baseRow.travel_costs},` +
+        `VAT_INDICATOR=${baseRow.vat_applicable},` +
+        `LONDON_NONLONDON_RATE=${baseRow.london_nonlondon_rate},` +
+        `TRAVEL_COSTS=${baseRow.travel_costs},` +
         // @ts-ignore
-        `OUTCOME_CODE=${override?.outcomeCode ?? baseRow.outcome_code},` +
-        `POSTAL_APPL_ACCP=N,` +
+        `OUTCOME_CODE=${baseRow.outcome_code},` +
+        `POSTAL_APPL_ACCP=${baseRow.postal_application},` +
+        `NATIONAL_REF_MECHANISM_ADVICE=${baseRow.nrm_advice},` +
+        `LEGACY_CASE=${baseRow.legacy_case},` +
+        `ADDITIONAL_TRAVEL_PAYMENT=${baseRow.additional_travel_payment},` +
+        `ELIGIBLE_CLIENT_INDICATOR=${baseRow.eligible_client_indicator},` +
+        `IRC_SURGERY=${baseRow.irc_surgery},` +
+        `SUBSTANTIVE_HEARING=${baseRow.substantive_hearing},` +
+        `TOLERANCE_INDICATOR=${baseRow.tolerance_indicator}, ` +
+        `SURGERY_DATE=${baseRow.surgery_date},` +
         `SCHEDULE_REF=${baseRow.schedule_ref}\n`;
   }
 

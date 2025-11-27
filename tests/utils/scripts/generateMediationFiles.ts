@@ -34,7 +34,8 @@ const generateOutcome = async (
     office: string,
     caseNum: number,
     scheduleStart?: string,
-    scheduleEnd?: string
+    scheduleEnd?: string,
+    claimOverride?: claimOptions
 ) => {
   const client1First = faker.person.firstName();
   const client1Last = faker.person.lastName();
@@ -51,7 +52,7 @@ const generateOutcome = async (
   const medConcluded = faker.date.between({ from: caseStartDate, to: end });
   const workConcluded = faker.date.between({ from: caseStartDate, to: medConcluded });
 
-  const ufn = generateUFN(caseStartDate, caseNum);
+  const ufn = claimOverride?.ufn ?? generateUFN(caseStartDate, caseNum);
 
   const ucn1 = `${pad(dob1.getDate())}${pad(dob1.getMonth() + 1)}${dob1.getFullYear()}/${client1Last[0].toUpperCase()}/${clean(client1Last).slice(0, 4)}`;
   const ucn2 = `${pad(dob2.getDate())}${pad(dob2.getMonth() + 1)}${dob2.getFullYear()}/${client2Last[0].toUpperCase()}/${clean(client2Last).slice(0, 4)}`;
@@ -63,12 +64,13 @@ const generateOutcome = async (
     ufn,
     client1_first: client1First,
     client1_last: client1Last,
-    client1_dob: formatDate(dob1),
+    client1_dob: claimOverride?.clientDateOfBirth ?? formatDate(dob1),
     client1_gender: randomFrom(['M', 'F']),
     client1_ethnicity: '01',
     client1_disability: randomFrom(['NCD', 'ILL']),
     client1_postcode: faker.helpers.replaceSymbols('??## #??').toUpperCase(),
-    client1_legally_aided: randomFrom(['Y', 'N']),
+    client1_legally_aided: claimOverride?.clientLegallyAided ?? randomFrom(['Y', 'N']),
+    client1_postalApplAccp: claimOverride?.postalApplication ?? 'Y',
     client2_first: client2First,
     client2_last: client2Last,
     client2_dob: formatDate(dob2),
@@ -76,7 +78,8 @@ const generateOutcome = async (
     client2_ethnicity: '01',
     client2_disability: randomFrom(['NCD', 'ILL']),
     client2_postcode: faker.helpers.replaceSymbols('??## #??').toUpperCase(),
-    client2_legally_aided: randomFrom(['Y', 'N']),
+    client2_legally_aided: claimOverride?.client2LegallyAided ?? randomFrom(['Y', 'N']),
+    client2_postalApplAccp: claimOverride?.client2PostalApplication ?? randomFrom(['Y', 'N']),
     med_concluded_date: formatDate(medConcluded),
     work_concluded_date: formatDate(workConcluded),
     outcome_code: 'B',
@@ -85,10 +88,20 @@ const generateOutcome = async (
     fee_code: randomFrom(feeCodes),
     disbursements_amount: faker.number.float({ min: 0, max: 200, fractionDigits: 2 }),
     disbursements_vat: faker.number.float({ min: 0, max: 50, fractionDigits: 2 }),
-    vat_indicator: randomFrom(['Y', 'N']),
+    vat_indicator: claimOverride?.vatApplicable ?? randomFrom(['Y', 'N']),
     unique_case_id: `${ufn}`,
     outreach: faker.helpers.arrayElement(['000', '001', '002']),
     referral: faker.helpers.arrayElement(['08', '09', '10']),
+    nrm_advice: claimOverride?.nrmAdvice ?? randomFrom(['Y', 'N']),
+    legacy_case: claimOverride?.legacyCase ?? randomFrom(['Y', 'N']),
+    london_nonlondon_rate: claimOverride?.londonNonLondonRate ?? randomFrom(['Y', 'N']),
+    additional_travel_payment: claimOverride?.additionalTravelPayment ?? randomFrom(['Y', 'N']),
+    eligible_client_indicator: claimOverride?.eligibleClientIndicator ?? randomFrom(['Y', 'N']),
+    irc_surgery: claimOverride?.ircSurgery ?? randomFrom(['Y', 'N']),
+    substantive_hearing: claimOverride?.substantiveHearing ?? randomFrom(['Y', 'N']),
+    tolerance_indicator: claimOverride?.toleranceIndicator ?? randomFrom(['Y', 'N']),
+    duty_solicitor: claimOverride?.dutySolicitor ?? randomFrom(['Y', 'N']),
+    youth_court: claimOverride?.youthCourt ?? randomFrom(['Y', 'N']),
     ucn1,
     ucn2,
   };
@@ -118,9 +131,9 @@ const generateFile = async (
   content += `SCHEDULE,submissionPeriod=${period},areaOfLaw=${AREA_OF_LAW},scheduleNum=${scheduleNum}\n`;
 
   for (let i = 0; i < outcomesCount; i++) {
-    const o = await generateOutcome(office, i, scheduleStart, scheduleEnd);
-
     const override = options.claims?.[i];
+    const o = await generateOutcome(office, i, scheduleStart, scheduleEnd, override);
+
 
     const feeCode = override?.feeCode ?? o.fee_code;
     const ufn = override?.ufn ?? o.ufn;
@@ -174,9 +187,19 @@ const generateFile = async (
         `UNIQUE_CASE_ID=${o.unique_case_id},` +
         `OUTREACH=${o.outreach},` +
         `REFERRAL=${o.referral},` +
-        `POSTAL_APPL_ACCP=Y,` +
-        `CLIENT2_POSTAL_APPL_ACCP=N,` +
-        `SCHEDULE_REF=${scheduleNum}\n`;
+        `POSTAL_APPL_ACCP=${o.client1_postalApplAccp},` +
+        `CLIENT2_POSTAL_APPL_ACCP=${o.client2_postalApplAccp},` +
+        `SCHEDULE_REF=${scheduleNum},` +
+        `NATIONAL_REF_MECHANISM_ADVICE=${o.nrm_advice}, ` +
+        `LEGACY_CASE=${o.legacy_case}, `+
+        `LONDON_NONLONDON_RATE=${o.london_nonlondon_rate}, ` +
+        `ADDITIONAL_TRAVEL_PAYMENT=${o.additional_travel_payment}, `+
+        `ELIGIBLE_CLIENT_INDICATOR=${o.eligible_client_indicator}, ` +
+        `IRC_SURGERY=${o.irc_surgery}, `+
+        `SUBSTANTIVE_HEARING=${o.substantive_hearing}, `+
+        `TOLERANCE_INDICATOR=${o.tolerance_indicator}, ` +
+        `DUTY_SOLICITOR=${o.duty_solicitor}, `+
+        `YOUTH_COURT=${o.youth_court}\n`;
   }
 
   if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);
