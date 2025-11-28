@@ -1,4 +1,4 @@
-@temp
+@stable
 Feature: Display message checks
 
   Background:
