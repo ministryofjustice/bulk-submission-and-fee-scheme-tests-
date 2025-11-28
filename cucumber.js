@@ -21,8 +21,8 @@ module.exports = {
     "--format json:reports/cucumber.json",
     "--format html:reports/cucumber.html",
     "--tags @stable",
-    "--parallels 4",
-    "--retries 2",
+    "--parallel 4",
+    "--retry 2",
     "tests/features/**/BulkSubmission/*.feature"
   ].join(" "),
   api: [
