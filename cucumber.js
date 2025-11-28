@@ -22,7 +22,7 @@ module.exports = {
     "--format html:reports/cucumber.html",
     "--tags @stable",
     "--parallel 4",
-    "--retry 2",
+    "--retry 0",
     "tests/features/**/BulkSubmission/*.feature"
   ].join(" "),
   api: [
