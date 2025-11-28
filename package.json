@@ -12,7 +12,7 @@
     "login": "ts-node tests/setup/auth.setup.ts",
     "teardown": "ts-node tests/utils/scripts/cleanup-submissions.ts",
     "test:tag": "cucumber-js --require-module ts-node/register --require \"tests/features/**/*.ts\" --format json:reports/cucumber.json --format html:reports/cucumber.html tests/features/**/*.feature",
-    "test:e2e:browserstack": "browserstack-node-sdk cucumber-js -p bulksubmission"
+    "test:e2e:browserstack": "browserstack-node-sdk cucumber-js -p stable"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
