@@ -288,4 +288,13 @@ async openClaimByIndex(index = 0): Promise<void> {
     console.log(`✅ Finished pagination.`);
     return allText;
   }
+  async getDuplicateSubmissionError(): Promise<string> {
+    const locator = this.page.locator('[data-sort-value*="Submission already exists"]');
+
+    // Explicit wait for the cell to actually render
+    await locator.waitFor({ state: 'visible', timeout: 3000 });
+
+    const text = (await locator.getAttribute('data-sort-value'))?.trim() || '';
+    return text;
+  }
 }

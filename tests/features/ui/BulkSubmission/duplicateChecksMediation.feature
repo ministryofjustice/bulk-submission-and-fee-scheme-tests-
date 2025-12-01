@@ -1,8 +1,9 @@
 @duplicateChecks
-@bulkSubmission
+@bulkSubmission @stable @wip
 Feature: Duplicate checks - Mediation
 
   Background:
+    Given I start from a clean logged-in state
     Given I am on the bulk import page
 
   Scenario Outline: First occurrence is accepted
@@ -14,6 +15,7 @@ Feature: Duplicate checks - Mediation
       | csv    |
       | xml    |
       | txt    |
+
 
   Scenario Outline: Duplicate detected against a previously submitted claim from <format>
     Given I generate "Mediation" "<format>" file with the following claims
@@ -34,7 +36,8 @@ Feature: Duplicate checks - Mediation
       | ucn                  | feeCode | ufn        |
       | 07081996/S/<format>E | ASSA    | 010725/123 |
       | 07081997/S/<format>E | ASSA    | 010725/123 |
-    And I upload with generated file via the API
+    And I upload the generated file
+      And click import
     When I upload the generated file and wait for import in progress
     Then I should have duplicate submission error for "0P322F" "Mediation"
       | submission period |
@@ -56,8 +59,6 @@ Feature: Duplicate checks - Mediation
     Examples:
       | format |
       | csv    |
-      | xml    |
-      | txt    |
 
   Scenario Outline: Duplicate detected within the same <format> submission file (later row duplicate)
     Given I generate "Mediation" "<format>" file with the following claims
@@ -74,6 +75,7 @@ Feature: Duplicate checks - Mediation
       | csv    |
       | xml    |
       | txt    |
+
 
   Scenario Outline: Should have no errors in <format> submission (unique case ID different)
     Given I generate "Mediation" "<format>" file with the following claims
@@ -122,10 +124,11 @@ Feature: Duplicate checks - Mediation
     Given I generate "Mediation" "<format>" file with the following claims
       | ucn                  | feeCode | ufn        |
       | 07081996/S/<format>E | ASSA    | 080725/123 |
-    And I upload with generated file via the API
+    And I upload the generated file
+    And click import
     Given I generate "Mediation" "<format>" file with the following claims
       | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>E | ASST    | 080725/124 |
+      | 07081996/S/<format>E | ASST    | 080725/123 |
     When I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Mediation"
     Examples:

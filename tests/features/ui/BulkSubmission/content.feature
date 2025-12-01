@@ -1,5 +1,8 @@
-@bulkSubmission @content
+@bulkSubmission @content @stable
 Feature: Content check for the UI matching UX designs
+
+  Background:
+    Given I start from a clean logged-in state
 
   Scenario: Landing page content matches design
     Given I am on the bulk submission landing page

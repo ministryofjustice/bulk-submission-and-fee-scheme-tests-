@@ -1,5 +1,8 @@
-@bulkSubmission
+@bulkSubmission @search @stable
 Feature: Bulk Submission Search
+
+  Background:
+    And I start from a clean logged-in state
 
   Scenario Outline: Search For Valid/Invalid claims using submission ref
     Given I ensure there is a "<Status>" submission for "<AreaOfLaw>"
@@ -64,7 +67,6 @@ Feature: Bulk Submission Search
     When I search using the valid date range
     Then I should see a message saying "No submissions were found."
     Then the Search page should pass accessibility checks
-
 
   Scenario: Search with no filter specified
     Given I am on the Search page

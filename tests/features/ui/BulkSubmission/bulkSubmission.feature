@@ -1,7 +1,8 @@
-@bulkSubmission
+@bulkSubmission @stable
 Feature: Bulk Submission via UI
 
   Background:
+    Given I start from a clean logged-in state
     Given I am on the bulk import page
 
   Scenario Outline: Successful bulk submission for <AreaOfLaw>
@@ -9,7 +10,7 @@ Feature: Bulk Submission via UI
     And I upload the generated file
     Then I should see the submission summary for "<AreaOfLaw>" with "<Claims>" claims
 
-    @validSubmissions
+    @validSubmissions @test
     Examples:
       | AreaOfLaw   | Format | Outcomes | Claims |
       | Legal help  | csv    | 2        | 2      |
@@ -23,23 +24,27 @@ Feature: Bulk Submission via UI
       | Legal help  | csv    | 0        | 0      |
       | Crime lower | xml    | 0        | 0      |
 
+
+  @bulk
   Scenario Outline: Submission Period Validation : Submission already exists for Office" for <AreaOfLaw>
-    When I upload "<AreaOfLaw>" "<Format>" file with "<Outcomes>" outcomes via the API
+    When I generate "<AreaOfLaw>" "<Format>" file with "<Outcomes>" outcomes
     And I upload the generated file
-    Then I should have duplicate submission error for "0P322F" "<AreaOfLaw>"
+    And click import
+
+    When I re-upload the generated file
+    Then I should have duplicate submission error for "Office" "<AreaOfLaw>"
       | submission period |
+    Examples:
+      | AreaOfLaw   | Format | Outcomes |
+      | Legal help  | txt    | 2        |
+      | Mediation   | csv    | 2        |
+      | Crime lower | csv    | 2        |
 
     Examples:
       | AreaOfLaw   | Format | Outcomes |
-      | LEGAL HELP  | txt    | 2        |
-      | MEDIATION   | csv    | 1        |
-      | CRIME LOWER | csv    | 1        |
-
-    Examples:
-      | AreaOfLaw   | Format | Outcomes |
-      | CRIME LOWER | txt    | 1        |
-      | LEGAL HELP  | txt    | 0        |
-      | MEDIATION   | txt    | 0        |
+      | Crime lower | txt    | 1        |
+      | Legal help  | txt    | 0        |
+      | Mediation   | txt    | 0        |
 
 
   Scenario Outline: Duplicate Claim within the same submission <AreaOfLaw>
@@ -48,7 +53,7 @@ Feature: Bulk Submission via UI
     And I upload the generated file
     Then I should see an error banner saying "2 claims have errors for missing or incorrect information"
     And I should see the following submission error messages for "<AreaOfLaw>":
-      | Error Message                                   |
+      | Error Message                                          |
       | A duplicate claim was found within the same submission |
 
     Examples:

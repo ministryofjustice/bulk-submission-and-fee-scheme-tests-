@@ -1,230 +1,256 @@
 import fs from 'fs';
 import path from 'path';
-import axios from 'axios';
-import {faker} from '@faker-js/faker';
-import 'reflect-metadata';
+import { faker } from '@faker-js/faker';
 import dotenv from 'dotenv';
-import {convertFileToXml} from "./converter";
-import {getUniqueSubmissionPeriod} from './submissionPeriodHelper';
-import {claimOptions} from "./claimOptions";
-import {GenerateFileOptions} from "./generateFileOptions";
+import { convertFileToXml } from './converter';
+import { getUniqueSubmissionPeriod } from './submissionPeriodHelper';
+import { claimOptions } from './claimOptions';
+import { GenerateFileOptions } from './generateFileOptions';
 
 dotenv.config();
 
-// ---------- 1️⃣ Setup ----------
-let providerApiAvailable = true;
+// ------------------------------
+// 1️⃣ Config
+// ------------------------------
+const offices = ['0P322F', '1T102C', '2L848R'];
+const feeCodes = ['APPA', 'APPB'];
+const OUTPUT_DIR = 'generated_submissions_crime';
 
-// ---------- 2️⃣ Config ----------
-const offices = ['0P322F'];
-const feeCodes = ['INVC'];
-const OUTPUT_DIR = "generated_submissions_crime";
-const PROVIDER_API = process.env.PROVIDER_API || 'https://laa-provider-details-api-uat.apps.live.cloud-platform.service.justice.gov.uk/api/v1/provider-offices';
-const MIN_CASE_START = new Date('2018-01-01');
+const GLOBAL_MIN_CASE_DATE = new Date('2015-04-01');
 
-// Police Stations
 const policeStations = [
-  {id: 'NE001', name: 'HARTLEPOOL', schemeId: 1001},
-  {id: 'NE900', name: 'HARTLEPOOL NON-POLICE STATION', schemeId: 1001},
-  {id: 'NE002', name: 'GUISBOROUGH', schemeId: 1002},
-  {id: 'NE003', name: 'SOUTH BANK', schemeId: 1002},
-  {id: 'RD001', name: 'RAF BRIZE NORTON', schemeId: 1131},
-  {id: 'RD002', name: 'WITNEY', schemeId: 1131},
-  {id: 'RD003', name: 'ABINGDON', schemeId: 1131},
-  {id: 'RD016', name: 'BLETCHLEY', schemeId: 1134},
+  { id: 'NE001', schemeId: 1001 },
+  { id: 'NE900', schemeId: 1001 },
+  { id: 'NE002', schemeId: 1002 },
+  { id: 'NE003', schemeId: 1002 },
+  { id: 'RD001', schemeId: 1131 },
+  { id: 'RD002', schemeId: 1131 },
+  { id: 'RD003', schemeId: 1131 },
+  { id: 'RD016', schemeId: 1134 },
 ];
 
-// ---------- 3️⃣ Helpers ----------
-const pad = (num: number, len = 2) => num.toString().padStart(len, "0");
-const randomFrom = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
-const randomMoney = (min: number, max: number) => faker.number.float({min, max, fractionDigits: 2});
-const formatDate = (date: Date) => date.toISOString().split('T')[0].split('-').reverse().join('/');
-const randomDSCC = () => faker.number.int({
-  min: 200000000,
-  max: 299999999
-}) + randomFrom(['A', 'B', 'C', 'D']);
-const generateUFN = (date: Date, caseNum: number) => {
-  const dd = pad(date.getDate());
-  const mm = pad(date.getMonth() + 1);
-  const yy = String(date.getFullYear()).slice(-2);
-  const nnn = pad(caseNum, 3);
-  return `${dd}${mm}${yy}/${nnn}`;
-};
+// ------------------------------
+// 2️⃣ Helpers
+// ------------------------------
+const pad = (n: number, len = 2) => n.toString().padStart(len, '0');
+const random = <T>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
 
-// ---------- 4️⃣ Provider API Check ----------
-// ---------- 4️⃣ Provider API Check ----------
-const fetchProviderSchedules = async (office: string, caseStartDate: Date) => {
-  if (!providerApiAvailable) return undefined;
+const dateFmt = (d: Date) =>
+    d.toISOString().split('T')[0].split('-').reverse().join('/');
 
-  const formattedDate = caseStartDate.toISOString().split('T')[0];
+const money = (min: number, max: number) =>
+    faker.number.float({ min, max, fractionDigits: 2 });
 
-  // 🔹 Log the date being passed
-  console.log(`📅 Fetching provider schedules for office ${office} with effectiveDate=${formattedDate}`);
+const dscc = () =>
+    faker.number.int({ min: 200000000, max: 299999999 }) + random(['A', 'B', 'C', 'D']);
 
-  try {
-    const response = await axios.get(`${PROVIDER_API}/${office}/schedules?effectiveDate=${formattedDate}&areaOfLaw=CRIME%20LOWER`, {
-      headers: {
-        accept: 'application/json',
-        'X-Authorization': process.env.PROVIDER_API_KEY || 'dpd_e42*u+gb6@rp8qNmccvDUd'
-      },
-      validateStatus: () => true
-    });
-    if (response.status === 204) return [];
-    return response.data.schedules;
-  } catch (err) {
-    providerApiAvailable = false;
-    const message = err instanceof Error ? err.message : String(err);
-    console.warn('⚠️ Unable to reach provider schedules API. Falling back to local date generation.', message);
-    return undefined;
-  }
-};
+const makeUFN = (d: Date, caseNum: number) =>
+    `${pad(d.getDate())}${pad(d.getMonth() + 1)}${String(d.getFullYear()).slice(-2)}/${pad(caseNum, 3)}`;
 
-const generateOutcome = async (office: string, caseNum: number) => {
-  const firstName = faker.person.firstName();
-  const lastName = faker.person.lastName();
+// ------------------------------
+// 3️⃣ Outcome Generator
+// ------------------------------
+async function generateOutcome(
+    office: string,
+    caseNum: number,
+    scheduleStart?: string,
+    scheduleEnd?: string,
+    claimOverride?: claimOptions
+) {
+  const first = faker.person.firstName();
+  const last = faker.person.lastName();
 
-  // 🧭 Restrict UFN/Case start date strictly between 2 Feb 2017 – 31 Dec 2018
-  const ufnMin = new Date('2017-02-02');
-  const ufnMax = new Date('2018-12-31');
+  let start = scheduleStart ? new Date(scheduleStart) : new Date('2017-02-02');
+  let end = scheduleEnd ? new Date(scheduleEnd) : new Date('2018-12-31');
 
-  let caseStartDate: Date | null = null;
+  if (start < GLOBAL_MIN_CASE_DATE) start = new Date(GLOBAL_MIN_CASE_DATE);
 
-  for (let attempt = 0; attempt < 100; attempt++) {
-    const candidateDate = faker.date.between({from: ufnMin, to: ufnMax});
-    const schedules = await fetchProviderSchedules(office, candidateDate);
-    if (schedules === undefined) {
-      caseStartDate = candidateDate;
-      break;
-    }
-    if (!schedules || schedules.length === 0) continue;
-
-    const validSchedule = schedules.find((s: any) => {
-      const start = new Date(s.scheduleStartDate);
-      const end = new Date(s.scheduleEndDate);
-      return candidateDate >= start && candidateDate <= end;
-    });
-
-    if (validSchedule) {
-      caseStartDate = candidateDate;
-      break;
-    }
+  if (end <= start) {
+    end = new Date(start);
+    end.setMonth(end.getMonth() + 6);
   }
 
-  if (!caseStartDate) {
-    caseStartDate = faker.date.between({from: ufnMin, to: ufnMax});
-    console.warn(`ℹ️ Using locally generated case start date for office ${office}`);
-  }
+  const caseStart = faker.date.between({ from: start, to: end });
+  const concluded = faker.date.between({ from: caseStart, to: end });
 
-  // 📅 Ensure work concluded date is always after case start
-  const workConcludedDate = faker.date.between({from: caseStartDate, to: ufnMax});
-  const ufn = generateUFN(caseStartDate, caseNum);
-  const station = randomFrom(policeStations);
+  const ufn = claimOverride?.ufn ?? makeUFN(caseStart, caseNum);
+  const station = random(policeStations);
+
+  const dob = faker.date.between({
+    from: new Date('1960-01-01'),
+    to: new Date('2005-12-31'),
+  });
 
   return {
-    client_forename: firstName,
-    client_surname: lastName,
-    gender: randomFrom(['M', 'F']),
-    ethnicity: randomFrom(['99', '01', '02', '03', '04']),
-    profit_cost: randomMoney(10, 200),
-    disbursements_amount: randomMoney(0, 50),
-    disbursements_vat: randomMoney(0, 1.98),
-    vat_indicator: randomFrom(['Y', 'N']),
-    travel_costs: randomMoney(0, 100),
-    outcome_code: randomFrom(['CN04', 'CN02', 'CN01', 'CN08']),
-    crime_matter_type: pad(Number(randomFrom(['1', '2', '3'])), 2),
-    disability: randomFrom([
-      'NCD', 'MOB', 'DEA', 'HEA', 'VIS', 'BLI', 'MHC', 'LDD', 'COG',
-      'ILL', 'OTH', 'UKN', 'PHY', 'SEN'
+    client_forename: first,
+    client_surname: last,
+    client_date_of_birth: claimOverride?.clientDateOfBirth ?? dateFmt(dob),
+    gender: random(['M', 'F']),
+    ethnicity: random(['99', '01', '02', '03', '04']),
+    profit_cost: claimOverride?.profitCost ?? money(10, 200),
+    disbursements_amount: claimOverride?.disbursementAmount ?? money(0, 50),
+    disbursements_vat: claimOverride?.disbursementVat ?? money(0, 1.98),
+    vat_indicator: claimOverride?.vatApplicable ?? random(['Y', 'N']),
+    travel_costs: claimOverride?.travelCost ?? money(0, 100),
+    outcome_code: claimOverride?.outcomeCode ?? random(['CN04', 'CN02', 'CN01', 'CN08']),
+    crime_matter_type: pad(Number(random(['1', '2', '3'])), 2),
+    disability: random([
+      'NCD', 'MOB', 'DEA', 'HEA', 'VIS', 'BLI', 'MHC', 'LDD', 'COG', 'ILL', 'OTH', 'UKN', 'PHY', 'SEN'
     ]),
-    stage_reached_code: randomFrom(['INVC', 'PROD', 'PROK']),
-    travel_waiting_costs: randomMoney(0, 40),
-    case_start_date: formatDate(caseStartDate),
-    work_concluded_date: formatDate(workConcludedDate),
-    no_of_suspects: faker.number.int({min: 1, max: 3}),
+    stage_reached_code: random(['INVC', 'PROD', 'PROK']),
+    travel_waiting_costs: money(0, 40),
+    case_start_date: claimOverride?.caseStartDate ?? dateFmt(caseStart),
+    rep_order_date: claimOverride?.repOrderDate ?? dateFmt(caseStart),
+    work_concluded_date: claimOverride?.workConcludedDate ?? dateFmt(concluded),
+    transfer_date: claimOverride?.transferDate ?? dateFmt(concluded),
+    surgery_date: claimOverride?.surgeryDate ?? dateFmt(concluded),
+    no_of_suspects: faker.number.int({ min: 1, max: 3 }),
+    police_station: claimOverride?.policeStation ?? station.id,
     no_of_police_station: 1,
-    police_station: station.id,
-    duty_solicitor: randomFrom(['Y', 'N']),
-    youth_court: randomFrom(['Y', 'N']),
-    scheme_id: station.schemeId,
-    dscc_number: randomDSCC(),
-    ufn
+    duty_solicitor: claimOverride?.dutySolicitor ?? random(['Y', 'N']),
+    youth_court: claimOverride?.youthCourt ?? random(['Y', 'N']),
+    scheme_id: claimOverride?.schemeId ?? station.schemeId,
+    dscc_number: dscc(),
+    postal_application: claimOverride?.postalApplication ?? random(['Y', 'N']),
+    nrm_advice: claimOverride?.nrmAdvice ?? random(['Y', 'N']),
+    legacy_case: claimOverride?.legacyCase ?? random(['Y', 'N']),
+    london_nonlondon_rate: claimOverride?.londonNonLondonRate ?? random(['Y', 'N']),
+    additional_travel_payment: claimOverride?.additionalTravelPayment ?? random(['Y', 'N']),
+    eligible_client_indicator: claimOverride?.eligibleClientIndicator ?? random(['Y', 'N']),
+    irc_surgery: claimOverride?.ircSurgery ?? random(['Y', 'N']),
+    substantive_hearing: claimOverride?.substantiveHearing ?? random(['Y', 'N']),
+    tolerance_indicator: claimOverride?.toleranceIndicator ?? random(['Y', 'N']),
+    client_legally_aided: claimOverride?.clientLegallyAided ?? random(['Y', 'N']),
+    ufn,
   };
-};
+}
 
-// ---------- 7️⃣ File Generator ----------
-const generateFile = async (fileName: string,
-                            outcomesCount: number,
-                            fileType: 'txt' | 'csv',
-                            options: GenerateFileOptions = {}) => {
-  const office = options.office ?? randomFrom(offices);
-  const submissionPeriod = options.submissionPeriod ?? await getUniqueSubmissionPeriod(office, 'CRIME LOWER');
+// ------------------------------
+// 4️⃣ File Generator (FULL OVERRIDE SUPPORT)
+// ------------------------------
+async function generateFile(
+    fileName: string,
+    outcomesCount: number,
+    fileType: 'csv' | 'txt',
+    options: GenerateFileOptions = {}
+) {
+  let office = options.office ?? random(offices);
 
-  let content = `OFFICE,account=${office}\n`;
-  content += `SCHEDULE,submissionPeriod=${submissionPeriod},areaOfLaw=CRIME LOWER,scheduleNum=${office}/CRM\n`;
+  let submissionPeriod: string | null = null;
+  let scheduleStart: string | undefined;
+  let scheduleEnd: string | undefined;
+
+  const tried = new Set();
+
+  for (let i = 0; i < offices.length; i++) {
+    tried.add(office);
+    try {
+      const res = await getUniqueSubmissionPeriod(office, 'CRIME LOWER');
+      submissionPeriod = res.period;
+      scheduleStart = res.scheduleStart;
+      scheduleEnd = res.scheduleEnd;
+      break;
+    } catch {
+      const remaining = offices.filter((x) => !tried.has(x));
+      if (!remaining.length) throw new Error(`❌ No valid crime periods available`);
+      office = random(remaining);
+    }
+  }
+
+  let out = `OFFICE,account=${office}\n`;
+  out += `SCHEDULE,submissionPeriod=${submissionPeriod},areaOfLaw=CRIME LOWER,scheduleNum=${office}/CRM\n`;
 
   for (let i = 0; i < outcomesCount; i++) {
-    const o = await generateOutcome(office, i);
-    const claimOverride = options.claims?.[i];
-    const feeCode = claimOverride?.feeCode ?? randomFrom(feeCodes);
-    const profitCost = claimOverride?.profitCost ?? o.profit_cost;
-    const travelCost = claimOverride?.travelCost ?? o.travel_costs;
-    const disbursementAmount = claimOverride?.disbursementAmount ?? o.disbursements_amount;
+    const o = options.claims?.[i];
+    const base = await generateOutcome(office, i, scheduleStart, scheduleEnd, o);
+
+
+    const feeCode = o?.feeCode ?? random(feeCodes);
     const matterType = feeCode.substring(0, 4);
 
-    content += `OUTCOME,FEE_CODE=${feeCode},matterType=${matterType},UFN=${o.ufn},CLIENT_FORENAME=${o.client_forename},CLIENT_SURNAME=${o.client_surname},GENDER=${o.gender},ETHNICITY=${o.ethnicity},DISABILITY=${o.disability},CASE_START_DATE=${o.case_start_date},PROFIT_COST=${profitCost},DISBURSEMENTS_AMOUNT=${disbursementAmount},DISBURSEMENTS_VAT=${o.disbursements_vat},VAT_INDICATOR=${o.vat_indicator},TRAVEL_COSTS=${travelCost},OUTCOME_CODE=${o.outcome_code},CRIME_MATTER_TYPE=${o.crime_matter_type},TRAVEL_WAITING_COSTS=${o.travel_waiting_costs},WORK_CONCLUDED_DATE=${o.work_concluded_date},NO_OF_SUSPECTS=${o.no_of_suspects},NO_OF_POLICE_STATION=${o.no_of_police_station},POLICE_STATION=${o.police_station},DUTY_SOLICITOR=${o.duty_solicitor},YOUTH_COURT=${o.youth_court},SCHEME_ID=${o.scheme_id},DSCC_NUMBER=${o.dscc_number}\n`;
+    out +=
+        `OUTCOME,` +
+        `FEE_CODE=${feeCode},` +
+        `matterType=${matterType},` +
+        `UFN=${base.ufn},` +
+        `CLIENT_FORENAME=${base.client_forename},` +
+        `CLIENT_SURNAME=${base.client_surname},` +
+        `CLIENT_DATE_OF_BIRTH=${base.client_date_of_birth},` +
+        `GENDER=${base.gender},` +
+        `ETHNICITY=${base.ethnicity},` +
+        `DISABILITY=${base.disability},` +
+        `CASE_START_DATE=${base.case_start_date},` +
+        `PROFIT_COST=${base.profit_cost},` +
+        `DISBURSEMENTS_AMOUNT=${base.disbursements_amount},` +
+        `DISBURSEMENTS_VAT=${base.disbursements_vat},` +
+        `VAT_INDICATOR=${base.vat_indicator},` +
+        `TRAVEL_COSTS=${base.travel_costs},` +
+        `OUTCOME_CODE=${base.outcome_code},` +
+        `CRIME_MATTER_TYPE=${base.crime_matter_type},` +
+        `TRAVEL_WAITING_COSTS=${base.travel_waiting_costs},` +
+        `WORK_CONCLUDED_DATE=${base.work_concluded_date},` +
+        `NO_OF_SUSPECTS=${base.no_of_suspects},` +
+        `NO_OF_POLICE_STATION=${base.no_of_police_station},` +
+        `POLICE_STATION=${base.police_station},` +
+        `DUTY_SOLICITOR=${base.duty_solicitor},` +
+        `YOUTH_COURT=${base.youth_court},` +
+        `SCHEME_ID=${base.scheme_id},` +
+        `DSCC_NUMBER=${base.dscc_number},` +
+        `POSTAL_APPL_ACCP=${base.postal_application}, `+
+        `NATIONAL_REF_MECHANISM_ADVICE=${base.nrm_advice}, `+
+        `LEGACY_CASE=${base.legacy_case}, ` +
+        `LONDON_NONLONDON_RATE=${base.london_nonlondon_rate}, `+
+        `ADDITIONAL_TRAVEL_PAYMENT=${base.additional_travel_payment}, ` +
+        `ELIGIBLE_CLIENT_INDICATOR=${base.eligible_client_indicator}, ` +
+        `IRC_SURGERY=${base.irc_surgery}, ` +
+        `SUBSTANTIVE_HEARING=${base.substantive_hearing}, `+
+        `TOLERANCE_INDICATOR=${base.tolerance_indicator}, `+
+        `DUTY_SOLICITOR=${base.duty_solicitor}, ` +
+        `YOUTH_COURT=${base.youth_court}, ` +
+        `REP_ORDER_DATE=${base.rep_order_date}, ` +
+        `TRANSFER_DATE=${base.transfer_date}, ` +
+        `SURGERY_DATE=${base.surgery_date}, ` +
+        `CLIENT_LEGALLY_AIDED=${base.client_legally_aided}\n`;
   }
 
   if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);
-  fs.writeFileSync(path.join(OUTPUT_DIR, `${fileName}.${fileType}`), content, 'utf-8');
-  console.log(`✅ Generated ${fileName}.${fileType} with ${outcomesCount} outcomes for office ${office}`);
-};
+  fs.writeFileSync(path.join(OUTPUT_DIR, `${fileName}.${fileType}`), out, 'utf-8');
+}
 
-
+// ------------------------------
+// 5️⃣ Public Export
+// ------------------------------
 export async function GenerateCrimeFiles(
     files: number,
     outcomes: number,
-    format: 'txt' | 'csv' | 'xml',
+    format: 'csv' | 'txt' | 'xml',
     options: GenerateFileOptions = {}
-): Promise<string[]> {
-  const generatedFiles: string[] = [];
+) {
+  const paths: string[] = [];
+  const office = options.office ?? random(offices);
 
-  try {
-    for (let i = 1; i <= files; i++) {
-      const uniquePart = options.suffix || `${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-      const baseName = `crime_${uniquePart}_${i}`;
-      const intermediateFormat = format === 'xml' ? 'csv' : format;
+  for (let i = 1; i <= files; i++) {
+    const suffix = options.suffix ?? `${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    const name = `crime_${suffix}_${i}`;
 
-      const inputFile = path.join(OUTPUT_DIR, `${baseName}.${intermediateFormat}`);
-      const outputFile = path.join(OUTPUT_DIR, `${baseName}.xml`);
+    const intermediate = format === 'xml' ? 'csv' : format;
 
-      // ✅ Step 1: Generate the file (csv/txt)
-      await generateFile(baseName, outcomes, intermediateFormat, options);
-      console.log(`🧾 File generated: ${inputFile}`);
+    await generateFile(name, outcomes, intermediate, {
+      ...options,
+      office,
+    });
 
-      if (format === 'xml') {
-        // ✅ Step 2: Convert CSV to XML
-        await convertFileToXml(inputFile, outputFile);
-        console.log(`✅ Converted to XML: ${outputFile}`);
+    const csv = path.join(OUTPUT_DIR, `${name}.${intermediate}`);
+    const xml = path.join(OUTPUT_DIR, `${name}.xml`);
 
-        // ✅ Step 3: Delete temporary CSV
-        try {
-          fs.unlinkSync(inputFile);
-          console.log(`🧹 Deleted temporary file: ${inputFile}`);
-        } catch (deleteErr) {
-          console.warn(`⚠️ Could not delete ${inputFile}:`, deleteErr);
-        }
-
-        generatedFiles.push(outputFile);
-      } else {
-        generatedFiles.push(inputFile);
-      }
+    if (format === 'xml') {
+      await convertFileToXml(csv, xml);
+      fs.unlinkSync(csv);
+      paths.push(xml);
+    } else {
+      paths.push(csv);
     }
-
-    console.log(`\n🎉 Completed. Files saved in: ${OUTPUT_DIR}/`);
-    return generatedFiles;
-  } catch (err) {
-    console.error('❌ Error:', err);
-    throw err;
-  } finally {
-    // No shared DB connection to close here
   }
+
+  return { filePaths: paths, office };
 }

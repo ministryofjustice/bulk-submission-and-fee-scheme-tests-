@@ -1,7 +1,8 @@
-@bulkSubmission
+@bulkSubmission @stable
 Feature: Submission details - Fixed fee & Fee type
 
   Background:
+    And I start from a clean logged-in state
     Given I am on the bulk import page
 
   Scenario: Should show both escaped and fixed claims - Legal Help
@@ -17,8 +18,9 @@ Feature: Submission details - Fixed fee & Fee type
       | FPB020  | Escaped    | View (1) |
       | FPB010  | No         |          |
 
+  @testMe
   Scenario: Should show both escaped and fixed claims - Crime lower
-    Given I generate "Crime lower" "csv" file with the following claims
+    Given I generate "Crime" "csv" file with the following claims
       | feeCode | disbursementAmount |
       | INVC    | 50                 |
       | INVC    | 5000               |
@@ -30,6 +32,7 @@ Feature: Submission details - Fixed fee & Fee type
       | INVC    | No         |          |
       | INVC    | Escaped    | View (1) |
 
+  @stable
   Scenario: Should show both escaped and fixed claims - Mediation (Don't get escaped mediation claims)
     Given I generate "Mediation" "csv" file with the following claims
       | feeCode | profitCost |
