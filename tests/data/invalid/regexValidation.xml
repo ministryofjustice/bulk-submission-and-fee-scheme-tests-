@@ -29,10 +29,10 @@
                 <outcomeItem name="DISBURSEMENTS_VAT">1.26</outcomeItem>
                 <outcomeItem name="TRAVEL_WAITING_COSTS">0.00</outcomeItem>
                 <outcomeItem name="VAT_INDICATOR">Y</outcomeItem>
-                <outcomeItem name="LONDON_NONLONDON_RATE">B</outcomeItem>
+                <outcomeItem name="LONDON_NONLONDON_RATE">Y</outcomeItem>
                 <outcomeItem name="TRAVEL_COSTS">2</outcomeItem>
                 <outcomeItem name="OUTCOME_CODE">oi</outcomeItem>
-                <outcomeItem name="POSTAL_APPL_ACCP">B</outcomeItem>
+                <outcomeItem name="POSTAL_APPL_ACCP">Y</outcomeItem>
                 <outcomeItem name="SCHEDULE_REF">2L847Q777777777777776666666hhhggffs/2023/1</outcomeItem>
             </outcome>
         </schedule>

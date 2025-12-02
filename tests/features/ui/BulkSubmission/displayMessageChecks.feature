@@ -66,14 +66,13 @@ Feature: Display message checks
       | Error Message                                                                                                                              |
       | Schedule Reference must be a maximum of 20 characters and contain only letters, numbers, forward slashes, periods, and hyphens             |
       | Case Reference Number must contain only letters, numbers, forward slashes, periods, hyphens, and spaces, and be a maximum of 30 characters |
-      | Unique File Number must be in the format DDMMYY/NNN (6 digits forward slash 3 digits)                                                      |
       | Each Matter Type Code 1 and 2 must be 4 characters                                                                                         |
       | Fee Code must contain only letters and numbers, and be a maximum of 10 characters                                                          |
       | Procurement Area Code must be 2 uppercase letters followed by 5 digits                                                                     |
       | Access Point Code must be in the format AP##### (AP followed by 5 digits)                                                                  |
       | Client Forename must contain only letters, numbers, spaces, hyphens, apostrophes, ampersands, and be a maximum of 30 characters            |
       | Client Surname must contain only letters, numbers, spaces, hyphens, apostrophes, ampersands, and be a maximum of 30 characters             |
-      | Unique Client Number must be in the format DDMMYY/X/ZZZZ with valid date, and be a maximum of 15 characters                                |
+      | Unique Client Number must be in the format DDMMYYYY/X/ZZZZ with valid date, and be a maximum of 15 characters                              |
       | Client Postcode must be a valid UK postcode or NFA                                                                                         |
       | Gender code must be valid                                                                                                                  |
       | Ethnicity Code must be valid                                                                                                               |
@@ -158,7 +157,6 @@ Feature: Display message checks
     And I should see the following submission error messages for "CRIME LOWER":
       | Error Message                                                                                                                              |
       | Case Reference Number must contain only letters, numbers, forward slashes, periods, hyphens, and spaces, and be a maximum of 30 characters |
-      | Unique File Number must be in the format DDMMYY/NNN (6 digits forward slash 3 digits)                                                      |
       | Crime Lower Matter Type Code must be exactly 2 digits                                                                                      |
       | Fee Code must contain only letters and numbers, and be a maximum of 10 characters                                                          |
       | Procurement Area Code must be 2 uppercase letters followed by 5 digits                                                                     |
@@ -177,7 +175,7 @@ Feature: Display message checks
       | Referral Source must be a valid 2-digit code (02-11)                                                                                       |
       | Client Forename must contain only letters, numbers, spaces, hyphens, apostrophes, ampersands, and be a maximum of 30 characters            |
       | Client Surname must contain only letters, numbers, spaces, hyphens, apostrophes, ampersands, and be a maximum of 30 characters             |
-      | Unique Client Number must be in the format DDMMYY/X/ZZZZ with valid date, and be a maximum of 15 characters                                |
+      | Unique Client Number must be in the format DDMMYYYY/X/ZZZZ with valid date, and be a maximum of 15 characters                              |
       | Client Postcode must be a valid UK postcode or NFA                                                                                         |
       | Gender code must be valid                                                                                                                  |
       | Ethnicity Code must be valid                                                                                                               |
@@ -280,14 +278,13 @@ Feature: Display message checks
     And I should see the following submission error messages for "MEDIATION":
       | Error Message                                                                                                                              |
       | Case Reference Number must contain only letters, numbers, forward slashes, periods, hyphens, and spaces, and be a maximum of 30 characters |
-      | Unique File Number must be in the format DDMMYY/NNN (6 digits forward slash 3 digits)                                                      |
+      | Unique Client Number must be in the format DDMMYYYY/X/ZZZZ with valid date, and be a maximum of 15 characters                              |
       | Each Matter Type Code 1 and 2 must be 4 uppercase characters                                                                               |
       | Fee Code must contain only letters and numbers, and be a maximum of 10 characters                                                          |
       | Procurement Area Code must be 2 uppercase letters followed by 5 digits                                                                     |
       | Access Point Code must be in the format AP##### (AP followed by 5 digits)                                                                  |
       | Client Forename must contain only letters, numbers, spaces, hyphens, apostrophes, ampersands, and be a maximum of 30 characters            |
       | Client Surname must contain only letters, numbers, spaces, hyphens, apostrophes, ampersands, and be a maximum of 30 characters             |
-      | Unique Client Number must be in the format DDMMYY/X/ZZZZ with valid date, and be a maximum of 15 characters                                |
       | Client Postcode must be a valid UK postcode or NFA                                                                                         |
       | Gender code must be valid                                                                                                                  |
       | Ethnicity Code must be valid                                                                                                               |
@@ -323,7 +320,7 @@ Feature: Display message checks
       | Local Authority Number must contain only letters and numbers, and be a maximum of 30 characters                                            |
       | Client 2 Forename must contain only letters, numbers, spaces, hyphens, apostrophes, ampersands, and be a maximum of 30 characters          |
       | Client 2 Surname must contain only letters, numbers, spaces, hyphens, apostrophes, ampersands, and be a maximum of 30 characters           |
-      | Client 2 Unique Client Number must be in the format DDMMYY/X/ZZZZ with valid date, and be a maximum of 15 characters                       |
+      | Client 2 Unique Client Number must be in the format DDMMYYYY/X/ZZZZ with valid date, and be a maximum of 15 characters                     |
       | Client 2 Postcode must be a valid UK postcode or NFA                                                                                       |
       | Client 2 Gender code must be valid                                                                                                         |
       | Client 2 Ethnicity Code must be valid                                                                                                      |
