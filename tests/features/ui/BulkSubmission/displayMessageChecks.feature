@@ -1,4 +1,4 @@
-@stable
+@stable @validationChecks
 Feature: Display message checks
 
   Background:

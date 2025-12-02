@@ -1,4 +1,4 @@
-@bulkSubmission @stable
+@upload @stable
 Feature: Bulk Submission via UI
 
   Background:
@@ -38,7 +38,7 @@ Feature: Bulk Submission via UI
       | Crime lower | xml    | 0        | 0      |
 
 
-  @bulk
+  @submissionValidation
   Scenario Outline: Submission Period Validation : Submission already exists for Office" for <AreaOfLaw>
     When I generate "<AreaOfLaw>" "<Format>" file with "<Outcomes>" outcomes
     And I upload the generated file
@@ -60,6 +60,7 @@ Feature: Bulk Submission via UI
       | Mediation   | txt    | 0        |
 
 
+  @duplicateChecks @claimValidation
   Scenario Outline: Duplicate Claim within the same submission <AreaOfLaw>
     When I generate "<AreaOfLaw>" "<Format>" file with "<Outcomes>" outcomes
     And I duplicate the last record in the generated file

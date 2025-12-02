@@ -1,6 +1,6 @@
 import fs from "fs";
 import { GenerateMediationFiles } from "./generateMediationFiles";
-import { claimOptions } from "./claimOptions";
+import { claimOptions } from "../claimOptions";
 
 export async function GenerateMediationFilesOverride(
     files: number,

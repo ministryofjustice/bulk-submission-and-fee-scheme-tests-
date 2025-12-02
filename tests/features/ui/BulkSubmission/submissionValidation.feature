@@ -1,10 +1,11 @@
-@bulkSubmission @validation @wip @stable
+@validationChecks @stable
 Feature: Invalid submission level validation
 
   Background:
     Given I start from a clean logged-in state
     Given I am on the bulk import page
 
+  @claimValidation
   Scenario: Verify all mandatory field errors are displayed for an invalid XML upload Legal Help
     When I upload "tests/data/invalid/Legal_Help_Required_Field_Validation.xml"
     And I wait on validation in progress screen
@@ -22,9 +23,10 @@ Feature: Invalid submission level validation
       | Schedule Reference is required for Legal Help claims     |
       | Case Concluded Date must be between 01/01/1995 and today |
 
+  @claimValidation
   Scenario: Invalid Fee code
     When I upload "tests/data/invalid/legal_Invalid_Feecode.txt"
-  And I wait on validation in progress screen
+    And I wait on validation in progress screen
     Then I should see an error banner saying "2 claims have errors for missing or incorrect information"
     And I should see the following submission error messages for "LEGAL HELP":
       | Error Message                                                                       |
@@ -32,6 +34,7 @@ Feature: Invalid submission level validation
       | The provider is not contracted for the category of law associated with the fee code |
 
 
+  @claimValidation
   Scenario: Validate multiple paginated claim errors
     When I upload "tests/data/invalid/regexValidation.xml"
     And I wait on validation in progress screen
@@ -54,6 +57,7 @@ Feature: Invalid submission level validation
       The provider is not contracted for the category of law associated with the fee code
       """
 
+  @claimValidation
   Scenario: Invalid data submission triggers regex and value validation errors for Mediation
     When I upload "tests/data/invalid/mediationFieldValidation.txt"
     And I wait on validation in progress screen
@@ -70,6 +74,7 @@ Feature: Invalid submission level validation
     Client 2 Date of Birth must be between 01/01/1900 and today
     """
 
+  @submissionValidation
   Scenario: Reject submission due to period prior to 2015
     When I upload "tests/data/invalid/submissionPeriod.txt"
     And I wait on validation in progress screen
@@ -78,6 +83,7 @@ Feature: Invalid submission level validation
     Submissions for periods before JAN-2015 are not accepted. Please submit for a period on or after JAN-2015.
     """
 
+  @submissionValidation
   Scenario Outline: Reject submission due to invalid submission periods
     When I stage "tests/data/invalid/submissionPeriod.txt" file for upload
     And I update the SubmissionPeriod to "<periodType>"

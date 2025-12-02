@@ -1,17 +1,17 @@
 import {Given, When} from '@cucumber/cucumber';
 import type {CustomWorld} from '../../support/world';
-import {GenerateCivilFile} from '../../../utils/scripts/generateCivilFiles';
-import {GenerateMediationFiles} from '../../../utils/scripts/generateMediationFiles';
-import {GenerateCrimeFiles} from '../../../utils/scripts/generateCrimeFiles';
-import {generateMatterStartsFile} from '../../../utils/scripts/generateMatterStartsFile';
+import {GenerateCivilFile} from '../../../utils/scripts/dataGenartor/generateCivilFiles';
+import {GenerateMediationFiles} from '../../../utils/scripts/dataGenartor/generateMediationFiles';
+import {GenerateCrimeFiles} from '../../../utils/scripts/dataGenartor/generateCrimeFiles';
+import {generateMatterStartsFile} from '../../../utils/scripts/dataGenartor/generateMatterStartsFile';
 import {claimOptions} from '../../../utils/scripts/claimOptions';
 import path from 'path';
 import {BulkImportPage} from '../../../pages/bulkImportPage';
 import FormData from 'form-data';
 import fs from 'fs';
-import {getSubmissionPeriod} from "../../../utils/scripts/submissionPeriodHelper";
-import { GenerateFixedCrimePoliceFile } from '../../../utils/scripts/generateFixedCrimeFiles';
-import {GenerateMediationFilesOverride} from "../../../utils/scripts/genarateMediationFilesWithOverides";
+import {getSubmissionPeriod} from "../../../utils/scripts/dataGenartor/submissionPeriodHelper";
+import { GenerateFixedCrimePoliceFile } from '../../../utils/scripts/dataGenartor/generateFixedCrimeFiles';
+import {GenerateMediationFilesOverride} from "../../../utils/scripts/dataGenartor/genarateMediationFilesWithOverides";
 
 
 function escapeRegExp(value: string): string {

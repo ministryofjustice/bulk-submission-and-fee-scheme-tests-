@@ -1,5 +1,4 @@
-@duplicateChecks
-@bulkSubmission @stable
+@duplicateChecks @stable
 Feature: Duplicate checks - Mediation
 
   Background:

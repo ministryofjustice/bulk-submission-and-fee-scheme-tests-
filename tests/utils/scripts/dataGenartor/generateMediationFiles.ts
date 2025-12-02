@@ -3,9 +3,9 @@ import path from 'path';
 import { faker } from '@faker-js/faker';
 import 'reflect-metadata';
 import dotenv from 'dotenv';
-import { convertFileToXml } from './converter';
+import { convertFileToXml } from '../converter';
 import { getUniqueSubmissionPeriod } from './submissionPeriodHelper';
-import { claimOptions } from './claimOptions';
+import { claimOptions } from '../claimOptions';
 import { GenerateFileOptions } from './generateFileOptions';
 
 dotenv.config();

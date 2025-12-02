@@ -18,7 +18,7 @@ import net from 'net';
 import {execSync} from 'child_process';
 import {createDataSourceManager} from '../../utils/db/dataSourceManager';
 import {cleanSubmissionData} from '../../utils/scripts/cleanup-submissions';
-import {destroySubmissionPeriodManager} from '../../utils/scripts/submissionPeriodHelper';
+import {destroySubmissionPeriodManager} from '../../utils/scripts/dataGenartor/submissionPeriodHelper';
 
 setDefaultTimeout(180 * 1000);
 console.log('⏱️ Cucumber step timeout set to 180s');

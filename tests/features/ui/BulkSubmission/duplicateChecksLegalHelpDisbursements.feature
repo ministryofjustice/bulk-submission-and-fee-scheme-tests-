@@ -1,5 +1,5 @@
 @bulkSubmissions
-@duplicateChecks @wip
+@duplicateChecks
 Feature: Duplicate checks - Legal Help - Disbursements
 
   Background:

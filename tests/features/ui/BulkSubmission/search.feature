@@ -1,9 +1,10 @@
-@bulkSubmission @search @stable
+@search @stable
 Feature: Bulk Submission Search
 
   Background:
     And I start from a clean logged-in state
 
+  @inputValidation
   Scenario: Validate error message when searching with an invalid submission reference
     Given I am on the Search page
     When I search using an invalid submission reference
@@ -11,6 +12,7 @@ Feature: Bulk Submission Search
     Then the Search page should pass accessibility checks
 
 
+  @inputValidation
   Scenario Outline: Validate error messages for invalid search inputs
     Given I am on the Search page
     When I enter invalid search criteria:

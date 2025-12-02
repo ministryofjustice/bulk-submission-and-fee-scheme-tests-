@@ -1,4 +1,4 @@
-import { createDataSourceManager } from '../db/dataSourceManager';
+import { createDataSourceManager } from '../../db/dataSourceManager';
 import axios from 'axios';
 import dotenv from 'dotenv';
 
