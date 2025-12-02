@@ -93,20 +93,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-#      - name: Authenticate to the SaBC EKS cluster
-#        uses: ./.github/actions/authenticate-to-eks-cluster
-#        with:
-#          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
-#          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
-#          kube_token: ${{ secrets.KUBE_TOKEN_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
-#          kube_cert: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
-
-#      - name: Port forward UAT Submit a Bulk Claim
-#        run: |
-#          kubectl port-forward svc/uat-submit-a-bulk-claim-service 8082:80 -n laa-submit-a-bulk-claim-uat > portforward.log 2>&1 &
-#          echo $! > portforward.pid
-#          sleep 5
-      
       - name: Create .env file
         shell: bash
         run: |
