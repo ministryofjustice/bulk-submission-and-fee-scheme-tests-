@@ -6,11 +6,14 @@ Feature: Bulk Submission via UI
     Given I am on the bulk import page
 
 
+  @content
+#  Scenario: Search results table layout matches design
   Scenario Outline: Successful bulk submission for <AreaOfLaw>
     When I generate "<AreaOfLaw>" "<Format>" file with "<Outcomes>" outcomes
     And I upload the generated file
     And I am on the Search page
     When I search using the most recent submission reference
+    Then the search results table matches the expected layout
     And I open the most recent submission from the results list
     Then I should see the submission summary for "<AreaOfLaw>" with "<Claims>" claims
 

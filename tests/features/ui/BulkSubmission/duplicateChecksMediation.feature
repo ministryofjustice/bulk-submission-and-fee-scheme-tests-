@@ -63,12 +63,11 @@ Feature: Duplicate checks - Mediation
       | format |
       | csv    |
 
-
   Scenario Outline: Should have no errors in <format> submission (fee code different)
     Given I generate "Mediation" "<format>" file with the following claims
-      | ucn                  | feeCode |
-      | 07081998/S/<format>E | ASSA    |
-      | 07081998/S/<format>E | ASST    |
+      | ucn            | feeCode |
+      | 07081998/S/EKO | ASSA    |
+      | 07081998/S/EKO | ASST    |
     When I upload the generated file
     Then I should see the submission summary for "Mediation"
     Examples:

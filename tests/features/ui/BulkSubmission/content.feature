@@ -18,12 +18,6 @@ Feature: Content check for the UI matching UX designs
     When I upload the generated file and wait for import in progress screen
     Then the page content matches "upload_check.html"
 
-  Scenario: Search results table layout matches design
-    Given I am on the Search page
-    And I ensure there is a "VALIDATION_SUCCEEDED" submission for "LEGAL HELP"
-    When I search using the most recent submission reference
-    Then the search results table matches the expected layout
-
   Scenario Outline: Claim details show fee calculation headings for <AreaOfLaw>
     Given I am on the bulk import page
     When I generate "<AreaOfLaw>" "csv" file with "1" outcomes
