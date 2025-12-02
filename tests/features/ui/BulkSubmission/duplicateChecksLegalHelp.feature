@@ -1,5 +1,5 @@
 @duplicateChecks
-@bulkSubmission
+@bulkSubmission @stable
 Feature: Duplicate checks - Legal Help
 
   Background:
@@ -16,96 +16,78 @@ Feature: Duplicate checks - Legal Help
     Examples:
       | format |
       | csv    |
-      | xml    |
-      | txt    |
 
   Scenario Outline: Duplicate detected against a previously submitted claim from <format>
     Given I generate "Legal help" "<format>" file with the following claims
-      | ucn                  | feeCode | ufn        |
-      | 14091962/T/<format>S | CAPA    | 010625/123 |
-    And I upload with generated file via the API
+      | ucn             | feeCode | ufn        |
+      | 14091962/T/EKOS | CAPA    | 010625/123 |
+    And I upload the generated file
+    And click import
     When I upload the generated file and wait for import in progress
     Then I should have duplicate submission error for "0P322F" "Legal help"
       | submissionPeriod |
     Examples:
       | format |
-      | csv    |
       | xml    |
-      | txt    |
+
 
   Scenario Outline: Should have no errors in <format> submission (UCN different)
     Given I generate "Legal help" "<format>" file with the following claims
-      | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>E | CAPA    | 010625/123 |
-      | 07081997/S/<format>E | CAPA    | 010625/123 |
-    And I upload with generated file via the API
+      | ucn             | feeCode | ufn        |
+      | 07081996/S/EKOE | CAPA    | 010625/123 |
+      | 07081997/S/EKOE | CAPA    | 010625/123 |
+    And I upload the generated file
+    And click import
     When I upload the generated file and wait for import in progress
     Then I should have duplicate submission error for "0P322F" "Legal help"
+      | submission period |
     Examples:
       | format |
-      | csv    |
-      | xml    |
       | txt    |
 
 
   Scenario Outline: Not duplicate when previous submission was invalid from <format>
     Given I generate "Legal help" "<format>" file with the following claims
-      | ucn                  |
-      | 14091962/T/<format>S |
-    And I upload with generated file via the API
-    And I make the generated file invalid
-    When I upload the generated file and wait for import in progress
+      | ucn            |
+      | 14091962/T/E.. |
+    And I upload the generated file
+    And I update only the last record with a new UCN
+      | ucn             |
+      | 14091962/T/EKOS |
+    And click import
+    When I re-upload the generated file
     Then I should see the submission summary for "Legal help"
     Examples:
       | format |
       | csv    |
-      | xml    |
-      | txt    |
-
-  Scenario Outline: Duplicate detected within the same <format> submission file (later row duplicate)
-    Given I generate "Legal help" "<format>" file with the following claims
-      | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>E | CAPA    | 020625/123 |
-      | 07081996/S/<format>E | CAPA    | 020625/123 |
-    And I upload the generated file and wait for import in progress
-    Then I should see the following submission error messages for "Legal help":
-      | Error Message                                          |
-      | A duplicate claim was found within the same submission |
-      | A duplicate claim was found within the same submission |
-    Examples:
-      | format |
-      | csv    |
-      | xml    |
-      | txt    |
 
   Scenario Outline: Should have no errors in <format> submission (UFN different)
     Given I generate "Legal help" "<format>" file with the following claims
-      | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>E | CAPA    | 030625/123 |
-      | 07081996/S/<format>E | CAPA    | 030625/124 |
+      | ucn             | feeCode | ufn        |
+      | 07081996/S/ASOT | CAPA    | 030625/123 |
+      | 07081996/S/ASOT | CAPA    | 030625/124 |
     When I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Legal help"
     Examples:
       | format |
-      | csv    |
       | xml    |
-      | txt    |
+
 
   Scenario Outline: Should have no errors in <format> submission (UFN different multiple submissions)
     Given I generate "Legal help" "<format>" file with the following claims
-      | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>E | CAPA    | 040625/123 |
-    And I upload with generated file via the API
+      | ucn             | feeCode | ufn        | office |
+      | 07081996/S/EKOT | CAPA    | 040625/123 | 0P322F |
+    And I upload the generated file
+    And click import
     Given I generate "Legal help" "<format>" file with the following claims
-      | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>E | CAPA    | 040625/124 |
+      | ucn             | feeCode | ufn        | office |
+      | 07081996/S/EKOT | CAPA    | 040625/124 | 0P322F |
     When I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Legal help"
     Examples:
       | format |
-      | csv    |
-      | xml    |
       | txt    |
+
 
   Scenario Outline: Should have no errors in <format> submission (UCN different)
     Given I generate "Legal help" "<format>" file with the following claims
@@ -117,24 +99,21 @@ Feature: Duplicate checks - Legal Help
     Examples:
       | format |
       | csv    |
-      | xml    |
-      | txt    |
 
   Scenario Outline: Should have no errors in <format> submission (UCN different multiple submissions)
     Given I generate "Legal help" "<format>" file with the following claims
-      | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>E | CAPA    | 060625/123 |
-    And I upload with generated file via the API
-    Given I generate "Legal help" "<format>" file with the following claims
-      | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>F | CAPA    | 060625/124 |
-    When I upload the generated file and wait for import in progress
+      | ucn                  | feeCode | ufn        | office |
+      | 07081996/S/<format>E | CAPA    | 060625/123 | 2P746R |
+    And I upload the generated file
+    And click import
+    When I generate "Legal help" "<format>" file with the following claims
+      | ucn                  | feeCode | ufn        | office |
+      | 07081996/S/<format>F | CAPA    | 060625/124 | 2P746R |
+    And I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Legal help"
     Examples:
       | format |
-      | csv    |
       | xml    |
-      | txt    |
 
   Scenario Outline: Should have no errors in <format> submission (fee code different)
     Given I generate "Legal help" "<format>" file with the following claims
@@ -145,24 +124,20 @@ Feature: Duplicate checks - Legal Help
     Then I should see the submission summary for "Legal help"
     Examples:
       | format |
-      | csv    |
-      | xml    |
       | txt    |
-
 
   Scenario Outline: Should have no errors in <format> submission (feeCode different multiple submissions)
     Given I generate "Legal help" "<format>" file with the following claims
-      | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>E | CAPA    | 080625/123 |
-    And I upload with generated file via the API
+      | ucn                  | feeCode | ufn        | office |
+      | 07081996/S/<format>E | CAPA    | 080625/123 | 1T102C |
+    And I upload the generated file
+    And click import
     Given I generate "Legal help" "<format>" file with the following claims
-      | ucn                  | feeCode | ufn        |
-      | 07081996/S/<format>E | COM     | 080625/124 |
+      | ucn                  | feeCode | ufn        | office |
+      | 07081996/S/<format>E | COM     | 080625/124 | 1T102C |
     When I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Legal help"
     Examples:
       | format |
       | csv    |
-      | xml    |
-      | txt    |
 

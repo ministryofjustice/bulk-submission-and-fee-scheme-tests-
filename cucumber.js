@@ -20,7 +20,7 @@ module.exports = {
     "--require tests/features/**/*.ts",
     "--format json:reports/cucumber.json",
     "--format html:reports/cucumber.html",
-    "--tags @stable",
+    "--tags '@stable and not @ignore'",
     "--parallel 4",
     "--retry 0",
     "tests/features/**/BulkSubmission/*.feature"

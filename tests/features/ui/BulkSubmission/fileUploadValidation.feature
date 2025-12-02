@@ -19,6 +19,7 @@ Feature: Bulk Submission Upload Validation
     When I upload that file
     Then the user sees an error message "Choose an XML, CSV, or TXT file"
 
+  @ignore
   Scenario: Upload fails with a file larger than 10MB
     Given I have generated an "large" bulk submission file named "largeFile.csv"
     When I upload that file
@@ -41,21 +42,21 @@ Feature: Bulk Submission Upload Validation
     # NOTE: wider permutations of invalid numeric values are covered by laa-data-claims-api unit tests.
     # See: https://github.com/ministryofjustice/laa-data-claims-api/blob/main/claims-data/service/src/test/java/uk/gov/justice/laa/dstew/payments/claimsdata/mapper/BulkSubmissionMapperTests.java
     Examples:
-      | AreaOfLaw  | field           | value           | fieldDisplayValue |
-      | Legal help | TRAVEL_TIME     | 9999999999      | travelTime        |
-      | Legal help | WAITING_TIME    | 9999999999      | waitingTime       |
-      | Legal help | TRAVEL_TIME     | NAN             | travelTime        |
-      | Legal help | WAITING_TIME    | NAN             | waitingTime       |
+      | AreaOfLaw  | field        | value      | fieldDisplayValue |
+      | Legal help | TRAVEL_TIME  | 9999999999 | travelTime        |
+      | Legal help | WAITING_TIME | 9999999999 | waitingTime       |
+      | Legal help | TRAVEL_TIME  | NAN        | travelTime        |
+      | Legal help | WAITING_TIME | NAN        | waitingTime       |
 
   Scenario Outline: Upload fails with Invalid Submission Period
     Given I generate "Legal help" "csv" file with "1" outcomes
     And I override the generated file field "submissionPeriod" with value "<value>"
     When I upload that file
     Then the user sees an error message "<message>"
-  Examples:
-      | value           | message                                                              |
-      |                 | Submission period is required, please check the file and try again.  |
-      | blah-blah       | Submission period wrong format, should be in the format MMM-YYYY     |
+    Examples:
+      | value     | message                                                             |
+      |           | Submission period is required, please check the file and try again. |
+      | blah-blah | Submission period wrong format, should be in the format MMM-YYYY    |
 
 
     

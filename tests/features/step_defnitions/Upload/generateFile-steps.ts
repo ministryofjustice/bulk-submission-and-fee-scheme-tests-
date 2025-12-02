@@ -12,6 +12,7 @@ import fs from 'fs';
 import {getSubmissionPeriod} from "../../../utils/scripts/dataGenartor/submissionPeriodHelper";
 import { GenerateFixedCrimePoliceFile } from '../../../utils/scripts/dataGenartor/generateFixedCrimeFiles';
 import {GenerateMediationFilesOverride} from "../../../utils/scripts/dataGenartor/genarateMediationFilesWithOverides";
+import {GenerateCivilFilesOverride} from "../../../utils/scripts/dataGenartor/generateCivilFilesWithOverides";
 
 
 function escapeRegExp(value: string): string {
@@ -164,7 +165,15 @@ Given('I generate {string} {string} file with the following claims', async funct
 
     switch (areaOfLaw) {
         case "Legal help":
-            result = await GenerateCivilFile(1, claims.length, format as any, { claims });
+            result = await GenerateCivilFilesOverride(
+                1,
+                claims.length,
+                format as any,
+                {
+                    claims,
+                    office: officeOverride   // ⭐ PASS THE OFFICE HERE
+                }
+            );
             break;
 
         case "Mediation":
