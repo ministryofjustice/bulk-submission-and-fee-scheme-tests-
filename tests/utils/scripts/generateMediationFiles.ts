@@ -55,7 +55,7 @@ const generateOutcome = async (
   const ufn = claimOverride?.ufn ?? generateUFN(caseStartDate, caseNum);
 
   const ucn1 = claimOverride?.ucn ?? `${pad(dob1.getDate())}${pad(dob1.getMonth() + 1)}${dob1.getFullYear()}/${client1Last[0].toUpperCase()}/${clean(client1Last).slice(0, 4)}`;
-  const ucn2 = claimOverride?.ucn ?? `${pad(dob2.getDate())}${pad(dob2.getMonth() + 1)}${dob2.getFullYear()}/${client2Last[0].toUpperCase()}/${clean(client2Last).slice(0, 4)}`;
+  const ucn2 =  `${pad(dob2.getDate())}${pad(dob2.getMonth() + 1)}${dob2.getFullYear()}/${client2Last[0].toUpperCase()}/${clean(client2Last).slice(0, 4)}`;
 
   return {
     case_ref_number: faker.number.int({ min: 1000, max: 9999 }),

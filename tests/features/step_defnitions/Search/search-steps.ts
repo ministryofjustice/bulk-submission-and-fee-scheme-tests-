@@ -157,6 +157,34 @@ When(
     }
 );
 
+When(
+    'I open the most recent submission from the results list',
+    async function (this: CustomWorld) {
+        if (!this.mostRecentSubmissionId) {
+            throw new Error('❌ No submission ID found in World context.');
+        }
+
+        const id = this.mostRecentSubmissionId;
+        const link = this.page!.locator(`a[href="/submission/${id}"]`);
+
+        await link.first().waitFor({ state: 'visible', timeout: 10_000 });
+
+        await this.attach(
+            `🔗 Clicking submission link: /submission/${id}`,
+            'text/plain'
+        );
+
+        await link.first().click();
+
+        await this.page!.waitForLoadState('domcontentloaded');
+
+        await this.attach(
+            `📄 Navigated to submission details page for submission ${id}`,
+            'text/plain'
+        );
+    }
+);
+
 Then('I should see one search result for that submission', async function (this: CustomWorld) {
     const searchPage = new SearchPage(this.page!);
 

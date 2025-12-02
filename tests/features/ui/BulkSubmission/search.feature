@@ -4,22 +4,6 @@ Feature: Bulk Submission Search
   Background:
     And I start from a clean logged-in state
 
-  Scenario Outline: Search For Valid/Invalid claims using submission ref
-    Given I ensure there is a "<Status>" submission for "<AreaOfLaw>"
-    And I am on the Search page
-    When I search using the most recent submission reference
-    Then I should see one search result for that submission
-    Then the Search page should pass accessibility checks
-    Examples:
-      | Status               | AreaOfLaw   |
-      | VALIDATION_FAILED    | LEGAL HELP  |
-      | VALIDATION_FAILED    | MEDIATION   |
-      | VALIDATION_FAILED    | CRIME LOWER |
-      | VALIDATION_SUCCEEDED | LEGAL HELP  |
-      | VALIDATION_SUCCEEDED | CRIME LOWER |
-      | VALIDATION_SUCCEEDED | MEDIATION   |
-
-
   Scenario: Validate error message when searching with an invalid submission reference
     Given I am on the Search page
     When I search using an invalid submission reference

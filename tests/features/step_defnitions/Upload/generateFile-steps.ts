@@ -11,6 +11,7 @@ import FormData from 'form-data';
 import fs from 'fs';
 import {getSubmissionPeriod} from "../../../utils/scripts/submissionPeriodHelper";
 import { GenerateFixedCrimePoliceFile } from '../../../utils/scripts/generateFixedCrimeFiles';
+import {GenerateMediationFilesOverride} from "../../../utils/scripts/genarateMediationFilesWithOverides";
 
 
 function escapeRegExp(value: string): string {
@@ -153,46 +154,56 @@ When(
 );
 
 Given('I generate {string} {string} file with the following claims', async function (this: CustomWorld, areaOfLaw, format, dataTable) {
-    const claims: claimOptions[] = dataTable.hashes();
+
+    const claims = dataTable.hashes();
+
+    // Extract office if provided in the first row
+    const officeOverride = claims[0].office ?? undefined;
+
     let result: GenReturn;
 
     switch (areaOfLaw) {
-        case "Legal help" :
-            result = await GenerateCivilFile(1, claims.length, format as any, {claims});
+        case "Legal help":
+            result = await GenerateCivilFile(1, claims.length, format as any, { claims });
             break;
-        case "Mediation" :
-            result = await GenerateMediationFiles(1, claims.length, format as any, {claims});
-            break;
-        case "Crime lower" :
-            result = await GenerateCrimeFiles(1, claims.length, format as any, {claims});
-            break;
-        case "Crime": {
-            // 👉 Ignore claims table for this special case.
-            // Only generate the fixed police-station file with dynamic period.
-            const fixed = await GenerateFixedCrimePoliceFile("crime_fixed");
 
-            result = {
-                filePaths: [fixed.filePath],
-                office: fixed.office
-            };
+        case "Mediation":
+            result = await GenerateMediationFilesOverride(
+                1,
+                claims.length,
+                format as any,
+                {
+                    claims,
+                    office: officeOverride   // ⭐ PASS THE OFFICE HERE
+                }
+            );
             break;
-        }
-        default : {
-            throw new Error(`Invalid area of law :${areaOfLaw}`)
-        }
+
+        case "Crime lower":
+            result = await GenerateCrimeFiles(1, claims.length, format as any, { claims });
+            break;
+
+        case "Crime":
+            const fixed = await GenerateFixedCrimePoliceFile("crime_fixed");
+            result = { filePaths: [fixed.filePath], office: fixed.office };
+            break;
+
+        default:
+            throw new Error(`Invalid area of law: ${areaOfLaw}`);
     }
 
     const { filePaths, office } = normalizeGeneratorResult(result);
     const filePath = filePaths[0];
-    const fileName = path.basename(filePath);
 
-    this.fileName = fileName;
+    this.fileName = path.basename(filePath);
     this.generatedFilePath = filePath;
     this.filePath = filePath;
-    this.officeAccount = office || this.officeAccount;
 
-    await this.attach(`📁 Generated file for upload: ${fileName}`, 'text/plain');
-    if (this.officeAccount) await this.attach(`🏢 Office: ${this.officeAccount}`, 'text/plain');
+    // Save office for future duplicate logic
+    this.officeAccount = officeOverride ?? office;
+
+    await this.attach(`📁 Generated file: ${this.fileName}`, "text/plain");
+    await this.attach(`🏢 Office: ${this.officeAccount}`, "text/plain");
 });
 
 Given('I generate {string} {string} file with the following claims from period {string}', async function (this: CustomWorld, areaOfLaw, format, submissionPeriod, dataTable) {
@@ -337,6 +348,50 @@ Given('I make the generated file invalid', async function (this: CustomWorld) {
     }
 });
 
+When('I update only the last record with a new UCN', async function (this: CustomWorld, dataTable) {
+    const filePath = this.generatedFilePath!;
+    const newUcn = dataTable.hashes()[0].ucn;
+
+    if (!newUcn) {
+        throw new Error('❌ No UCN provided in the table.');
+    }
+
+    let content = fs.readFileSync(filePath, 'utf-8').trimEnd();
+    const lines = content.split('\n').filter(l => l.trim() !== '');
+
+    // Find last OUTCOME line
+    const lastIndex = [...lines].reverse().findIndex(line => line.startsWith('OUTCOME'));
+    if (lastIndex === -1) {
+        throw new Error('❌ No OUTCOME line found in generated file.');
+    }
+
+    const actualIndex = lines.length - 1 - lastIndex;
+    const lastLine = lines[actualIndex];
+
+    // Extract primary UCN
+    const ucnRegex = /UCN="?([^",]+)"?/;
+    const match = lastLine.match(ucnRegex);
+
+    if (!match) {
+        throw new Error(`❌ Could not find UCN in last OUTCOME line:\n${lastLine}`);
+    }
+
+    const originalUcn = match[1];
+
+    // Replace ONLY the primary UCN
+    const updatedLine = lastLine.replace(ucnRegex, `UCN=${newUcn}`);
+
+    // Update lines array
+    lines[actualIndex] = updatedLine;
+
+    // Rewrite updated content
+    fs.writeFileSync(filePath, lines.join('\n'), 'utf-8');
+
+    await this.attach(`🔧 Updated last OUTCOME UCN from ${originalUcn} → ${newUcn}`, 'text/plain');
+    console.log(`✅ Updated UCN: ${originalUcn} → ${newUcn}`);
+});
+
+
 //
 // ======================================================
 //               OVERRIDE FIELD STEP
@@ -400,6 +455,19 @@ When(/^I (?:upload|re-upload) the generated file$/, async function () {
     } catch {
         await this.attach('⚠️ No banner appeared after upload.', 'text/plain');
     }
+
+    // 🔍 Extract the submissionId from the meta tag
+    const submissionId = await this.page.locator('meta#submissionId').getAttribute('content');
+
+    if (!submissionId) {
+        await this.attach('❌ No submissionId found in <meta> tag.', 'text/plain');
+        throw new Error('Submission ID not found after upload');
+    }
+
+    // Save in World so later steps can use it
+    this.mostRecentSubmissionId = submissionId;
+
+    await this.attach(`✅ Extracted Submission ID: ${submissionId}`, 'text/plain');
 });
 //
 // ======================================================
