@@ -76,6 +76,27 @@ When(/^I upload the generated file and wait for import in progress(?: (screen))?
   }
 
   await this.attach('✅ Import in progress screen displayed and completed', 'text/plain');
+
+  const submissionId =
+      await this.page!.locator("meta#submissionId").getAttribute("content");
+
+  if (!submissionId) {
+    await this.attach("❌ No submissionId found in <meta> tag.", "text/plain");
+    throw new Error("Submission ID not found after upload");
+  }
+
+  // -----------------------------
+  // Add ID to cleanup set
+  // -----------------------------
+  if (!this.cleanupSubmissionIds) {
+    this.cleanupSubmissionIds = new Set();
+  }
+  this.cleanupSubmissionIds.add(submissionId);
+
+  this.mostRecentSubmissionId = submissionId;
+
+  await this.attach(`✅ Submission ID: ${submissionId}`, "text/plain");
+
 });
 
 When(`I wait on validation in progress screen`, async function (this: CustomWorld) {

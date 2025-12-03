@@ -1,4 +1,4 @@
-@bulkSubmission @matterStarts @stable
+@matterStarts @stable
 Feature: Matter Starts Uploads
 
   Background:

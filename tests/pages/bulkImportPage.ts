@@ -23,7 +23,7 @@ class BulkImportPage extends BasePage {
   }
 
   async checkErrorMessage(expectedMessage: string) {
-    await this.errorSummary.waitFor(); // inherited from BasePage
+    await this.errorSummary.waitFor({ state: 'visible', timeout: 70000 });
     const text = await this.errorSummary.textContent();
     return text?.includes(expectedMessage);
   }

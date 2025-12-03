@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs";
-import { generateCSVFromFilename } from "./generateCSVFromFilename";
+import { generateCSVFromFilename } from "../generateCSVFromFilename";
 import { getUniqueSubmissionPeriod, generateScheduleRef } from "./submissionPeriodHelper";
 
 interface MatterStartsResult {

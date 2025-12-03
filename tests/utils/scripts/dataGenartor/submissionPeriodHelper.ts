@@ -1,4 +1,4 @@
-import { createDataSourceManager } from '../db/dataSourceManager';
+import { createDataSourceManager } from '../../db/dataSourceManager';
 import axios from 'axios';
 import dotenv from 'dotenv';
 
@@ -7,12 +7,12 @@ dotenv.config();
 // ───────────────────────────────────────────────
 // 📅 Months + Allowed Periods (2015 → last full month)
 // ───────────────────────────────────────────────
-const MONTHS = [
+export const MONTHS = [
   'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
   'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
 ];
 
-const allowedPeriods: string[] = (() => {
+export const allowedPeriods: string[] = (() => {
   const periods: string[] = [];
   const startYear = 2015;
   const now = new Date();
@@ -114,7 +114,7 @@ type ScheduleValidity = {
   end?: string;
 };
 
-async function hasValidContract(
+export async function hasValidContract(
     office: string,
     providerAreaOfLaw: string,
     period: string,
@@ -324,4 +324,47 @@ export function getSubmissionPeriod(monthIncrement: string, isShort?: boolean) {
       : formatter.format(currentDate);
 
   return `${month}${glue}${currentDate.getFullYear()}`;
+}
+
+export async function lockSpecificPeriod(
+    account: string,
+    areaOfLaw: string,
+    period: string
+): Promise<void> {
+  const dbLawKey = normaliseDbAreaOfLaw(areaOfLaw);
+  const accountKey = account.trim();
+  const catKey = "ANY"; // unless you want feeCode support
+
+  const cacheKey = `${dbLawKey}_${accountKey}_${catKey}`;
+  const lockKey = `${cacheKey}_LOCK`;
+
+  if (!usedPeriods.has(cacheKey)) {
+    usedPeriods.set(cacheKey, new Set());
+  }
+  const cache = usedPeriods.get(cacheKey)!;
+
+  // Acquire same lock used by getUniqueSubmissionPeriod
+  await withLock(lockKey, async () => {
+    // Ensure DB consistency
+    const hasDb = await submissionManager.ensureInitialized();
+    const dataSource = submissionManager.getDataSource();
+
+    if (hasDb && dataSource.isInitialized) {
+      const rows = await dataSource.query(
+          `SELECT 1 FROM claims.submission
+                 WHERE area_of_law = $1
+                   AND submission_period = $2
+                   AND office_account_number = $3
+                 LIMIT 1`,
+          [dbLawKey, period, accountKey]
+      );
+
+      if (rows.length > 0) {
+        throw new Error(`Cannot lock period ${period} — already used in DB`);
+      }
+    }
+
+    // Register in usedPeriods so no parallel test can reuse it
+    cache.add(period);
+  });
 }

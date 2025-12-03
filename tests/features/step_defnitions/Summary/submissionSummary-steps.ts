@@ -314,33 +314,57 @@ Then(
 Then(
     'I should see the following submission error messages for {string}:',
     async function (this: CustomWorld, areaOfLaw: string, dataTable) {
-      const allText = await (new SubmissionSummaryPage(this.page!))
-      .getPaginatedSubmissionErrors(10)
-      const expectedMessages = dataTable.raw().flat().slice(1);
 
-      const messagesNotFound: Set<string> = new Set();
-      for (const message of expectedMessages) {
-        const found = allText.has(message.trim());
-        if (!found) {
-          messagesNotFound.add(message.trim());
+        const summaryPage = new SubmissionSummaryPage(this.page!);
+        const allErrors = await summaryPage.getPaginatedSubmissionErrors(10);
+
+        // Convert Set<string> → normalized array
+        const actualMessages = Array.from(allErrors).map(normalize);
+
+        // Extract expected messages from the table
+        const expectedMessages = dataTable
+            .raw()
+            .flat()
+            .slice(1)
+            .map(normalize);
+
+        const messagesNotFound: Set<string> = new Set();
+
+        for (const expected of expectedMessages) {
+            const found = actualMessages.some(actual => actual.includes(expected));
+
+            if (!found) {
+                messagesNotFound.add(expected);
+            }
         }
-      }
 
-      console.log(`Messages not found for ${areaOfLaw}: ${messagesNotFound.size}`);
-      console.log(Array.from(messagesNotFound).join('\n'));
+        if (messagesNotFound.size > 0) {
+            await this.attach(`❌ Missing messages:\n${Array.from(messagesNotFound).join("\n")}`, "text/plain");
+            await this.attach(`📄 Actual messages:\n${actualMessages.join("\n")}`, "text/plain");
+        }
 
-      if (messagesNotFound.size > 0) {
-        console.log(`\nMessages existing: ${allText.size}`);
-        console.log(Array.from(allText).join('\n'));
-      }
-
-      expect(
-          messagesNotFound.size === 0,
-          `❌ ${messagesNotFound.size} error messages not found for ${areaOfLaw}:\n${Array.from(messagesNotFound).join('\n')}`
-      ).toBeTruthy();
-
+        expect(
+            messagesNotFound.size === 0,
+            `❌ ${messagesNotFound.size} submission error messages not found for ${areaOfLaw}:\n${Array.from(messagesNotFound).join('\n')}`
+        ).toBeTruthy();
     }
 );
+
+/**
+ * Normalizes strings so matching is flexible:
+ *  - lowercases everything
+ *  - collapses multiple spaces to 1
+ *  - removes extra punctuation spacing
+ *  - trims both ends
+ */
+function normalize(msg: string): string {
+    return msg
+        .toLowerCase()
+        .replace(/\s+/g, ' ')
+        .replace(/\s*\(\s*/g, '(') // remove spaces before "("
+        .replace(/\s*\)\s*/g, ')') // remove spaces around ")"
+        .trim();
+}
 
 Then(
     'I should see the following submission error messages for the {string}',

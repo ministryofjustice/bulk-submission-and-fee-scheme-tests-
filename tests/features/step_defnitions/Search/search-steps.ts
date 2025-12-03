@@ -3,9 +3,9 @@ import type { CustomWorld } from '../../support/world';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import FormData from 'form-data';
-import { GenerateCivilFile } from '../../../utils/scripts/generateCivilFiles';
-import { GenerateMediationFiles } from '../../../utils/scripts/generateMediationFiles';
-import { GenerateCrimeFiles } from '../../../utils/scripts/generateCrimeFiles';
+import { GenerateCivilFile } from '../../../utils/scripts/dataGenartor/generateCivilFiles';
+import { GenerateMediationFiles } from '../../../utils/scripts/dataGenartor/generateMediationFiles';
+import { GenerateCrimeFiles } from '../../../utils/scripts/dataGenartor/generateCrimeFiles';
 import path from 'path';
 import {expect} from "@playwright/test";
 import {SearchPage} from "../../../pages/SearchPage";
@@ -154,6 +154,34 @@ When(
         await searchPage.enterSubmissionReference(this.mostRecentSubmissionId);
         await searchPage.submit(); // using BasePage’s submit()
         await this.attach(`🔍 Searched using submission reference: ${this.mostRecentSubmissionId}`, 'text/plain');
+    }
+);
+
+When(
+    'I open the most recent submission from the results list',
+    async function (this: CustomWorld) {
+        if (!this.mostRecentSubmissionId) {
+            throw new Error('❌ No submission ID found in World context.');
+        }
+
+        const id = this.mostRecentSubmissionId;
+        const link = this.page!.locator(`a[href="/submission/${id}"]`);
+
+        await link.first().waitFor({ state: 'visible', timeout: 10_000 });
+
+        await this.attach(
+            `🔗 Clicking submission link: /submission/${id}`,
+            'text/plain'
+        );
+
+        await link.first().click();
+
+        await this.page!.waitForLoadState('domcontentloaded');
+
+        await this.attach(
+            `📄 Navigated to submission details page for submission ${id}`,
+            'text/plain'
+        );
     }
 );
 

@@ -7,7 +7,7 @@ import {
     Status,
     ITestCaseHookParameter,
     ITestStepHookParameter,
-    AfterAll,
+    AfterAll, BeforeStep,
 } from '@cucumber/cucumber';
 import dotenv from 'dotenv';
 import World from './world';
@@ -18,7 +18,7 @@ import net from 'net';
 import {execSync} from 'child_process';
 import {createDataSourceManager} from '../../utils/db/dataSourceManager';
 import {cleanSubmissionData} from '../../utils/scripts/cleanup-submissions';
-import {destroySubmissionPeriodManager} from '../../utils/scripts/submissionPeriodHelper';
+import {destroySubmissionPeriodManager} from '../../utils/scripts/dataGenartor/submissionPeriodHelper';
 
 setDefaultTimeout(180 * 1000);
 console.log('⏱️ Cucumber step timeout set to 180s');
@@ -116,6 +116,33 @@ AfterStep({tags: 'not @api'}, async function (this: World, step) {
         console.log(`📸 Screenshot captured for failed step: ${screenshotPath}`);
     }
 });
+After(async function (this: World) {
+    try {
+        // Nothing to clean?
+        if (!this.cleanupSubmissionIds || this.cleanupSubmissionIds.size === 0) {
+            return;
+        }
+
+        const submissionIds = Array.from(this.cleanupSubmissionIds);
+
+        const cleanupManager = createDataSourceManager({ label: "after_scenario_cleanup" });
+        await cleanupManager.ensureInitialized();
+        const db = cleanupManager.getDataSource();
+
+        await cleanSubmissionData(db, submissionIds);
+
+        await this.attach(
+            `🧹 Cleaned DB submissions: ${submissionIds.join(", ")}`,
+            "text/plain"
+        );
+
+        console.log(`🧹 Cleaned submissions for scenario: ${submissionIds.join(", ")}`);
+
+    } catch (err) {
+        console.error("❌ DB cleanup failed:", err);
+        await this.attach(`❌ DB cleanup failed: ${err}`, "text/plain");
+    }
+});
 
 AfterAll(async function () {
     try {
@@ -130,4 +157,8 @@ AfterAll(async function () {
     } finally {
         await destroySubmissionPeriodManager();
     }
+});
+
+BeforeStep(function ({ pickleStep }) {
+    this.stepText = pickleStep.text;
 });

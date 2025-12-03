@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import { faker } from '@faker-js/faker';
-import { convertFileToXml } from './converter';
+import { convertFileToXml } from '../converter';
 import dotenv from 'dotenv';
-import { claimOptions } from './claimOptions';
+import { claimOptions } from '../claimOptions';
 import { GenerateFileOptions } from './generateFileOptions';
 import { getUniqueSubmissionPeriod } from './submissionPeriodHelper';
 
