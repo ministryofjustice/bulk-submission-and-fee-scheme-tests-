@@ -53,6 +53,12 @@ export class World {
   currentSubmissionMonth: string | undefined;
   // @ts-ignore
   claimDetailPage: ClaimDetailPage;
+  // @ts-ignore
+  firstFile: any;
+  // @ts-ignore
+  secondFile: any;
+  // @ts-ignore
+  period: string;
 
   constructor(options: IWorldOptions) {
     // @ts-ignore

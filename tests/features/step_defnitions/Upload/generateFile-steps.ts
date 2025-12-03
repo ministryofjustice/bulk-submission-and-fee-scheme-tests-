@@ -13,6 +13,11 @@ import {getSubmissionPeriod} from "../../../utils/scripts/dataGenartor/submissio
 import { GenerateFixedCrimePoliceFile } from '../../../utils/scripts/dataGenartor/generateFixedCrimeFiles';
 import {GenerateMediationFilesOverride} from "../../../utils/scripts/dataGenartor/genarateMediationFilesWithOverides";
 import {GenerateCivilFilesOverride} from "../../../utils/scripts/dataGenartor/generateCivilFilesWithOverides";
+import {
+    GenerateTwoLegalHelpFiles
+} from "../../../utils/scripts/dataGenartor/GenerateTwoCivilFilesForPeriods";
+import {GenerateSingleLegalHelpFile} from "../../../utils/scripts/dataGenartor/generateSingleLegalHelpFile";
+
 
 
 function escapeRegExp(value: string): string {
@@ -442,43 +447,70 @@ Given(
 // ======================================================
 //                WEB UI UPLOAD STEP
 // ======================================================
-When(/^I (?:upload|re-upload) the generated file$/, async function () {
-    if (!this.generatedFilePath) {
-        throw new Error('No file found to upload.');
+When(
+    /^I (?:upload|re-upload) the (?:first|second|generated)? ?file$/,
+    async function () {
+
+        let filePath: string | undefined;
+
+        const text = (this.stepText || "").toLowerCase();
+
+        if (text.includes("first")) {
+            filePath = this.firstFile;
+        }
+        else if (text.includes("second")) {
+            filePath = this.secondFile;
+        }
+        else {
+            filePath = this.generatedFilePath;
+        }
+
+        if (!filePath) {
+            throw new Error("No file path found for upload.");
+        }
+
+        await this.attach(`📁 Uploading file: ${filePath}`, "text/plain");
+
+        const bulkImportPage = new BulkImportPage(this.page!);
+
+        await bulkImportPage.uploadFile(filePath);
+        await bulkImportPage.clickUpload();
+
+        const successBanner = this.page.locator(".govuk-notification-banner--success");
+        const errorBanner = this.page.locator(".moj-alert--error");
+
+        try {
+            await Promise.race([
+                successBanner.waitFor({ state: "visible", timeout: 40000 }),
+                errorBanner.waitFor({ state: "visible", timeout: 40000 }),
+            ]);
+        } catch {
+            await this.attach("⚠️ No banner appeared after upload.", "text/plain");
+        }
+
+        const submissionId =
+            await this.page.locator("meta#submissionId").getAttribute("content");
+
+        if (!submissionId) {
+            await this.attach("❌ No submissionId found in <meta> tag.", "text/plain");
+            throw new Error("Submission ID not found after upload");
+        }
+
+        // -----------------------------
+        // Add ID to cleanup set
+        // -----------------------------
+        if (!this.cleanupSubmissionIds) {
+            this.cleanupSubmissionIds = new Set();
+        }
+        this.cleanupSubmissionIds.add(submissionId);
+
+        this.mostRecentSubmissionId = submissionId;
+
+        await this.attach(`✅ Submission ID: ${submissionId}`, "text/plain");
     }
+);
 
-    const bulkImportPage = new BulkImportPage(this.page!);
 
-    await bulkImportPage.uploadFile(this.generatedFilePath);
-    await bulkImportPage.clickUpload();
-
-    const successBanner = this.page.locator('.govuk-notification-banner--success');
-    const errorBanner   = this.page.locator('.moj-alert--error');
-
-    // Explicit waits instead of networkidle
-    try {
-        await Promise.race([
-            successBanner.waitFor({ state: 'visible', timeout: 40000 }),
-            errorBanner.waitFor({ state: 'visible', timeout: 40000 }),
-        ]);
-    } catch {
-        await this.attach('⚠️ No banner appeared after upload.', 'text/plain');
-    }
-
-    // 🔍 Extract the submissionId from the meta tag
-    const submissionId = await this.page.locator('meta#submissionId').getAttribute('content');
-
-    if (!submissionId) {
-        await this.attach('❌ No submissionId found in <meta> tag.', 'text/plain');
-        throw new Error('Submission ID not found after upload');
-    }
-
-    // Save in World so later steps can use it
-    this.mostRecentSubmissionId = submissionId;
-
-    await this.attach(`✅ Extracted Submission ID: ${submissionId}`, 'text/plain');
-});
-//
 // ======================================================
 //            API UPLOAD (SINGLE STEP)
 // ======================================================
@@ -665,3 +697,71 @@ When('I duplicate the last record in the generated file', async function (this: 
 
     console.log(`✅ Duplicated last line in ${path.basename(this.generatedFilePath!)}`);
 });
+
+Given(
+    'I generate two Legal help files in {string} format for office {string} that are {string} months apart with the following claims',
+    async function (format, office, monthsDiff, dataTable) {
+
+        const diff = Number(monthsDiff);
+        const row = dataTable.hashes()[0];
+
+        const claimsFile1 = [{
+            ucn: row.ucn,
+            ufn: row.ufn,
+            feeCode: row.feeCode1
+        }];
+
+        const claimsFile2 = [{
+            ucn: row.ucn,
+            ufn: row.ufn,
+            feeCode: row.feeCode2
+        }];
+
+        const { firstFile, secondFile, period1, period2 } =
+            await GenerateTwoLegalHelpFiles(
+                format as any,
+                claimsFile1,
+                claimsFile2,
+                office,
+                diff
+            );
+
+        this.firstFile = firstFile;
+        this.secondFile = secondFile;
+
+        await this.attach(`First period: ${period1}`, "text/plain");
+        await this.attach(`Second period: ${period2}`, "text/plain");
+    }
+);
+
+
+
+Given(
+    'I generate single "Legal help" {string} file with the following claims',
+    async function (this: CustomWorld, format: string, dataTable) {
+
+        const row = dataTable.hashes()[0];
+
+        const claims = [{
+            ucn: row.ucn,
+            ufn: row.ufn,
+            feeCode: row.feeCode,
+        }];
+
+        const office = row.office;
+
+        const { file, period } = await GenerateSingleLegalHelpFile(
+            format as any,
+            claims,
+            office
+        );
+
+        this.generatedFilePath = file;
+        this.firstFile = file;  // optional, for consistency
+        this.period = period;
+
+        await this.attach(`📄 Generated single Legal Help file: ${file}`, "text/plain");
+        await this.attach(`📅 Submission period: ${period}`, "text/plain");
+        await this.attach(`🏢 Office: ${office}`, "text/plain");
+    }
+);
