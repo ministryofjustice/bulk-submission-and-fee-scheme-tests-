@@ -1,8 +1,17 @@
-@stable @validationChecks
+@stable @claimValidation @validationChecks     @temp
 Feature: Display message checks
 
   Background:
     Given I am on the bulk import page
+
+  Scenario: Invalid Fee code
+    When I upload "tests/data/invalid/legal_Invalid_Feecode.txt"
+    And I wait on validation in progress screen
+    Then I should see an error banner saying "2 claims have errors for missing or incorrect information"
+    And I should see the following submission error messages for "LEGAL HELP":
+      | Error Message                                                                       |
+      | A category of law could not be found for the provided fee code: lol                 |
+      | The provider is not contracted for the category of law associated with the fee code |
 
   Scenario: Legal Help: Should check display messages are shown for missing field based errors
     Given I upload "tests/data/invalid/legal_help_missing_fields.csv"
@@ -34,7 +43,6 @@ Feature: Display message checks
       | Schedule Reference is required for Legal Help claims          |
       | Net Profit Costs Amount is required for Legal Help claims     |
 
-  @temp
   Scenario: Legal Help: Should check display messages are shown for out of bound dates
     Given I upload "tests/data/invalid/legal_help_wrong_date_ranges.csv"
     And I wait on validation in progress screen
@@ -134,6 +142,18 @@ Feature: Display message checks
       | Disbursements Vat Amount is required                       |
       | Case Concluded Date is required for Crime Lower claims     |
       | Net Profit Costs Amount is required for Crime Lower claims |
+
+  Scenario: Crime Lower: Should check display messages are shown for out of bound dates
+    Given I upload "tests/data/invalid/crime_lower_wrong_date_ranges.csv"
+    And I wait on validation in progress screen
+    When I should see an error banner saying "1 claim has errors for missing or incorrect information"
+    And I should see the following submission error messages for "CRIME LOWER":
+      | Error Message                                                  |
+      | Case Start Date must be between 01/01/1995 and today           |
+      | Case Concluded Date must be between 01/04/2016 and today       |
+      | Transfer Date must be between 01/01/1995 and today             |
+      | Representation Order Date must be between 01/04/2016 and today |
+      | Client Date of Birth must be between 01/01/1900 and today      |
 
   Scenario Outline: Crime Lower: Should check parse errors for <fieldName>
     Given I generate "Crime lower" "csv" file with the following claims
@@ -254,6 +274,17 @@ Feature: Display message checks
       | Disability Code is required for Mediation claims       |
       | Ethnicity Code is required for Mediation claims        |
       | Gender Code is required for Mediation claims           |
+
+  Scenario: Mediation: Should check display messages are shown for out of bound dates
+    Given I upload "tests/data/invalid/mediation_wrong_date_ranges.csv"
+    And I wait on validation in progress screen
+    When I should see an error banner saying "1 claim has errors for missing or incorrect information"
+    And I should see the following submission error messages for "MEDIATION":
+      | Error Message                                                  |
+      | Case Start Date must be between 01/01/1995 and today           |
+      | Case Concluded Date must be between 01/01/1995 and today       |
+      | Client Date of Birth must be between 01/01/1900 and today      |
+      | Client 2 Date of Birth must be between 01/01/1900 and today      |
 
   Scenario Outline: Mediation: Should check parse errors for <fieldName>
     Given I generate "Mediation" "csv" file with the following claims
