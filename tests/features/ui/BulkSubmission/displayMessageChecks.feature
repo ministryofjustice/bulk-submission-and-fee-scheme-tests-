@@ -199,8 +199,8 @@ Feature: Display message checks
       | Waiting Time must be in minutes                                                                                                            |
       | Net Profit Costs Amount must be a valid monetary value                                                                                     |
       | Net Disbursement Amount must be a valid monetary value                                                                                     |
+      | disbursements vat amount has exceeded the maximum accepted value                                                                           |
       | Net Counsel Costs Amount must be a valid monetary value                                                                                    |
-      | Disbursements VAT Amount must be a valid monetary value                                                                                    |
       | Net Waiting Costs Amount must be a valid monetary value                                                                                    |
       | Prior Authority Reference must be exactly 7 alphanumeric characters                                                                        |
       | Adjourned Hearing Fee Amount must be between 0 and 9                                                                                       |
