@@ -34,6 +34,19 @@ Feature: Display message checks
       | Schedule Reference is required for Legal Help claims          |
       | Net Profit Costs Amount is required for Legal Help claims     |
 
+  @temp
+  Scenario: Legal Help: Should check display messages are shown for out of bound dates
+    Given I upload "tests/data/invalid/legal_help_wrong_date_ranges.csv"
+    And I wait on validation in progress screen
+    When I should see an error banner saying "1 claim has errors for missing or incorrect information"
+    And I should see the following submission error messages for "LEGAL HELP":
+      | Error Message                                                  |
+      | Case Start Date must be between 01/01/1995 and today           |
+      | Case Concluded Date must be between 01/01/1995 and today       |
+      | Transfer Date must be between 01/01/1995 and today             |
+      | Representation Order Date must be between 01/04/2016 and today |
+      | Client Date of Birth must be between 01/01/1900 and today      |
+
   Scenario Outline: Legal Help: Should check parse errors for <fieldName>
     Given I generate "Legal help" "csv" file with the following claims
       | <fieldName> |
