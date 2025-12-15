@@ -1,0 +1,47 @@
+name: Performance Test
+
+on:
+  workflow_dispatch:
+  push:
+      branches: [ performance ]
+
+jobs:
+  submission-status-counts:
+    name: Submission status counts
+    runs-on: [self-hosted, uat, k8s]
+    environment: staging
+    steps:
+      - name: Run status count query
+        env:
+          PGHOST: ${{ secrets.DB_HOST }}
+          PGUSER: ${{ secrets.DB_USER }}
+          PGDATABASE: ${{ secrets.DB_NAME }}
+          PGPASSWORD: ${{ secrets.DB_PASS }}
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" <<'SQL'
+          SELECT status, COUNT(*) AS count
+          FROM claims.submission
+          GROUP BY status
+          ORDER BY count DESC;
+
+          SELECT COUNT(*) AS claims_count
+          FROM claims.claim c;
+
+          SELECT COUNT(*) AS submissions_count
+          FROM claims.submission s;
+
+          SELECT COUNT(*) AS bulk_submissions_count
+          FROM claims.bulk_submission bs;
+
+          SELECT MIN(created_on) AS earliest_created_on
+          FROM claims.bulk_submission;
+
+          SELECT MAX(updated_on) AS latest_updated_on
+          FROM claims.claim;
+
+          SELECT display_message, COUNT(*) AS count
+          FROM claims.validation_message_log
+          GROUP BY display_message
+          ORDER BY count DESC;
+          SQL
