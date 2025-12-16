@@ -370,7 +370,7 @@ Feature: Display message checks
       | Client 2 Ethnicity Code must be valid                                                                                                      |
       | Client 2 Disability Code must be valid                                                                                                     |
 
-    
+
   Scenario: Crime Lower: Should check display messages are shown for value based errors (regex)
     Given I upload "tests/data/invalid/crime_lower_value_regex_errors.csv"
     And I wait on validation in progress screen
