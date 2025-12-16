@@ -2,9 +2,7 @@
 Feature: View submission details page (VS)
 
   Background:
-    Given I start from a clean logged-in state
-    And I am on the bulk import page
-
+    Given I am on the bulk import page
 
   Scenario Outline: VS1-<abbr> accessibility checks
     When I generate "<areaOfLaw>" "csv" file with "11" outcomes
@@ -15,6 +13,28 @@ Feature: View submission details page (VS)
       | Legal help  | LH   |
       | Crime lower | CL   |
       | Mediation   | M    |
+
+  Scenario Outline: VS2-<abbr> accessibility checks
+    When I generate "<areaOfLaw>" "csv" file with "11" outcomes
+    And I upload the generated file
+    Then I click the 'Messages' tab
+    Then the page should have no accessibility violations
+    Examples:
+      | areaOfLaw   | abbr |
+      | Legal help  | LH   |
+      | Crime lower | CL   |
+      | Mediation   | M    |
+
+  Scenario Outline: VS3-<abbr> accessibility checks
+    When I generate "<areaOfLaw>" "csv" file with "11" outcomes
+    And I upload the generated file
+    Then I click the 'Matter starts' tab
+    Then the page should have no accessibility violations
+    Examples:
+      | areaOfLaw   | abbr |
+      | Legal help  | LH   |
+      | Mediation   | M    |
+
 
   Scenario Outline: VS1-<abbr>-SE accessibility checks
     When I upload "tests/data/invalid/accessibility_checks/<file>"
