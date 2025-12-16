@@ -7,6 +7,9 @@ import fs from "fs"; // 1
 Then(
     'the page should have no accessibility violations',
     async function (this: CustomWorld) {
+
+      await this.page?.waitForLoadState('networkidle');
+
       var page = this.page;
       // @ts-ignore
       const accessibilityScanResults = await new AxeBuilder({page})
@@ -19,7 +22,8 @@ Then(
         'wcag22aa',
         'best-practice'
       ])
-      .disableRules(['region', 'meta-refresh']) // Enable region later
+
+      .disableRules(['meta-refresh'])
       .analyze();
 
 
@@ -34,8 +38,14 @@ Then(
       await this.page?.screenshot({path: screenshotPath, fullPage: true});
       await this.attach(fs.readFileSync(screenshotPath), 'image/png');
 
-      console.log(`${accessibilityScanResults.violations.length} total violations found`);
-      expect(accessibilityScanResults.violations).toEqual([]);
+      const violationIds = accessibilityScanResults.violations.map(v => v.id).join(', ');
+      console.log(`Violations: ${violationIds || 'None'}`);
+
+      expect.soft(accessibilityScanResults.violations, {message: violationIds}).toEqual([]);
+
+      const incompleteIds = accessibilityScanResults.incomplete.map(v => v.id).join(', ');
+      console.log(`Incompletes: ${incompleteIds || 'None'}`);
+      expect.soft(accessibilityScanResults.incomplete, {message: incompleteIds}).toEqual([]);
 
 
     }
