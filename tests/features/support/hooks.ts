@@ -27,11 +27,19 @@ dotenv.config();
 const submissionCleanupManager = createDataSourceManager({label: 'submissionCleanup'});
 
 BeforeAll(function () {
-    const dir = path.join(process.cwd(), 'reports', 'attachments');
+    const dirAtt = path.join(process.cwd(), 'reports', 'attachments');
     try {
-        fs.rmSync(dir, {recursive: true, force: true});
-        fs.mkdirSync(dir, {recursive: true});
-        console.log(`🧹 Cleared attachments: ${path.relative(process.cwd(), dir)}`);
+        fs.rmSync(dirAtt, {recursive: true, force: true});
+        fs.mkdirSync(dirAtt, {recursive: true});
+        console.log(`🧹 Cleared attachments: ${path.relative(process.cwd(), dirAtt)}`);
+    } catch (err) {
+        console.warn('⚠️ Could not initialize attachments directory:', err);
+    }
+    const dirAcc = path.join(process.cwd(), 'reports', 'accessibility');
+    try {
+        fs.rmSync(dirAcc, {recursive: true, force: true});
+        fs.mkdirSync(dirAcc, {recursive: true});
+        console.log(`🧹 Cleared attachments: ${path.relative(process.cwd(), dirAcc)}`);
     } catch (err) {
         console.warn('⚠️ Could not initialize attachments directory:', err);
     }
