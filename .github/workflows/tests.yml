@@ -135,6 +135,15 @@ jobs:
           npm run teardown
           npm run test:e2e:browserstack
 
+      - name: Run Accessibility Tests
+        env:
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          CUCUMBER_TAGS: ${{ inputs.tags }}
+        run: |
+          npm run login
+          npm run teardown
+          npm run test:accessibility:browserstack
+
       - name: Teardown (global cleanup)
         if: always()
         run: npm run teardown
