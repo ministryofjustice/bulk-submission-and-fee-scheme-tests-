@@ -31,6 +31,7 @@ module.exports = {
     "--format json:reports/cucumber.json",
     "--format html:reports/cucumber.html",
     "--tags '@accessibility and not @ignore'",
+    "--parallel 4",
     "tests/features/**/Accessibility/*.feature"
   ].join(" "),
   api: [

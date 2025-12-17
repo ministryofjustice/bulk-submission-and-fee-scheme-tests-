@@ -2,7 +2,8 @@ import {Then} from '@cucumber/cucumber';
 import {expect} from '@playwright/test';
 import type {CustomWorld} from '../support/world';
 import AxeBuilder from '@axe-core/playwright';
-import fs from "fs"; // 1
+import fs from "fs";
+import {addToReport} from "../../utils/scripts/generateAccessibilityReport"; // 1
 
 Then(
     'the page should have no accessibility violations',
@@ -37,6 +38,8 @@ Then(
       const screenshotPath = `reports/accessibility/${Date.now()}-${sanitized}.png`;
       await this.page?.screenshot({path: screenshotPath, fullPage: true});
       await this.attach(fs.readFileSync(screenshotPath), 'image/png');
+
+      addToReport(accessibilityScanResults);
 
       const violationIds = accessibilityScanResults.violations.map(v => v.id).join(', ');
       console.log(`Violations: ${violationIds || 'None'}`);
