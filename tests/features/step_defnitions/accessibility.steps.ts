@@ -39,7 +39,7 @@ Then(
       await this.page?.screenshot({path: screenshotPath, fullPage: true});
       await this.attach(fs.readFileSync(screenshotPath), 'image/png');
 
-      addToReport(accessibilityScanResults);
+      addToReport(scenarioName, accessibilityScanResults);
 
       const violationIds = accessibilityScanResults.violations.map(v => v.id).join(', ');
       console.log(`Violations: ${violationIds || 'None'}`);
