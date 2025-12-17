@@ -147,7 +147,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ui-e2e-reports
+          name: ui-accessibility-reports
           path: reports
           if-no-files-found: warn
 
