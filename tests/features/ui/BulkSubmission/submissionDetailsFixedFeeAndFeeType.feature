@@ -22,9 +22,9 @@ Feature: Submission details - Fixed fee & Fee type
   @feeSchemeWarning  @escapeCaseCoverage
   Scenario: Should show both escaped and fixed claims - Crime lower
     Given I generate "Crime" "csv" file with the following claims
-      | feeCode | disbursementAmount |
-      | INVC    | 50                 |
-      | INVC    | 5000               |
+      | feeCode | travelCost | travelWaitingCosts |
+      | INVC    | 75.38      | 10                 |
+      | INVC    | 500        | 500                |
     When I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Crime lower" with "2" claims
     And There should be 1 warnings
