@@ -14,6 +14,15 @@ Feature: View submission details page (VS)
       | Crime lower | CL   |
       | Mediation   | M    |
 
+  Scenario Outline: VS3-<abbr>-EMP accessibility checks
+    When I generate "<areaOfLaw>" "csv" with all matter type file
+    And I upload the generated file
+    Then the page should have no accessibility violations
+    Examples:
+      | areaOfLaw   | abbr |
+      | Legal help  | LH   |
+      | Mediation   | M    |
+
   Scenario Outline: VS2-<abbr> accessibility checks
     When I generate "<areaOfLaw>" "csv" file with "11" outcomes
     And I upload the generated file
@@ -25,7 +34,7 @@ Feature: View submission details page (VS)
       | Crime lower | CL   |
       | Mediation   | M    |
 
-  Scenario Outline: VS3-<abbr> accessibility checks
+  Scenario Outline: VS3-<abbr>-EMP accessibility checks
     When I generate "<areaOfLaw>" "csv" file with "11" outcomes
     And I upload the generated file
     Then I click the 'Matter starts' tab
@@ -35,6 +44,46 @@ Feature: View submission details page (VS)
       | Legal help  | LH   |
       | Mediation   | M    |
 
+  Scenario Outline: VS3-<abbr> accessibility checks
+    When I generate "<areaOfLaw>" "csv" with all matter type file
+    And I upload the generated file
+    Then I click the 'Matter starts' tab
+    Then the page should have no accessibility violations
+    Examples:
+      | areaOfLaw   | abbr |
+      | Legal help  | LH   |
+      | Mediation   | M    |
+
+  Scenario Outline: VS1-<abbr>-CW accessibility checks
+    When I generate "<areaOfLaw>" "csv" file with "11" outcomes
+    And I override the generated file field "PROFIT_COST" with value "10000"
+    And I upload the generated file
+    Then the page should have no accessibility violations
+    Examples:
+      | areaOfLaw   | abbr |
+      | Legal help  | LH   |
+      | Crime lower | CL   |
+
+  Scenario Outline: VS2-<abbr>-CW accessibility checks
+    When I generate "<areaOfLaw>" "csv" file with "11" outcomes
+    And I override the generated file field "PROFIT_COST" with value "10000"
+    And I upload the generated file
+    And I click the "Messages" tab
+    Then the page should have no accessibility violations
+    Examples:
+      | areaOfLaw   | abbr |
+      | Legal help  | LH   |
+      | Crime lower | CL   |
+
+  Scenario Outline: VS3-<abbr>-EMP-CW accessibility checks
+    When I generate "<areaOfLaw>" "csv" file with "11" outcomes
+    And I override the generated file field "PROFIT_COST" with value "10000"
+    And I upload the generated file
+    And I click the "Matter starts" tab
+    Then the page should have no accessibility violations
+    Examples:
+      | areaOfLaw   | abbr |
+      | Legal help  | LH   |
 
   Scenario Outline: VS1-<abbr>-SE accessibility checks
     When I upload "tests/data/invalid/accessibility_checks/<file>"
