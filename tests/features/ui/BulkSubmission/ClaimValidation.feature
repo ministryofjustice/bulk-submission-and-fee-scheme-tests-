@@ -371,3 +371,27 @@ Feature: Display message checks
       | Client 2 Disability Code must be valid                                                                                                     |
 
 
+  Scenario: Crime Lower: Should check display messages are shown for value based errors (regex)
+    Given I upload "tests/data/invalid/crime_lower_value_regex_errors.csv"
+    And I wait on validation in progress screen
+    When I should see an error banner saying "1 claim has errors for missing or incorrect information"
+    And I should see the following submission error messages for "CRIME LOWER":
+      | Error Message                                                                             |
+      | disbursements vat amount has exceeded the maximum accepted value                          |
+
+  Scenario: Mediation: Should check display messages are shown for value based errors (regex)
+    Given I upload "tests/data/invalid/mediation_value_regex_errors.csv"
+    And I wait on validation in progress screen
+    When I should see an error banner saying "1 claim has errors for missing or incorrect information"
+    And I should see the following submission error messages for "Mediation":
+      | Error Message                                                                             |
+      | disbursements vat amount has exceeded the maximum accepted value                          |
+
+  Scenario: Legal Help: Should check display messages are shown for value based errors (regex)
+    Given I upload "tests/data/invalid/legal_help_value_regex_errors.csv"
+    And I wait on validation in progress screen
+    When I should see an error banner saying "1 claim has errors for missing or incorrect information"
+    And I should see the following submission error messages for "Legal Help":
+      | Error Message                                                                             |
+      | disbursements vat amount has exceeded the maximum accepted value                          |
+
