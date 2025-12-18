@@ -17,6 +17,7 @@ import {
     GenerateTwoLegalHelpFiles
 } from "../../../utils/scripts/dataGenartor/GenerateTwoCivilFilesForPeriods";
 import {GenerateSingleLegalHelpFile} from "../../../utils/scripts/dataGenartor/generateSingleLegalHelpFile";
+import {SubmissionSummaryPage} from "../../../pages/SubmissionSummaryPage";
 
 
 
@@ -495,6 +496,9 @@ When(
             await this.attach("❌ No submissionId found in <meta> tag.", "text/plain");
             throw new Error("Submission ID not found after upload");
         }
+
+        this.submissionSummaryPage = new SubmissionSummaryPage(this.page);
+
 
         // -----------------------------
         // Add ID to cleanup set
