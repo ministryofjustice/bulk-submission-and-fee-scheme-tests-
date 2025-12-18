@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs";
-import { generateCSVFromFilename } from "./generateCSVFromFilename";
+import { generateCSVFromFilename } from "../generateCSVFromFilename";
 import { getUniqueSubmissionPeriod, generateScheduleRef } from "./submissionPeriodHelper";
 
 interface MatterStartsResult {
@@ -10,6 +10,8 @@ interface MatterStartsResult {
   submissionPeriod: string;
   scheduleRef: string;
   officeAccount: string;
+  scheduleStart?: string;
+  scheduleEnd?: string;
 }
 
 interface AreaConfig {
@@ -38,24 +40,8 @@ const areaConfigMap: Record<string, AreaConfig> = {
 
 const areaMatterCodes: Record<string, string[]> = {
   "legal help": [
-    "AAP",
-    "COM",
-    "CON",
-    "DEB",
-    "EDU",
-    "EMP",
-    "ELA",
-    "HOU",
-    "IMMAS",
-    "IMMOT",
-    "MAT",
-    "MED",
-    "MHE",
-    "MSC",
-    "PI",
-    "PUB",
-    "WB",
-    "DISC",
+    "AAP", "COM", "CON", "DEB", "EDU", "EMP", "ELA", "HOU", "IMMAS",
+    "IMMOT", "MAT", "MED", "MHE", "MSC", "PI", "PUB", "WB", "DISC",
   ],
   mediation: ["MDCS", "MDCC", "MDPS", "MDPC", "MDAS", "MDAC"],
 };
@@ -92,34 +78,37 @@ interface GenerateOptions {
 }
 
 export async function generateMatterStartsFile(
-  areaOfLaw: string,
-  format: string,
-  matterStartCode: string,
-  count: number,
-  options?: GenerateOptions
+    areaOfLaw: string,
+    format: string,
+    matterStartCode: string,
+    count: number,
+    options?: GenerateOptions
 ): Promise<MatterStartsResult> {
   const areaKey = areaOfLaw.trim().toLowerCase();
   const config = areaConfigMap[areaKey];
 
   if (!config) {
     throw new Error(
-      `Matter starts generation is not supported for area of law: ${areaOfLaw}`
+        `Matter starts generation is not supported for area of law: ${areaOfLaw}`
     );
   }
 
   const normalisedFormat = format.trim().toLowerCase();
   if (normalisedFormat !== "csv") {
     throw new Error(
-      `Matter starts generation only supports csv format (got ${format})`
+        `Matter starts generation only supports csv format (got ${format})`
     );
   }
 
   const includeAllCodes = options?.includeAllCodes ?? false;
   const code = matterStartCode.trim().toUpperCase();
-  const submissionPeriod = await getUniqueSubmissionPeriod(
-    config.account,
-    config.dbAreaOfLaw
+
+  // 🧩 Updated: get full submission info object
+  const { period, scheduleStart, scheduleEnd } = await getUniqueSubmissionPeriod(
+      config.account,
+      config.dbAreaOfLaw
   );
+
   const scheduleRef = generateScheduleRef(config.account);
 
   const codesForArea = areaMatterCodes[areaKey] ?? [code];
@@ -132,13 +121,17 @@ export async function generateMatterStartsFile(
   }
 
   const matterStartCounts = includeAllCodes
-    ? Object.fromEntries(codesForArea.map((c, idx) => [c, idx + 1]))
-    : { [code]: count };
+      ? Object.fromEntries(codesForArea.map((c, idx) => [c, idx + 1]))
+      : { [code]: count };
+
+  console.log(
+      `📦 Generating matter starts for ${config.dbAreaOfLaw} (${config.account}) — Period: ${period} | Schedule: ${scheduleStart} → ${scheduleEnd}`
+  );
 
   await generateCSVFromFilename(config.configKey, {
     matterStartCounts,
     account: config.account,
-    submissionPeriod,
+    submissionPeriod: period, // ✅ use period string
     scheduleNum: config.scheduleNum,
     scheduleRef,
     allowedMatterCodes: codesForArea ?? [code],
@@ -150,7 +143,7 @@ export async function generateMatterStartsFile(
   }
 
   const areaSlug = areaKey.replace(/\s+/g, "-");
-  const codeSlug = includeAllCodes ? 'all-codes' : code.toLowerCase();
+  const codeSlug = includeAllCodes ? "all-codes" : code.toLowerCase();
   const fileName = `${areaSlug}-matter-starts-${codeSlug}-${count}-${Date.now()}.csv`;
   const targetPath = path.join(OUTPUT_DIR, fileName);
   fs.copyFileSync(sourcePath, targetPath);
@@ -161,8 +154,10 @@ export async function generateMatterStartsFile(
     filePath: targetPath,
     fileName,
     counts,
-    submissionPeriod,
+    submissionPeriod: period,
     scheduleRef,
     officeAccount: config.account,
+    scheduleStart,
+    scheduleEnd,
   };
 }

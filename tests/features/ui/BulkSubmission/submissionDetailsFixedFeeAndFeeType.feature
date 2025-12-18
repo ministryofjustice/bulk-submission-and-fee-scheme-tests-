@@ -1,9 +1,11 @@
-@bulkSubmission
+@stable @feeScheme
 Feature: Submission details - Fixed fee & Fee type
 
   Background:
+    And I start from a clean logged-in state
     Given I am on the bulk import page
 
+  @escapeCaseCoverage
   Scenario: Should show both escaped and fixed claims - Legal Help
     Given I generate "Legal help" "csv" file with the following claims
       | feeCode | profitCost | londonNonLondonRate |
@@ -17,11 +19,12 @@ Feature: Submission details - Fixed fee & Fee type
       | FPB020  | Escaped    | View (1) |
       | FPB010  | No         |          |
 
+  @feeSchemeWarning  @escapeCaseCoverage
   Scenario: Should show both escaped and fixed claims - Crime lower
-    Given I generate "Crime lower" "csv" file with the following claims
-      | feeCode | disbursementAmount |
-      | INVC    | 50                 |
-      | INVC    | 5000               |
+    Given I generate "Crime" "csv" file with the following claims
+      | feeCode | travelCost | travelWaitingCosts |
+      | INVC    | 75.38      | 10                 |
+      | INVC    | 500        | 500                |
     When I upload the generated file and wait for import in progress
     Then I should see the submission summary for "Crime lower" with "2" claims
     And There should be 1 warnings
@@ -29,6 +32,7 @@ Feature: Submission details - Fixed fee & Fee type
       | feeCode | escapeCase | messages |
       | INVC    | No         |          |
       | INVC    | Escaped    | View (1) |
+
 
   Scenario: Should show both escaped and fixed claims - Mediation (Don't get escaped mediation claims)
     Given I generate "Mediation" "csv" file with the following claims

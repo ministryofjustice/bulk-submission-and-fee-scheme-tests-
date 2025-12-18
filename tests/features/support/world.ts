@@ -22,8 +22,6 @@ export class World {
   requestBody?: Record<string, any>;
   error?: AxiosError;
 
-
-
   // ===== UI state =====
   browser?: Browser;
   context?: BrowserContext;
@@ -34,6 +32,7 @@ export class World {
   bulkImportPage?: BulkImportPage;
   bulkClaimSubmitPage?: BulkClaimSubmitPage;
   submissionSummaryPage?: SubmissionSummaryPage;
+  // @ts-ignore
   claimDetailPage?: ClaimDetailPage;
   bulkInProgressPage?: BulkInProgressPage;
   mostRecentSubmissionId: any;
@@ -50,18 +49,28 @@ export class World {
   submissionPeriod: string | undefined;
   filePath: string | undefined;
   currentScenarioName: string | undefined;
+  workerStoragePath: string | undefined;
   currentSubmissionMonth: string | undefined;
+  // @ts-ignore
+  claimDetailPage: ClaimDetailPage;
+  // @ts-ignore
+  firstFile: any;
+  // @ts-ignore
+  secondFile: any;
+  // @ts-ignore
+  period: string;
 
   constructor(options: IWorldOptions) {
     // @ts-ignore
     this.attach = options.attach;
-
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       Accept: 'application/json',
     };
+
     const token = process.env.FSP_API_TOKEN;
     if (token) headers.Authorization = token;
+
     this.client = axios.create({
       baseURL: process.env.FSP_API_BASE_URL,
       timeout: 10000,
@@ -99,21 +108,10 @@ export class World {
     return path.split('.').reduce((acc: any, key: string) => (acc == null ? acc : acc[key]), obj as any);
   }
 
-  // ===== UI helpers =====
-  async openBrowser(opts: LaunchOptions = { headless: process.env.HEADLESS === 'true' }) {
-    (global as any).__browsers = (global as any).__browsers || {};
-    let browser = (global as any).__browsers[process.pid];
-
-    if (!browser) {
-      browser = await chromium.launch(opts);
-      (global as any).__browsers[process.pid] = browser;
-      console.log(`🌐 Launched new browser for PID ${process.pid}`);
-    } else {
-      console.log(`♻️ Reusing existing browser for PID ${process.pid}`);
+    // ===== UI helpers =====
+    async openBrowser(opts: LaunchOptions = {headless: process.env.HEADLESS === 'true'}) {
+        this.browser = await chromium.launch(opts);
     }
-
-    this.browser = browser;
-  }
 
   async goto(path: string) {
     if (!this.page) throw new Error('Browser not opened! Did you forget to tag this scenario with @ui?');
@@ -131,5 +129,7 @@ export class World {
 }
 
 setWorldConstructor(World);
+// @ts-ignore
 export default World;
+// @ts-ignore
 export type CustomWorld = World;

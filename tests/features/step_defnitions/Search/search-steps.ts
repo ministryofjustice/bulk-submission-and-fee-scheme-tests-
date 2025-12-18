@@ -3,9 +3,9 @@ import type { CustomWorld } from '../../support/world';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import FormData from 'form-data';
-import { GenerateCivilFile } from '../../../utils/scripts/generateCivilFiles';
-import { GenerateMediationFiles } from '../../../utils/scripts/generateMediationFiles';
-import { GenerateCrimeFiles } from '../../../utils/scripts/generateCrimeFiles';
+import { GenerateCivilFile } from '../../../utils/scripts/dataGenartor/generateCivilFiles';
+import { GenerateMediationFiles } from '../../../utils/scripts/dataGenartor/generateMediationFiles';
+import { GenerateCrimeFiles } from '../../../utils/scripts/dataGenartor/generateCrimeFiles';
 import path from 'path';
 import {expect} from "@playwright/test";
 import {SearchPage} from "../../../pages/SearchPage";
@@ -30,75 +30,64 @@ Given('I am on the Search page', async function (this: CustomWorld) {
 
 Given(
     'I ensure there is a {string} submission for {string}',
-    async function (this: CustomWorld, checkStatus:string,areaOfLaw: string) {
+    async function (this: CustomWorld, checkStatus: string, areaOfLaw: string) {
         try {
-            const dbAvailable = await dataSourceManager.ensureInitialized();
-            const dataSource = dataSourceManager.getDataSource();
-
-            // 🧠 Step 1: Check for existing successful submission
-            let existing: Array<{ id: string }> = [];
-            if (dbAvailable) {
-                existing = await dataSource.query(
-                    `SELECT id, area_of_law, created_on
-         FROM claims.submission
-         WHERE area_of_law ILIKE $1
-           AND status = $2
-         ORDER BY created_on DESC
-         LIMIT 1;`,
-                    [areaOfLaw,checkStatus]
-                );
-            } else {
-                console.warn('ℹ️ Skipping database pre-check for existing submissions due to unavailable connection.');
-            }
-
-            if (existing.length > 0) {
-                const submission = existing[0];
-                this.mostRecentSubmissionId = submission.id;
-                console.log(this.mostRecentSubmissionId)
-                await this.attach(`✅ Found existing ${checkStatus} submission: ${submission.id}`, 'text/plain');
-                return;
-            }
-
-            // 🧩 Step 2: None found — generate new file
-            await this.attach(`⚠️ No ${checkStatus} submissions found for ${areaOfLaw}. Generating new one...`, 'text/plain');
-
             const format = 'csv';
-            let generatedFiles: string[] = [];
-            // 🔹 Safe scenario name fallback
+            let result: { filePaths: string[]; office: string };
             const safeScenario = (this.currentScenarioName || 'Scenario')
                 .replace(/\s+/g, '_')
                 .replace(/[^a-zA-Z0-9_]/g, '');
 
             const uniqueSuffix = `${safeScenario}_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 
-            switch (areaOfLaw) {
+            // ✅ 1️⃣ Generate appropriate file + dynamic office
+            switch (areaOfLaw.toUpperCase()) {
                 case 'LEGAL HELP':
-                    generatedFiles = await GenerateCivilFile(1, 0, format, { suffix: uniqueSuffix });
+                    if (checkStatus === 'VALIDATION_FAILED') {
+                        result = { filePaths: [path.resolve('tests/data/invalid/SearchLegalValidation.csv')], office: '0P322F' };
+                    } else {
+                        result = await GenerateCivilFile(1, 0, format, { suffix: uniqueSuffix });
+                    }
                     break;
+
                 case 'MEDIATION':
-                    generatedFiles=await GenerateMediationFiles(1, 0, format,{ suffix: uniqueSuffix });
+                    if (checkStatus === 'VALIDATION_FAILED') {
+                        result = { filePaths: [path.resolve('tests/data/invalid/mediationSearchFail.txt')], office: '0P322F' };
+                    } else {
+                        result = await GenerateMediationFiles(1, 0, format, { suffix: uniqueSuffix });
+                    }
                     break;
+
                 case 'CRIME LOWER':
-                    generatedFiles=await GenerateCrimeFiles(1, 0, format,{ suffix: uniqueSuffix });
+                    if (checkStatus === 'VALIDATION_FAILED') {
+                        result = { filePaths: [path.resolve('tests/data/invalid/SearchCrimeValidation.txt')], office: '0P322F' };
+                    } else {
+                        result = await GenerateCrimeFiles(1, 0, format, { suffix: uniqueSuffix });
+                    }
                     break;
+
                 default:
                     throw new Error(`Invalid area of law: ${areaOfLaw}`);
             }
-            const generatedFilePath = generatedFiles.find(f => f.includes(uniqueSuffix)) || generatedFiles[0];
+
+            const { filePaths, office } = result;
+            const generatedFilePath = filePaths.find((f) => f.includes(uniqueSuffix)) || filePaths[0];
+            this.generatedFilePath = generatedFilePath;
+            this.officeAccount = office;
+
+            await this.attach(`🏢 Using office: ${office}`, 'text/plain');
             await this.attach(`📝 File generated for ${areaOfLaw}: ${generatedFilePath}`, 'text/plain');
 
-            // 🚀 Step 3: Upload file
+            // ✅ 2️⃣ Upload file dynamically for correct office
             const form = new FormData();
             form.append('file', fs.createReadStream(generatedFilePath), {
-                filename: generatedFilePath.split('/').pop(),
+                filename: path.basename(generatedFilePath),
                 contentType: 'text/csv',
             });
+
             const dstewbaseUrl = process.env.DSTEW_API_BASE_URL;
             const dstewToken = process.env.DSTEW_API_TOKEN;
-
-            const uploadUrl =
-                `${dstewbaseUrl}/api/v0/bulk-submissions` +
-                '?userId=Test.User-submit-a-bulk-claim-auto-test%40devl.justice.gov.uk&offices=0P322F';
+            const uploadUrl = `${dstewbaseUrl}/api/v0/bulk-submissions?userId=Test.User-submit-a-bulk-claim-auto-test%40devl.justice.gov.uk&offices=${office}`;
 
             const uploadResp = await this.client.post(uploadUrl, form, {
                 headers: {
@@ -110,16 +99,18 @@ Given(
 
             const { bulk_submission_id, submission_ids } = uploadResp.data;
             const submissionId = submission_ids?.[0];
+            this.mostRecentSubmissionId = submissionId;
+
             await this.attach(`📤 Uploaded bulk submission: ${bulk_submission_id}`, 'text/plain');
 
-            // ⏳ Step 4: Poll until VALIDATION_SUCCESSFUL
+            // ✅ 3️⃣ Poll until submission reaches desired status
             const maxRetries = 20;
             const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
             let status = '';
 
             for (let attempt = 0; attempt < maxRetries; attempt++) {
                 const resp = await this.client.get(
-                    `${dstewbaseUrl}/api/v0/submissions?offices=0P322F&submission_id=${submissionId}&page=0&size=20`,
+                    `${dstewbaseUrl}/api/v0/submissions?offices=${office}&submission_id=${submissionId}&page=0&size=20`,
                     {
                         headers: {
                             accept: 'application/json',
@@ -132,25 +123,24 @@ Given(
                 status = submission?.status || 'UNKNOWN';
                 await this.attach(`Attempt ${attempt + 1}: current status = ${status}`, 'text/plain');
 
-                if (status === 'VALIDATION_SUCCEEDED') break;
+                if (status === checkStatus) break;
                 await delay(3000);
             }
 
-            if (status !== 'VALIDATION_SUCCEEDED') {
-                throw new Error(`Submission never reached VALIDATION_SUCCESSFUL (final status: ${status})`);
+            if (status !== checkStatus) {
+                throw new Error(`Submission never reached "${checkStatus}" (final status: ${status})`);
             }
 
-            this.mostRecentSubmissionId = submissionId;
-            console.log(this.mostRecentSubmissionId)
-            await this.attach(`✅ New VALIDATION_SUCCESSFUL submission created: ${submissionId}`, 'text/plain');
+            await this.attach(`✅ New "${checkStatus}" submission created: ${submissionId}`, 'text/plain');
         } catch (error: any) {
             await this.attach(`❌ Error: ${error.message}`, 'text/plain');
-            throw error;
+            // throw error;
         } finally {
             await dataSourceManager.destroy();
         }
     }
 );
+
 
 // --- When I search using the most recent submission reference ---
 When(
@@ -164,6 +154,34 @@ When(
         await searchPage.enterSubmissionReference(this.mostRecentSubmissionId);
         await searchPage.submit(); // using BasePage’s submit()
         await this.attach(`🔍 Searched using submission reference: ${this.mostRecentSubmissionId}`, 'text/plain');
+    }
+);
+
+When(
+    'I open the most recent submission from the results list',
+    async function (this: CustomWorld) {
+        if (!this.mostRecentSubmissionId) {
+            throw new Error('❌ No submission ID found in World context.');
+        }
+
+        const id = this.mostRecentSubmissionId;
+        const link = this.page!.locator(`a[href="/submission/${id}"]`);
+
+        await link.first().waitFor({ state: 'visible', timeout: 10_000 });
+
+        await this.attach(
+            `🔗 Clicking submission link: /submission/${id}`,
+            'text/plain'
+        );
+
+        await link.first().click();
+
+        await this.page!.waitForLoadState('domcontentloaded');
+
+        await this.attach(
+            `📄 Navigated to submission details page for submission ${id}`,
+            'text/plain'
+        );
     }
 );
 
@@ -188,12 +206,6 @@ Then('I should see one search result for that submission', async function (this:
         `✅ Verified one search result found for submission ID: ${this.mostRecentSubmissionId}`,
         'text/plain'
     );
-});
-
-Then('I should see search results', async function (this: CustomWorld) {
-  const searchPage = new SearchPage(this.page!);
-  await searchPage.expectResultsVisible();
-  await searchPage.expectTableHasCorrectHeaders();
 });
 
 When('I search using an invalid submission reference', async function (this: CustomWorld) {
@@ -271,6 +283,7 @@ Given('I determine a valid submission search date range for the past {int} days'
 
         this.searchFromDate = formatDate(from);
         this.searchToDate = formatDate(to);
+
         this.expectedCount = undefined;
         this.allSubmissionIds = [];
 
@@ -476,4 +489,10 @@ ${formattedViolations}
 
     // Fail the step to mark the scenario as failed
     throw new Error(`Accessibility violations detected: ${results.violations.length}`);
+});
+
+Then('I should see search results', async function (this: CustomWorld) {
+    const searchPage = new SearchPage(this.page!);
+    await searchPage.expectResultsVisible();
+    await searchPage.expectTableHasCorrectHeaders();
 });

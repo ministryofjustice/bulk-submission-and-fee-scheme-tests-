@@ -1,5 +1,8 @@
-@bulkSubmission @matterStarts
+@matterStarts @stable
 Feature: Matter Starts Uploads
+
+  Background:
+    Given I start from a clean logged-in state
 
   Scenario Outline: Successful bulk submission for <AreaOfLaw> matter starts
     Given I am on the bulk import page

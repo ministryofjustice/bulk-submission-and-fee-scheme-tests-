@@ -10,6 +10,7 @@ export class SubmissionSummaryPage extends BasePage {
   readonly summaryRows: Locator;
   readonly claimsTable: Locator;
   readonly claimsTab: Locator;
+  readonly messagesTab: Locator;
   readonly matterStartsTab: Locator;
   readonly matterStartsRows: Locator;
 
@@ -24,6 +25,7 @@ export class SubmissionSummaryPage extends BasePage {
     this.summaryRows = page.locator('.govuk-summary-list__row');
     this.claimsTable = page.locator('table.govuk-table');
     this.claimsTab = page.locator('.moj-sub-navigation__link', { hasText: 'Claims' });
+    this.messagesTab = page.locator('.moj-sub-navigation__link', { hasText: 'Messages' });
     this.matterStartsTab = page.locator('.moj-sub-navigation__link', { hasText: 'Matter starts' });
     this.matterStartsRows = page.locator('#matter-starts + dl .govuk-summary-list__row');
   }
@@ -287,5 +289,14 @@ async openClaimByIndex(index = 0): Promise<void> {
 
     console.log(`✅ Finished pagination.`);
     return allText;
+  }
+  async getDuplicateSubmissionError(): Promise<string> {
+    const locator = this.page.locator('[data-sort-value*="Submission already exists"]');
+
+    // Explicit wait for the cell to actually render
+    await locator.waitFor({ state: 'visible', timeout: 3000 });
+
+    const text = (await locator.getAttribute('data-sort-value'))?.trim() || '';
+    return text;
   }
 }

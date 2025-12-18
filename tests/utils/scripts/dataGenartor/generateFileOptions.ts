@@ -1,4 +1,4 @@
-import {claimOptions} from "./claimOptions";
+import {claimOptions} from "../claimOptions";
 
 export interface GenerateFileOptions {
   submissionPeriod?: string;
