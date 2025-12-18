@@ -34,52 +34,118 @@ Feature: Fee Calculation API
     Then the response status should be 200
     And the JSON path "feeCalculation.totalAmount" should equal number <expectedTotal>
 
-    @other_civil
+    @other_civil_sg
     Examples: Other Civil
-      | feeCode | startDate  | netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal |
-      | COM     | 2013-06-08 | 50.5                  | 20.15                 | true         | 0                         | 0                      | 389.85        |
-      | COM     | 2013-06-08 | 50.5                  | 20.15                 | false        | 0                         | 0                      | 336.65        |
-      | CAPA    | 2013-06-09 | 88.12                 | 10.13                 | true         | 0                         | 0                      | 385.05        |
-      | CLIN    | 2013-06-10 | 90.14                 | 12.06                 | false        | 0                         | 0                      | 297.20        |
-      | DEBT    | 2013-06-11 | 92.16                 | 13.99                 | true         | 0                         | 0                      | 322.15        |
-      | ELA     | 2025-06-14 | 94.18                 | 15.92                 | false        | 0                         | 0                      | 267.10        |
-      | HOUS    | 2013-06-14 | 96.20                 | 17.85                 | true         | 0                         | 0                      | 302.45        |
-      | MISCGEN | 2013-06-15 | 98.22                 | 19.78                 | false        | 0                         | 0                      | 197.00        |
-      | MISCCON | 2015-06-16 | 100.24                | 21.71                 | true         | 0                         | 0                      | 312.75        |
-      | MISCASBI| 2015-06-17 | 102.26                | 23.64                 | false        | 0                         | 0                      | 282.90        |
-      | MISCPI  | 2015-06-18 | 104.28                | 25.57                 | true         | 0                         | 0                      | 373.45        |
-      | MISCEMP | 2013-06-19 | 106.30                | 27.50                 | false        | 0                         | 0                      | 340.80        |
-      | PUB     | 2013-06-20 | 108.32                | 29.43                 | true         | 0                         | 0                      | 448.55        |
-      
-      @mediation
-      Examples: Mediation 
-      | feeCode | startDate  | netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal |
-      | ASSS    | 2013-06-07 | 50.5                  | 20.15                 | true         | 0                         | 0                      | 175.05        |
-      | ASST    | 2025-08-07 | 999                   | 200                   | false        | 0                         | 0                      | 1329.00       |
-      | MDAS2B  | 2016-08-08 | 50.5                  | 20.15                 | true         | 1                         | 0                      | 272.25        |
-      | MDPC1B  | 2017-08-09 | 650                   | 17.62                 | false        | 2                         | 0                      | 1199.62       |
-      | MDCS1S  | 2018-08-10 | 230                   | 647                   | true         | 2                         | 0                      | 1330.60       |
-      | MDCC1S  | 2019-08-11 | 100                   | 20                    | false        | 1                         | 0                      | 413.00        |
-      | MDCS1S  | 2018-08-10 | 100                   | 20                    | true         | 2                         | 0                      | 573.60        |
-    
-    @mental_health
-    Examples: Mental Health
-      | feeCode | startDate  | netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal |
-      | MHL01   | 2013-06-19 | 106.6                 | 12.23                 | true         | 0                         | 0                      | 434.43        |
-      | MHL02   | 2013-06-20 | 170.8                 | 99.6                  | true         | 0                         | 2                      | 706.00        |
-      | MHL03   | 2013-06-21 | 202.15                | 18.99                 | false        | 0                         | 3                      | 1022.14       |
-      | MHL10   | 2013-06-22 | 1111.89               | 20.11                 | false        | 0                         | 0                      | 1261.00       |
+      | feeCode   | startDate  | netProfitCosts | netCostOfCounsel | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
+      | COM       | 2013-04-01 |                |                  | Yes          | 20                    | 10.5                  | 349.70        |
+      | CAPA      | 2013-04-01 |                |                  | No           | 20                    | 10.5                  | 269.50        |
+      | CLIN      | 2013-04-01 |                |                  | Yes          | 20                    | 15.5                  | 269.50        |
+      | DEBT      | 2013-04-01 |                |                  | No           | 20                    | 15.5                  | 215.50        |
+      | EDUFIN    | 2013-04-01 |                |                  | Yes          | 20                    | 10.5                  | 356.90        |
+      | ELA       | 2024-09-01 |                |                  | No           | 20                    | 10.5                  | 187.50        |
+      | HOUS      | 2013-04-01 |                |                  | Yes          | 20                    | 15.5                  | 223.90        |
+      | MISCGEN   | 2013-04-01 |                |                  | No           | 20                    | 15.5                  | 114.50        |
+      | MISCCON   | 2013-04-01 |                |                  | Yes          | 20                    | 10.5                  | 221.30        |
+      | MISCPI    | 2013-04-01 |                |                  | No           | 20                    | 10.5                  | 233.50        |
+      | MISCASBI  | 2015-03-23 |                |                  | Yes          | 20                    | 15.5                  | 223.90        |
+      | MISCEMP   | 2013-04-01 |                |                  | No           | 20                    | 15.5                  | 242.50        |
+      | PUB       | 2013-04-01 |                |                  | Yes          | 20                    | 10.5                  | 341.30        |
+      | WFB1      | 2025-05-01 |                |                  | No           | 20                    | 10.5                  | 238.50        |
+      | WFB1      | 2023-04-01 |                |                  | Yes          | 20                    | 15.5                  | 285.10        |
+      | WFB1      | 2025-04-30 |                |                  | No           | 20                    | 15.5                  | 243.50        |
 
-    @discrimination
-    Examples: Discrimination
-      | feeCode | startDate  | netProfitCosts | netCostOfCounsel | travelAndWaitingCosts | netDisbursementAmount | disbursementVatAmount | vatIndicator | expectedTotal|
-      | DISC    | 2013-06-15 | 100.16         | 200.18           | 999.12                | 100                   | 20                    | true         | 960          |
-      | DISC    | 2013-06-16 | 30.23          | 12.34            | 10.12                 | 100                   | 20                    | false        | 172.69       |
-      | DISC    | 2013-06-17 | 0              | 20               | 0                     | 100                   | 20                    | true         | 144          |
-      | DISC    | 2013-06-18 | 0              | 0                | 0                     | 100                   | 20                    | false        | 120          |
-      | DISC    | 2013-06-19 | 159            | 0                | 800                   | 100                   | 20                    | true         | 960          |
-      | DISC    | 2013-06-20 | 0              | 200              |                       | 100                   | 20                    | true         | 360          |
-      | DISC    | 2013-06-21 | 10             | 20               | 699                   | 100                   | 20                    | true         | 960          |
+    @mediation_sg
+    Examples: Mediation SG
+      | feeCode  | startDate  | numberOfMediationSessions | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
+      | ASSA     | 2013-04-01 |                           | Yes          | 20                    | 10.5                  | 134.90        |
+      | ASSS     | 2013-04-01 |                           | No           | 20                    | 10.5                  | 117.50        |
+      | ASST     | 2013-04-01 |                           | Yes          | 20                    | 15.5                  | 191.50        |
+      | MDAS2B   | 2013-04-01 | 1                         | No           | 20                    | 15.5                  | 203.50        |
+      | MDAS2B   | 2013-04-01 | 2                         | Yes          | 20                    | 10.5                  | 937.70        |
+      | MDAS1B   | 2013-04-01 | 1                         | No           | 20                    | 10.5                  | 198.50        |
+      | MDAS1B   | 2013-04-01 | 3                         | Yes          | 20                    | 15.5                  | 589.90        |
+      | MDAC2B   | 2013-04-01 | 1                         | No           | 20                    | 15.5                  | 265.50        |
+      | MDAC2B   | 2013-04-01 | 2                         | Yes          | 20                    | 10.5                  | 1307.30       |
+      | MDAC1B   | 2013-04-01 | 1                         | No           | 20                    | 10.5                  | 260.50        |
+      | MDAC1B   | 2013-04-01 | 4                         | Yes          | 20                    | 15.5                  | 811.90        |
+      | MDAS2S   | 2013-04-01 | 1                         | No           | 20                    | 15.5                  | 455.50        |
+      | MDAS2S   | 2013-04-01 | 2                         | Yes          | 20                    | 10.5                  | 1240.10       |
+      | MDAS1S   | 2013-04-01 | 1                         | No           | 20                    | 10.5                  | 324.50        |
+      | MDAS1S   | 2013-04-01 | 3                         | Yes          | 20                    | 15.5                  | 741.10        |
+      | MDAS2P   | 2013-04-01 | 1                         | No           | 20                    | 15.5                  | 392.50        |
+      | MDAS2P   | 2013-04-01 | 2                         | Yes          | 20                    | 10.5                  | 1164.50       |
+      | MDAS1P   | 2013-04-01 | 1                         | No           | 20                    | 10.5                  | 293.00        |
+      | MDAS1P   | 2013-04-01 | 4                         | Yes          | 20                    | 15.5                  | 703.30        |
+      | MDAS2C   | 2013-04-01 | 1                         | No           | 20                    | 15.5                  | 329.50        |
+      | MDAS2C   | 2013-04-01 | 2                         | Yes          | 20                    | 10.5                  | 1088.90       |
+      | MDAS1C   | 2013-04-01 | 1                         | No           | 20                    | 10.5                  | 261.50        |
+      | MDAS1C   | 2013-04-01 | 3                         | Yes          | 20                    | 15.5                  | 665.50        |
+      | MDAC2S   | 2013-04-01 | 1                         | No           | 20                    | 15.5                  | 517.50        |
+      | MDAC2S   | 2013-04-01 | 2                         | Yes          | 20                    | 10.5                  | 1609.70       |
+      | MDAC1S   | 2013-04-01 | 1                         | No           | 20                    | 10.5                  | 386.50        |
+      | MDAC1S   | 2013-04-01 | 4                         | Yes          | 20                    | 15.5                  | 963.10        |
+      | MDAC2P   | 2013-04-01 | 1                         | No           | 20                    | 15.5                  | 454.50        |
+      | MDAC2P   | 2013-04-01 | 2                         | Yes          | 20                    | 10.5                  | 1534.10       |
+      | MDAC1P   | 2013-04-01 | 1                         | No           | 20                    | 10.5                  | 355.00        |
+      | MDAC1P   | 2013-04-01 | 3                         | Yes          | 20                    | 15.5                  | 925.30        |
+      | MDAC2C   | 2013-04-01 | 1                         | No           | 20                    | 15.5                  | 391.50        |
+      | MDAC2C   | 2013-04-01 | 2                         | Yes          | 20                    | 10.5                  | 1458.50       |
+      | MDAC1C   | 2013-04-01 | 1                         | No           | 20                    | 10.5                  | 323.50        |
+      | MDAC1C   | 2013-04-01 | 4                         | Yes          | 20                    | 15.5                  | 887.50        |
+      | MDPS2B   | 2013-04-01 | 1                         | No           | 20                    | 15.5                  | 203.50        |
+      | MDPS2B   | 2013-04-01 | 2                         | Yes          | 20                    | 10.5                  | 736.10        |
+      | MDPS1B   | 2013-04-01 | 1                         | No           | 20                    | 10.5                  | 198.50        |
+      | MDPS1B   | 2013-04-01 | 3                         | Yes          | 20                    | 15.5                  | 489.10        |
+      | MDPC2B   | 2013-04-01 | 1                         | No           | 20                    | 15.5                  | 265.50        |
+      | MDPC2B   | 2013-04-01 | 2                         | Yes          | 20                    | 10.5                  | 1031.30       |
+      | MDPC1B   | 2013-04-01 | 1                         | No           | 20                    | 10.5                  | 260.50        |
+      | MDPC1B   | 2013-04-01 | 4                         | Yes          | 20                    | 15.5                  | 673.90        |
+      | MDPS2S   | 2013-04-01 | 1                         | No           | 20                    | 15.5                  | 392.50        |
+      | MDPS2S   | 2013-04-01 | 2                         | Yes          | 20                    | 10.5                  | 962.90        |
+      | MDPS1S   | 2013-04-01 | 1                         | No           | 20                    | 10.5                  | 293.00        |
+      | MDPS1S   | 2013-04-01 | 3                         | Yes          | 20                    | 15.5                  | 602.50        |
+      | MDPC2S   | 2013-04-01 | 1                         | No           | 20                    | 15.5                  | 454.50        |
+      | MDPC2S   | 2013-04-01 | 2                         | Yes          | 20                    | 10.5                  | 1258.10       |
+      | MDPC1S   | 2013-04-01 | 1                         | No           | 20                    | 10.5                  | 355.00        |
+      | MDPC1S   | 2013-04-01 | 4                         | Yes          | 20                    | 15.5                  | 787.30        |
+      | MDCS2B   | 2013-04-01 | 1                         | No           | 20                    | 15.5                  | 203.50        |
+      | MDCS2B   | 2013-04-01 | 2                         | Yes          | 20                    | 10.5                  | 584.90        |
+      | MDCS1B   | 2013-04-01 | 1                         | No           | 20                    | 10.5                  | 198.50        |
+      | MDCS1B   | 2013-04-01 | 3                         | Yes          | 20                    | 15.5                  | 413.50        |
+      | MDCC2B   | 2013-04-01 | 1                         | No           | 20                    | 15.5                  | 265.50        |
+      | MDCC2B   | 2013-04-01 | 2                         | Yes          | 20                    | 10.5                  | 806.90        |
+      | MDCC1B   | 2013-04-01 | 1                         | No           | 20                    | 10.5                  | 260.50        |
+      | MDCC1B   | 2013-04-01 | 4                         | Yes          | 20                    | 15.5                  | 561.70        |
+      | MDCS2S   | 2013-04-01 | 1                         | No           | 20                    | 15.5                  | 329.50        |
+      | MDCS2S   | 2013-04-01 | 2                         | Yes          | 20                    | 10.5                  | 736.10        |
+      | MDCS1S   | 2013-04-01 | 1                         | No           | 20                    | 10.5                  | 261.50        |
+      | MDCS1S   | 2013-04-01 | 3                         | Yes          | 20                    | 15.5                  | 489.10        |
+      | MDCC2S   | 2013-04-01 | 1                         | No           | 20                    | 15.5                  | 391.50        |
+      | MDCC2S   | 2013-04-01 | 2                         | Yes          | 20                    | 10.5                  | 958.10        |
+      | MDCC1S   | 2013-04-01 | 1                         | No           | 20                    | 10.5                  | 323.50        |
+      | MDCC1S   | 2013-04-01 | 4                         | Yes          | 20                    | 15.5                  | 637.30        |
+
+
+    @mental_health_sg
+    Examples: Mental Health SG reworked to include all codes
+      | feeCode | startDate  | netProfitCosts | netCostOfCounsel | boltOnAdjournedHearing | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
+      | MHL01   | 2013-04-01 | 100.00         |                  |                        | Yes          | 20                    | 10.5                  | 334.10        |
+      | MHL02   | 2013-04-01 |                |                  | 1                      | No           | 20                    | 10.5                  | 276.50        |
+      | MHL03   | 2013-04-01 |                |                  | 2                      | Yes          | 20                    | 15.5                  | 856.30        |
+      | MHL04   | 2013-04-01 |                | 100.00           | 9                      | No           | 20                    | 15.5                  | 1832.50       |
+      | MHL05   | 2013-04-01 |                |                  | 4                      | Yes          | 5                     | 10.5                  | 962.30        |
+      | MHL06   | 2013-04-01 |                |                  | 5                      | No           | 20                    | 10.5                  | 1230.50       |
+      | MHL07   | 2013-04-01 | 100.00         |                  | 3                      | Yes          | 20                    | 15.5                  | 809.50        |
+      | MHL08   | 2013-04-01 |                |                  | 4                      | No           | 20                    | 15.5                  | 926.50        |
+      | MHL10   | 2013-04-01 |                |                  |                        | Yes          | 20                    | 10.5                  | 185.30        |
+
+    @discrimination_sg
+    Examples: Discrimination sg
+      | feeCode | startDate  | netProfitCosts | netCostOfCounsel | travelAndWaitingCosts | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
+      | DISC    | 2013-04-01 | 400            | 300              | 100                   | Yes          | 20                    | 10.5                  | 870.50        |
+      | DISC    | 2013-04-01 | 300            | 399              |                       | No           | 20                    | 10.5                  | 729.50        |
+      | DISC    | 2013-04-01 |                | 700              |                       | Yes          | 20                    | 15.5                  | 875.50        |
+      | DISC    | 2013-04-01 | 700            |                  |                       | No           | 20                    | 15.5                  | 735.50        |
 
     @welfare_benefits
     Examples: Welfare Benefits
@@ -99,6 +165,37 @@ Feature: Fee Calculation API
       | INVC     | 2024-12-06 | 131224/005        | RD052           | 1141                   | 20                    | 15.50                 | true         | 0                         | 0                      | 325.94        |
       | INVC     | 2024-12-06 | 131224/006        | RD091           | 1142                   | 20                    | 15.50                 | false        | 0                         | 0                      | 259.02        |
 
+    @police_other_hourly_rate
+    Examples: Police Other Hourly Rate
+      | feeCode | startDate  | uniqueFileNumber | netProfitCosts | netTravelCosts | netWaitingCosts | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
+      | INVA    | 2016-04-01 | 010416/001       | 20             | 50             | 60              | Yes          | 20                    | 10.5                  | 190.50        |
+      | INVA    | 2022-09-30 | 290922/002       | 100            | 40             | 100             | No           | 20                    | 10.5                  | 270.50        |
+      | INVA    | 2022-09-30 | 300922/003       | 40             | 100            | 50              | Yes          | 20                    | 15.5                  | 267.50        |
+      | INVE    | 2016-04-01 | 010416/001       | 400            | 200            | 100             | No           | 20                    | 15.5                  | 735.50        |
+      | INVE    | 2022-09-30 | 290922/002       | 300            | 200            | 600             | Yes          | 20                    | 10.5                  | 1354.50       |
+      | INVE    | 2022-09-30 | 300922/003       | 400            | 500            | 600             | No           | 20                    | 10.5                  | 1530.50       |
+      | INVH    | 2016-04-01 | 010416/001       | 400            | 200            | 100             | Yes          | 20                    | 15.5                  | 879.50        |
+      | INVH    | 2022-09-30 | 290922/002       | 300            | 200            | 600             | No           | 20                    | 15.5                  | 1135.50       |
+      | INVH    | 2022-09-30 | 300922/003       | 400            | 500            | 600             | Yes          | 20                    | 10.5                  | 1834.50       |
+      | INVK    | 2016-04-01 | 010416/001       | 400            | 200            | 100             | No           | 20                    | 10.5                  | 730.50        |
+      | INVK    | 2022-09-30 | 290922/002       | 300            | 200            | 600             | Yes          | 20                    | 15.5                  | 1359.50       |
+      | INVK    | 2022-09-30 | 300922/003       | 400            | 500            | 600             | No           | 20                    | 15.5                  | 1535.50       |
+      | INVL    | 2016-04-01 | 010416/001       | 400            | 200            | 100             | Yes          | 20                    | 10.5                  | 874.50        |
+      | INVL    | 2022-09-30 | 290922/002       | 300            | 200            | 600             | No           | 20                    | 10.5                  | 1130.50       |
+      | INVL    | 2022-09-30 | 300922/003       | 400            | 500            | 600             | Yes          | 20                    | 15.5                  | 1839.50       |
+      | INVM    | 2021-06-07 | 070621/001       | 20             | 50             | 60              | No           | 20                    | 15.5                  | 165.50        |
+      | INVM    | 2022-09-30 | 290922/002       | 100            | 40             | 100             | Yes          | 20                    | 10.5                  | 322.50        |
+      | INVM    | 2022-09-30 | 300922/003       | 40             | 100            | 50              | No           | 20                    | 10.5                  | 220.50        |
+
+    @police_other_fixed_fee
+    Examples: Police Other Fixed Fee
+      | feeCode | startDate  | uniqueFileNumber | netProfitCosts | netTravelCosts | netWaitingCosts | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
+      | INVB1   | 2016-04-01 | 010416/001       | 45             |                |                 | Yes          | 20                    | 10.5                  | 34.44         |
+      | INVB1   | 2022-09-30 | 290922/002       |                | 20             |                 | No           | 20                    | 10.5                  | 28.70         |
+      | INVB1   | 2022-09-30 | 300922/003       |                | 60             |                 | Yes          | 20                    | 15.5                  | 39.60         |
+      | INVB2   | 2016-04-01 | 010416/001       | 10             |                |                 | No           | 20                    | 15.5                  | 27.60         |
+      | INVB2   | 2022-09-30 | 290922/002       |                | 30             |                 | Yes          | 20                    | 10.5                  | 33.12         |
+      | INVB2   | 2022-09-30 | 300922/003       |                | 30             |                 | No           | 20                    | 10.5                  | 31.74         |
 
     @education
     Examples: Education
@@ -128,11 +225,11 @@ Feature: Fee Calculation API
     Examples: Youth Court Designated
       | feeCode  | startDate  | representationOrderDate |netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal  |
       | YOUK1    | 2024-12-06 | 2024-12-06              |20                    | 10.50                 | true         | 0                         | 0                      | 1092.03        |
-      | YOUK2    | 2024-12-06 | 2024-07-12              |20                    | 10.50                 | false        | 0                         | 0                      | 263.03         |
+      | YOUK2    | 2024-12-06 | 2024-12-07              |20                    | 10.50                 | false        | 0                         | 0                      | 263.03         |
       | YOUK3    | 2024-12-06 | 2025-01-01              |20                    | 15.50                 | true         | 0                         | 0                      | 1230.38        |
       | YOUK4    | 2024-12-06 | 2025-05-05              |20                    | 15.50                 | false        | 0                         | 0                      | 432.64         |
       | YOUL1    | 2024-12-06 | 2024-12-06              |20                    | 10.50                 | true         | 0                         | 0                      | 1399.90        |
-      | YOUL2    | 2024-12-06 | 2014-12-07              |20                    | 10.50                 | false        | 0                         | 0                      | 531.49         |
+      | YOUL2    | 2024-12-06 | 2024-12-07              |20                    | 10.50                 | false        | 0                         | 0                      | 531.49         |
       | YOUL3    | 2024-12-06 | 2025-01-01              |20                    | 15.50                 | true         | 0                         | 0                      | 1752.03        |
       | YOUL4    | 2024-12-06 | 2025-05-05              |20                    | 15.50                 | false        | 0                         | 0                      | 867.35         |
       | YOUY1    | 2024-12-06 | 2024-12-06              |20                    | 10.50                 | true         | 0                         | 0                      | 1092.03        |
@@ -183,47 +280,47 @@ Feature: Fee Calculation API
       | ASMS     | 2016-04-01 | 010416/002        | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 109.50        |
       | ASPL     | 2016-04-01 | 110619/003        | 0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 346.30        |
       | ASPL     | 2016-04-01 | 161224/004        | 0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 294.50        |
-      | ASAS     | 2016-04-01 | 200118/005        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 223.90        |
-      | ASAS     | 2016-04-01 | 020416/006        | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 192.50        |
+      | ASAS     | 2016-04-01 | 200118/005        | 0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 223.90        |
+      | ASAS     | 2016-04-01 | 020416/006        | 0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 192.50        |
 
     @family
     Examples: Family
       | feeCode  | startDate  | londonRate  | netTravelCosts| netWaitingCosts  | netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal |
-      | FPB010   | 2011-10-03 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 188.90        |
-      | FPB020   | 2011-10-03 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 395.50        |
-      | FPB030   | 2011-10-03 | true        | 0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 631.90        |
-      | FVP100   | 2011-10-03 | false       | 0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 181.50        |
-      | FVP012   | 2011-10-03 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 133.70        |
-      | FVP011   | 2011-10-03 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 116.50        |
-      | FVP013   | 2011-10-03 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 133.70        |
-      | FVP010   | 2011-10-03 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 116.50        |
-      | FVP110   | 2011-10-03 | true        | 0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 477.10        |
-      | FVP130   | 2011-10-03 | false       | 0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 234.50        |
-      | FVP120   | 2011-10-03 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 493.70        |
-      | FVP140   | 2011-10-03 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 238.50        |
-      | FVP150   | 2011-10-03 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 935.30        |
-      | FVP180   | 2011-10-03 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 437.50        |
-      | FVP160   | 2011-10-03 | true        | 0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 766.30        |
-      | FVP170   | 2011-10-03 | false       | 0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 567.50        |
-      | FVP190   | 2011-10-03 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 210.50        |
-      | FVP200   | 2011-10-03 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 230.50        |
-      | FVP210   | 2011-10-03 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 450.50        |
-      | FVP020   | 2011-10-03 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 434.50        |
-      | FVP040   | 2011-10-03 | true        | 0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 414.70        |
-      | FVP030   | 2011-10-03 | false       | 0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 454.50        |
-      | FVP050   | 2011-10-03 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 422.90        |
-      | FVP060   | 2011-10-03 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 767.50        |
-      | FVP090   | 2011-10-03 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 698.90        |
-      | FVP070   | 2011-10-03 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 642.50        |
-      | FVP080   | 2011-10-03 | true        | 0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 877.90        |
-      | FVP021   | 2011-10-03 | false       | 0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 439.50        |
-      | FVP041   | 2011-10-03 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 409.70        |
-      | FVP031   | 2011-10-03 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 449.50        |
-      | FVP051   | 2011-10-03 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 422.90        |
-      | FVP061   | 2011-10-03 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 767.50        |
-      | FVP091   | 2011-10-03 | true        | 0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 703.90        |
-      | FVP071   | 2011-10-03 | false       | 0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 647.50        |
-      | FVP081   | 2011-10-03 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 872.90        |
+      | FPB010   | 2013-04-01 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 188.90        |
+      | FPB020   | 2013-04-01 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 395.50        |
+      | FPB030   | 2013-04-01 | true        | 0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 631.90        |
+      | FVP100   | 2013-04-01 | false       | 0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 181.50        |
+      | FVP012   | 2013-04-01 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 133.70        |
+      | FVP011   | 2013-04-01 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 116.50        |
+      | FVP013   | 2013-04-01 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 133.70        |
+      | FVP010   | 2013-04-01 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 116.50        |
+      | FVP110   | 2013-04-01 | true        | 0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 477.10        |
+      | FVP130   | 2013-04-01 | false       | 0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 234.50        |
+      | FVP120   | 2013-04-01 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 493.70        |
+      | FVP140   | 2013-04-01 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 238.50        |
+      | FVP150   | 2013-04-01 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 935.30        |
+      | FVP180   | 2013-04-01 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 437.50        |
+      | FVP160   | 2013-04-01 | true        | 0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 766.30        |
+      | FVP170   | 2013-04-01 | false       | 0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 567.50        |
+      | FVP190   | 2013-04-01 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 210.50        |
+      | FVP200   | 2013-04-01 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 230.50        |
+      | FVP210   | 2013-04-01 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 450.50        |
+      | FVP020   | 2013-04-01 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 434.50        |
+      | FVP040   | 2013-04-01 | true        | 0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 414.70        |
+      | FVP030   | 2013-04-01 | false       | 0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 454.50        |
+      | FVP050   | 2013-04-01 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 422.90        |
+      | FVP060   | 2013-04-01 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 767.50        |
+      | FVP090   | 2013-04-01 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 698.90        |
+      | FVP070   | 2013-04-01 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 642.50        |
+      | FVP080   | 2013-04-01 | true        | 0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 877.90        |
+      | FVP021   | 2013-04-01 | false       | 0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 439.50        |
+      | FVP041   | 2013-04-01 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 409.70        |
+      | FVP031   | 2013-04-01 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 449.50        |
+      | FVP051   | 2013-04-01 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 422.90        |
+      | FVP061   | 2013-04-01 | false       | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 767.50        |
+      | FVP091   | 2013-04-01 | true        | 0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 703.90        |
+      | FVP071   | 2013-04-01 | false       | 0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 647.50        |
+      | FVP081   | 2013-04-01 | true        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 872.90        |
 
     @prison_law
     Examples: Prison Law
@@ -240,59 +337,61 @@ Feature: Fee Calculation API
 
     @appeals_and_reviews
     Examples: Appeals and Reviews
-      | feeCode  | startDate  | uniqueFileNumber  | representationOrderDate |netTravelCosts| netWaitingCosts  | netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal |
-      | PROH     | 2022-09-30 | 110516/001        | 2022-10-01              |0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 1919.37       |
-      | PROH     | 2016-04-01 | 110516/002        |                         |0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 1399.25       |
-      | APPA     | 2016-04-01 | 121019/003        |                         |0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 364.00        |
-      | APPA     | 2022-09-30 | 121022/004        |                         |0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 350.31        |
-      | APPB     | 2022-09-30 | 131224/005        |                         |0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 660.13        |
-      | APPB     | 2016-04-01 | 020416/006        |                         |0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 486.75        |
+      | feeCode | startDate   | uniqueFileNumber | representationOrderDate  | netProfitCosts | netTravelCosts | netWaitingCosts  | vatIndicator | netDisbursementAmount  | disbursementVatAmount  | expectedTotal  |
+      | PROH    | 2022-09-30  | 110516/001       | 2022-10-01               | 1503.56        | 20.5           | 30               | Yes          | 20                     | 10.5                   | 1895.37        |
+      | PROH    | 2016-04-01  | 110516/002       |                          | 600            | 10             | 30               | No           | 20                     | 10.5                   | 670.50         |
+      | APPA    | 2016-04-01  | 121019/003       |                          | 40             | 10             | 30               | Yes          | 20                     | 15.5                   | 131.50         |
+      | APPA    | 2022-09-30  | 121022/004       |                          | 50             | 10             | 30               | No           | 20                     | 15.5                   | 125.50         |
+      | APPB    | 2022-09-30  | 131224/005       |                          | 90             | 10             | 30               | Yes          | 20                     | 10.5                   | 186.50         |
+      | APPB    | 2016-04-01  | 020416/006       |                          | 40             | 10             | 30               | No           | 20                     | 10.5                   | 110.50         |
+
 
     @immigration_and_asylum_fixed_fee
     Examples: Immigration and Asylum Fixed Fee
-      | feeCode | startDate  | immigrationPriorAuthorityNumber| detentionTravelAndWaitingCosts | jrFormFilling | boltOnHomeOfficeInterview | boltOnAdjournedHearing | boltOnCmrhOral | boltOnCmrhTelephone | boltOnSubstantiveHearing | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
-      | IACA    | 2013-04-01 |                                | 50                             | 100           |                           |                        | 4              | 5                   |                          | Yes          | 20                    | 10.5                  | 1823.70       |
-      | IACA    | 2020-06-08 | 111                            | 50                             | 100           |                           |                        | 9              | 1                   |                          | No           | 601                   | 10.5                  | 2572.50       |
-      | IACA    | 2023-03-31 |                                | 50                             | 100           |                           |                        | 2              | 4                   |                          | Yes          | 599                   | 15.5                  | 2017.10       |
-      | IACB    | 2013-04-01 |                                | 50                             | 100           |                           | 3                      | 6              | 8                   |                          | No           | 20                    | 15.5                  | 3253.50       |
-      | IACB    | 2020-06-08 |                                | 50                             | 100           |                           | 1                      | 2              | 3                   |                          | Yes          | 600                   | 10.5                  | 2868.90       |
-      | IACB    | 2023-03-31 |                                | 50                             | 100           |                           | 4                      | 4              | 7                   |                          | No           | 599                   | 10.5                  | 3566.50       |
-      | IACC    | 2020-06-08 |                                | 50                             | 100           |                           | 4                      | 3              | 2                   |                          | Yes          | 20                    | 15.5                  | 2920.70       |
-      | IACC    | 2023-03-31 | 111                            | 50                             | 100           |                           | 5                      | 6              | 7                   |                          | No           | 601                   | 15.5                  | 4126.50       |
-      | IACC    | 2021-01-01 |                                | 50                             | 100           |                           | 3                      | 7              | 4                   |                          | Yes          | 599                   | 10.5                  | 4430.10       |
-      | IACE    | 2023-04-01 |                                | 50                             | 100           |                           |                        | 1              | 2                   |                          | No           | 20                    | 10.5                  | 1195.50       |
-      | IACE    | 2023-04-02 |                                | 50                             | 100           |                           |                        | 4              | 3                   |                          | Yes          | 600                   | 15.5                  | 2839.10       |
-      | IACE    | 2025-04-02 |                                | 50                             | 100           |                           |                        | 5              | 6                   |                          | No           | 599                   | 15.5                  | 2803.50       |
-      | IACF    | 2023-04-01 | 111                            | 50                             | 100           |                           | 7                      | 6              | 5                   |                          | Yes          | 20                    | 10.5                  | 4875.30       |
-      | IACF    | 2023-04-02 |                                | 50                             | 100           |                           | 8                      | 9              | 1                   |                          | No           | 601                   | 10.5                  | 4944.50       |
-      | IACF    | 2025-04-02 |                                | 50                             | 100           |                           | 2                      | 3              | 4                   |                          | Yes          | 599                   | 15.5                  | 3903.50       |
-      | IALB    | 2013-04-01 |                                | 50                             | 100           | 1                         |                        |                |                     |                          | No           | 20                    | 15.5                  | 864.50        |
-      | IALB    | 2020-06-08 |                                | 50                             | 100           | 2                         |                        |                |                     |                          | Yes          | 400                   | 10.5                  | 1804.50       |
-      | IALB    | 2023-04-01 |                                | 50                             | 100           | 3                         |                        |                |                     |                          | No           | 399                   | 10.5                  | 1770.50       |
-      | IMCA    | 2013-04-01 |                                | 50                             | 100           |                           |                        | 4              | 4                   |                          | Yes          | 20                    | 15.5                  | 1720.70       |
-      | IMCA    | 2020-06-08 | 111                            | 50                             | 100           |                           |                        | 5              | 6                   |                          | No           | 601                   | 15.5                  | 2363.50       |
-      | IMCA    | 2023-03-31 |                                | 50                             | 100           |                           |                        | 7              | 8                   |                          | Yes          | 599                   | 10.5                  | 3440.10       |
-      | IMCB    | 2013-04-01 |                                | 50                             | 100           |                           | 1                      | 9              | 9                   |                          | No           | 20                    | 10.5                  | 3336.50       |
-      | IMCB    | 2020-06-08 |                                | 50                             | 100           |                           | 2                      | 8              | 1                   |                          | Yes          | 600                   | 15.5                  | 3832.70       |
-      | IMCB    | 2023-03-31 |                                | 50                             | 100           |                           | 3                      | 8              | 2                   |                          | No           | 599                   | 15.5                  | 3446.50       |
-      | IMCC    | 2020-06-08 |                                | 50                             | 100           |                           | 4                      | 8              | 3                   |                          | Yes          | 20                    | 10.5                  | 3821.70       |
-      | IMCC    | 2023-03-31 | 111                            | 50                             | 100           |                           | 5                      | 8              | 4                   |                          | No           | 601                   | 10.5                  | 4018.50       |
-      | IMCC    | 2021-01-01 |                                | 50                             | 100           |                           | 6                      | 7              | 5                   |                          | Yes          | 599                   | 15.5                  | 4924.70       |
-      | IMCE    | 2023-04-01 |                                | 50                             | 100           |                           |                        | 6              | 6                   |                          | No           | 20                    | 15.5                  | 2349.50       |
-      | IMCE    | 2023-04-02 |                                | 50                             | 100           |                           |                        | 5              | 7                   |                          | Yes          | 600                   | 10.5                  | 3416.10       |
-      | IMCE    | 2025-04-02 |                                | 50                             | 100           |                           |                        | 4              | 8                   |                          | No           | 599                   | 10.5                  | 2771.50       |
-      | IMCF    | 2023-04-01 |                                | 50                             | 100           |                           | 7                      | 3              | 9                   |                          | Yes          | 20                    | 15.5                  | 4451.90       |
-      | IMCF    | 2023-04-02 | 111                            | 50                             | 100           |                           | 8                      | 2              | 7                   |                          | No           | 601                   | 15.5                  | 4108.50       |
-      | IMCF    | 2025-04-02 |                                | 50                             | 100           |                           | 9                      | 1              | 5                   |                          | Yes          | 599                   | 10.5                  | 4697.70       |
-      | IMLB    | 2013-04-01 |                                | 50                             | 100           | 1                         | N/A                    | N/A            | N/A                 | N/A                      | No           | 20                    | 10.5                  | 680.50        |
-      | IMLB    | 2020-06-08 | 111                            | 50                             | 100           | 2                         | N/A                    | N/A            | N/A                 | N/A                      | Yes          | 401                   | 15.5                  | 1595.90       |
-      | IMLB    | 2023-04-01 |                                | 50                             | 100           | 3                         | N/A                    | N/A            | N/A                 | N/A                      | No           | 399                   | 15.5                  | 1596.50       |
-      | IDAS1   | 2013-04-01 |                                | 50                             | 100           |                           |                        |                |                     |                          | Yes          | 20                    | 10.5                  | 430.50        |
-      | IDAS1   | 2020-06-08 |                                | 50                             | 100           |                           |                        |                |                     |                          | No           | 20                    | 10.5                  | 360.50        |
-      | IDAS1   | 2023-04-01 |                                | 50                             | 100           |                           |                        |                |                     |                          | Yes          | 20                    | 15.5                  | 435.50        |
-      | IDAS2   | 2013-04-01 |                                | 50                             | 100           |                           |                        |                |                     |                          | No           | 20                    | 15.5                  | 545.50        |
-      | IDAS2   | 2020-06-08 |                                | 50                             | 100           |                           |                        |                |                     |                          | Yes          | 20                    | 10.5                  | 646.50        |
-      | IDAS2   | 2023-04-01 |                                | 50                             | 100           |                           |                        |                |                     |                          | No           | 20                    | 10.5                  | 540.50        |
+      | feeCode | startDate  | immigrationPriorAuthorityNumber| detentionTravelAndWaitingCosts | jrFormFilling | boltOnHomeOfficeInterview | boltOnAdjournedHearing | boltOnCmrhOral | boltOnCmrhTelephone  | boltOnSubstantiveHearing | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
+      | IACA    | 2013-04-01 |                                | 50                             | 100           |                           |                        | 4              | 5                    |                          | Yes          | 20                    | 10.5                  | 1819.70       |
+      | IACA    | 2020-06-08 | 111                            | 50                             | 100           |                           |                        | 9              | 1                    |                          | No           | 601                   | 10.5                  | 2572.50       |
+      | IACA    | 2023-03-31 |                                | 50                             | 100           |                           |                        | 2              | 4                    |                          | Yes          | 599                   | 15.5                  | 1897.30       |
+      | IACB    | 2013-04-01 |                                | 50                             | 100           |                           | 3                      | 6              | 8                    |                          | No           | 20                    | 15.5                  | 3253.50       |
+      | IACB    | 2020-06-08 |                                | 50                             | 100           |                           | 1                      | 2              | 3                    |                          | Yes          | 599                   | 10.5                  | 2747.90       |
+      | IACB    | 2023-03-31 |                                | 50                             | 100           |                           | 4                      | 4              | 7                    |                          | No           | 599                   | 10.5                  | 3566.50       |
+      | IACC    | 2020-06-08 |                                | 50                             | 100           |                           | 4                      | 3              | 2                    |                          | Yes          | 20                    | 15.5                  | 2916.70       |
+      | IACC    | 2023-03-31 | 111                            | 50                             | 100           |                           | 5                      | 6              | 7                    |                          | No           | 601                   | 15.5                  | 4126.50       |
+      | IACC    | 2021-01-01 |                                | 50                             | 100           |                           | 3                      | 7              | 4                    |                          | Yes          | 599                   | 10.5                  | 4310.30       |
+      | IACE    | 2023-04-01 |                                | 50                             | 100           |                           |                        | 1              | 2                    |                          | No           | 20                    | 10.5                  | 1195.50       |
+      | IACE    | 2023-04-02 |                                | 50                             | 100           |                           |                        | 4              | 3                    |                          | Yes          | 599                   | 15.5                  | 2718.10       |
+      | IACE    | 2025-04-02 |                                | 50                             | 100           |                           |                        | 5              | 6                    |                          | No           | 599                   | 15.5                  | 2803.50       |
+      | IACF    | 2023-04-01 | 111                            | 50                             | 100           |                           | 7                      | 6              | 5                    |                          | Yes          | 601                   | 10.5                  | 5452.30       |
+      | IACF    | 2023-04-02 |                                | 50                             | 100           |                           | 8                      | 9              | 1                    |                          | No           | 599                   | 10.5                  | 4942.50       |
+      | IACF    | 2025-04-02 |                                | 50                             | 100           |                           | 2                      | 3              | 4                    |                          | Yes          | 599                   | 15.5                  | 3783.70       |
+      | IALB    | 2013-04-01 |                                | 50                             | 100           | 1                         |                        |                |                      |                          | No           | 20                    | 15.5                  | 864.50        |
+      | IALB    | 2020-06-08 | 111                            | 50                             | 100           | 2                         |                        |                |                      |                          | Yes          | 401                   | 10.5                  | 1725.50       |
+      | IALB    | 2023-04-01 |                                | 50                             | 100           | 3                         |                        |                |                      |                          | No           | 399                   | 10.5                  | 1770.50       |
+      | IMCA    | 2013-04-01 |                                | 50                             | 100           |                           |                        | 4              | 4                    |                          | Yes          | 20                    | 15.5                  | 1716.70       |
+      | IMCA    | 2020-06-08 | 111                            | 50                             | 100           |                           |                        | 5              | 6                    |                          | No           | 601                   | 15.5                  | 2363.50       |
+      | IMCA    | 2023-03-31 |                                | 50                             | 100           |                           |                        | 7              | 8                    |                          | Yes          | 599                   | 10.5                  | 3320.30       |
+      | IMCB    | 2013-04-01 |                                | 50                             | 100           |                           | 1                      | 9              | 9                    |                          | No           | 20                    | 10.5                  | 3336.50       |
+      | IMCB    | 2020-06-08 |                                | 50                             | 100           |                           | 2                      | 8              | 1                    |                          | Yes          | 599                   | 15.5                  | 3711.70       |
+      | IMCB    | 2023-03-31 |                                | 50                             | 100           |                           | 3                      | 8              | 2                    |                          | No           | 599                   | 15.5                  | 3446.50       |
+      | IMCC    | 2020-06-08 |                                | 50                             | 100           |                           | 4                      | 8              | 3                    |                          | Yes          | 20                    | 10.5                  | 3817.70       |
+      | IMCC    | 2023-03-31 | 111                            | 50                             | 100           |                           | 5                      | 8              | 4                    |                          | No           | 601                   | 10.5                  | 4018.50       |
+      | IMCC    | 2021-01-01 |                                | 50                             | 100           |                           | 6                      | 7              | 5                    |                          | Yes          | 599                   | 15.5                  | 4804.90       |
+      | IMCE    | 2023-04-01 |                                | 50                             | 100           |                           |                        | 6              | 6                    |                          | No           | 20                    | 15.5                  | 2349.50       |
+      | IMCE    | 2023-04-02 |                                | 50                             | 100           |                           |                        | 5              | 7                    |                          | Yes          | 599                   | 10.5                  | 3295.10       |
+      | IMCE    | 2025-04-02 |                                | 50                             | 100           |                           |                        | 4              | 8                    |                          | No           | 599                   | 10.5                  | 2771.50       |
+      | IMCF    | 2023-04-01 |                                | 50                             | 100           |                           | 7                      | 3              | 9                    |                          | Yes          | 20                    | 15.5                  | 4447.90       |
+      | IMCF    | 2023-04-02 | 111                            | 50                             | 100           |                           | 8                      | 2              | 7                    |                          | No           | 601                   | 15.5                  | 4108.50       |
+      | IMCF    | 2025-04-02 |                                | 50                             | 100           |                           | 9                      | 1              | 5                    |                          | Yes          | 599                   | 10.5                  | 4577.90       |
+      | IMLB    | 2013-04-01 |                                | 50                             | 100           | 1                         |                        |                |                      |                          | No           | 20                    | 10.5                  | 680.50        |
+      | IMLB    | 2020-06-08 | 111                            | 50                             | 100           | 2                         |                        |                |                      |                          | Yes          | 401                   | 15.5                  | 1515.70       |
+      | IMLB    | 2023-04-01 |                                | 50                             | 100           | 3                         |                        |                |                      |                          | No           | 399                   | 15.5                  | 1596.50       |
+      | IDAS1   | 2013-04-01 |                                | 50                             | 100           |                           |                        |                |                      |                          | Yes          | 20                    | 10.5                  | 426.50        |
+      | IDAS1   | 2020-06-08 |                                | 50                             | 100           |                           |                        |                |                      |                          | No           | 20                    | 10.5                  | 360.50        |
+      | IDAS1   | 2023-04-01 |                                | 50                             | 100           |                           |                        |                |                      |                          | Yes          | 20                    | 15.5                  | 431.50        |
+      | IDAS2   | 2013-04-01 |                                | 50                             | 100           |                           |                        |                |                      |                          | No           | 20                    | 15.5                  | 545.50        |
+      | IDAS2   | 2020-06-08 |                                | 50                             | 100           |                           |                        |                |                      |                          | Yes          | 20                    | 10.5                  | 642.50        |
+      | IDAS2   | 2023-04-01 |                                | 50                             | 100           |                           |                        |                |                      |                          | No           | 20                    | 10.5                  | 540.50        |
+
 
     @immigration_and_asylum_hourly_rate_LH
     Examples: Immigration and Asylum Hourly Rate Legal Help
@@ -322,38 +421,39 @@ Feature: Fee Calculation API
       | IRAR    | 2025-04-03 | 50             |                                  | 100000           |                                | 100           | Yes          | 1000                  | 10.5                  | 121070.50     |
 
     @immigration_and_asylum_hourly_rate_CLR_interim
-    Examples: Immigration and Asylum Hourly Rate CLR Interim
-      | feeCode | startDate  | netProfitCosts | immigrationPriorAuthorityNumber  | netCostOfCounsel | boltOnHomeOfficeInterview | boltOnAdjournedHearing | boltOnCmrhOral | boltOnCmrhTelephone | boltOnSubstantiveHearing | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
-      | IACD    | 2020-06-08 | 500            |                                  | 500              |                           | 1                      | 4              | 5                   | 5                        | Yes          | 600                   | 10.5                  | 5152.50       |
-      | IACD    | 2023-03-31 | 499            |                                  | 500              |                           | 2                      | 9              | 1                   | 9                        | No           | 600                   | 10.5                  | 6233.50       |
-      | IACD    | 2021-01-01 | 750            | 111                              | 600              |                           | 3                      | 2              | 4                   | 6                        | Yes          | 600                   | 15.5                  | 5819.90       |
-      | IACD    | 2022-01-01 | 350            |                                  | 400              |                           | 1                      | 2              | 3                   | 5                        | No           | 399                   | 15.5                  | 3437.50       |
-      | IMCD    | 2020-06-08 | 400            |                                  | 400              |                           | 4                      | 8              | 7                   | 5                        | Yes          | 400                   | 10.5                  | 5914.90       |
-      | IMCD    | 2023-03-31 | 399            |                                  | 600              |                           | 4                      | 3              | 2                   | 1                        | No           | 700                   | 10.5                  | 3268.50       |
-      | IMCD    | 2021-01-01 | 601            | 111                              | 100              |                           | 3                      | 7              | 4                   | 9                        | Yes          | 500                   | 15.5                  | 6322.30       |
-      | IMCD    | 2022-01-01 | 150            |                                  | 100              |                           | 4                      | 1              | 2                   | 7                        | No           | 900                   | 15.5                  | 3814.50       |
+    Examples: Immigration & Asylum Disbursement-Based Calculations
+      | feeCode | startDate  | netProfitCosts | immigrationPriorAuthorityNumber| netCostOfCounsel | detentionTravelAndWaitingCosts | jrFormFilling | boltOnHomeOfficeInterview | boltOnAdjournedHearing  | boltOnCmrhOral | boltOnCmrhTelephone | boltOnSubstantiveHearing | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
+      | IACD    | 2020-06-08 | 500            |                                | 500              |                                |               |                           | 1                       | 4              | 5                   | 5                        | Yes          | 600                   | 10.5                  | 3702.90       |
+      | IACD    | 2023-03-31 | 499            |                                | 500              |                                |               |                           | 2                       | 9              | 1                   | 9                        | No           | 600                   | 10.5                  | 3817.50       |
+      | IACD    | 2021-01-01 | 750            | 111                            | 600              |                                |               |                           | 3                       | 2              | 4                   | 6                        | Yes          | 600                   | 15.5                  | 4007.90       |
+      | IACD    | 2022-01-01 | 350            |                                | 400              |                                |               |                           | 1                       | 2              | 3                   | 5                        | No           | 399                   | 15.5                  | 2229.50       |
+      | IMCD    | 2020-06-08 | 400            |                                | 400              |                                |               |                           | 4                       | 8              | 7                   | 5                        | Yes          | 400                   | 10.5                  | 4777.30       |
+      | IMCD    | 2023-03-31 | 399            | 111                            | 600              |                                |               |                           | 4                       | 3              | 2                   | 1                        | No           | 700                   | 10.5                  | 3268.50       |
+      | IMCD    | 2021-01-01 | 600            |                                | 100              |                                |               |                           | 3                       | 7              | 4                   | 9                        | Yes          | 500                   | 15.5                  | 4045.90       |
+      | IMCD    | 2022-01-01 | 150            |                                | 100              |                                |               |                           | 4                       | 1              | 2                   | 7                        | No           | 900                   | 15.5                  | 2392.50       |
+
 
     @disbursements_only
     Examples: Disbursements Only
       | feeCode | startDate  | immigrationPriorAuthorityNumber| netDisbursementAmount | disbursementVatAmount | expectedTotal |
-      | ICASD   | 2020-10-08 |                                | 1600                  | 10.5                  | 1610.50       |
-      | ICASD   | 2020-10-09 |                                | 1599                  | 10.5                  | 1609.50       |
-      | ICASD   | 2025-10-10 | 111                            | 2500                  | 15.5                  | 2515.50       |
-      | ICISD   | 2020-10-08 |                                | 1200                  | 15.5                  | 1215.50       |
-      | ICISD   | 2020-10-09 |                                | 1199                  | 10.5                  | 1209.50       |
-      | ICISD   | 2025-10-10 | 111                            | 1800                  | 10.5                  | 1810.50       |
-      | ICSSD   | 2020-10-08 |                                | 600                   | 15.5                  | 615.50        |
-      | ICSSD   | 2020-10-09 |                                | 599                   | 15.5                  | 614.50        |
-      | ICSSD   | 2025-10-10 | 111                            | 900                   | 10.5                  | 910.50        |
-      | ILHSD   | 2020-10-08 |                                | 400                   | 10.5                  | 410.50        |
-      | ILHSD   | 2020-10-09 |                                | 399                   | 15.5                  | 414.50        |
-      | ILHSD   | 2025-10-10 | 111                            | 700                   | 15.5                  | 715.50        |
-      | MHLDIS  | 2020-10-08 |                                | 4000                  | 10.5                  | 4010.50       |
-      | MHLDIS  | 2020-10-09 |                                | 10000                 | 10.5                  | 10010.50      |
-      | MHLDIS  | 2025-10-10 |                                | 70000                 | 15.5                  | 70015.50      |
-      | EDUDIS  | 2024-09-01 |                                | 500                   | 6000                  | 6500.00       |
-      | EDUDIS  | 2024-09-01 |                                | 200                   | 890                   | 1090.00       |
-      | EDUDIS  | 2025-10-10 |                                | 56000                 | 10.5                  | 56010.50      |
+      | ICASD   | 2013-04-01 |                                | 1600                  | 10.5                  | 1610.50       |
+      | ICASD   | 2013-04-01 |                                | 1599                  | 10.5                  | 1609.50       |
+      | ICASD   | 2013-04-01 | 111                            | 2500                  | 15.5                  | 2515.50       |
+      | ICISD   | 2013-04-01 |                                | 1200                  | 15.5                  | 1215.50       |
+      | ICISD   | 2013-04-01 |                                | 1199                  | 10.5                  | 1209.50       |
+      | ICISD   | 2013-04-01 | 111                            | 1800                  | 10.5                  | 1810.50       |
+      | ICSSD   | 2013-04-01 |                                | 600                   | 15.5                  | 615.50        |
+      | ICSSD   | 2013-04-01 |                                | 599                   | 15.5                  | 614.50        |
+      | ICSSD   | 2013-04-01 | 111                            | 900                   | 10.5                  | 910.50        |
+      | ILHSD   | 2013-04-01 |                                | 400                   | 10.5                  | 410.50        |
+      | ILHSD   | 2013-04-01 |                                | 399                   | 15.5                  | 414.50        |
+      | ILHSD   | 2013-04-01 | 111                            | 700                   | 15.5                  | 715.50        |
+      | MHLDIS  | 2013-04-01 |                                | 4000                  | 10.5                  | 4010.50       |
+      | MHLDIS  | 2013-04-01 |                                | 10000                 | 10.5                  | 10010.50      |
+      | MHLDIS  | 2013-04-01 |                                | 70000                 | 15.5                  | 70015.50      |
+      | EDUDIS  | 2013-04-01 |                                | 500                   | 6000                  | 6500.00       |
+      | EDUDIS  | 2013-04-01 |                                | 200                   | 890                   | 1090.00       |
+      | EDUDIS  | 2013-04-01 |                                | 56000                 | 10.5                  | 56010.50      |
 
     @sending_hearing
     Examples: CL Sending Hearing FF
