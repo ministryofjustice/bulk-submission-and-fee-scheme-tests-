@@ -283,6 +283,7 @@ Given('I determine a valid submission search date range for the past {int} days'
 
         this.searchFromDate = formatDate(from);
         this.searchToDate = formatDate(to);
+
         this.expectedCount = undefined;
         this.allSubmissionIds = [];
 
