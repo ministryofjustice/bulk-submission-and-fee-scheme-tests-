@@ -190,7 +190,7 @@ Feature: Display message checks
     And I should see the following submission error messages for "CRIME LOWER":
       | Error Message                                                                                                                              |
       | Case Reference Number must contain only letters, numbers, forward slashes, periods, hyphens, and spaces, and be a maximum of 30 characters |
-      | Crime Lower Matter Type Code must be exactly 2 digits                                                                                      |
+      | Crime Lower Matter Type Code must be one of the permitted values. Please refer to the guidance.                                            |
       | Fee Code must contain only letters and numbers, and be a maximum of 10 characters                                                          |
       | Procurement Area Code must be 2 uppercase letters followed by 5 digits                                                                     |
       | Access Point Code must be in the format AP##### (AP followed by 5 digits)                                                                  |
