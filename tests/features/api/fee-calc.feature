@@ -54,6 +54,15 @@ Feature: Fee Calculation API
       | WFB1      | 2023-04-01 |                |                  | Yes          | 20                    | 15.5                  | 285.10        |
       | WFB1      | 2025-04-30 |                |                  | No           | 20                    | 15.5                  | 243.50        |
 
+    @welfare_benefits
+    Examples: Welfare Benefits
+      | feeCode | startDate  | netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal |
+      | WFB1    | 2014-02-01 | 20                    | 10.50                 | true         | 0                         | 0                      | 280.10        |
+      | WFB1    | 2025-04-30 | 20                    | 10.50                 | false        | 0                         | 0                      | 238.50        |
+      | WFB1    | 2025-05-01 | 20                    | 15.50                 | true         | 0                         | 0                      | 285.10        |
+      | WFB1    | 2025-05-01 | 20                    | 15.50                 | false        | 0                         | 0                      | 243.50        |
+
+
     @mediation_sg
     Examples: Mediation SG
       | feeCode  | startDate  | numberOfMediationSessions | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
@@ -146,14 +155,6 @@ Feature: Fee Calculation API
       | DISC    | 2013-04-01 | 300            | 399              |                       | No           | 20                    | 10.5                  | 729.50        |
       | DISC    | 2013-04-01 |                | 700              |                       | Yes          | 20                    | 15.5                  | 875.50        |
       | DISC    | 2013-04-01 | 700            |                  |                       | No           | 20                    | 15.5                  | 735.50        |
-
-    @welfare_benefits
-    Examples: Welfare Benefits
-      | feeCode | startDate  | netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal |
-      | WFB1    | 2023-04-01 | 20                    | 10.50                 | true         | 0                         | 0                      | 280.10        |
-      | WFB1    | 2023-04-01 | 20                    | 10.50                 | false        | 0                         | 0                      | 238.50        |
-      | WFB1    | 2025-05-01 | 20                    | 15.50                 | true         | 0                         | 0                      | 285.10        |
-      | WFB1    | 2025-05-01 | 20                    | 15.50                 | false        | 0                         | 0                      | 243.50        |
 
     @police_station_work
     Examples: Police Station Work
