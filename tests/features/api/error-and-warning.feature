@@ -208,6 +208,9 @@ Feature: Error and warning API
       | YOUY4   | 2016-04-01 |                  | 2016-03-31              |                |                |                 |                  |              |                       |                       |               | ERROR | ERRCRM12 | Fee Code is not valid for the Representation Order Date provided. |
       | PROH    | 2016-04-01 |                  | 2016-03-31              |                |                |                 |                  |              |                       |                       |               | ERROR | ERRCRM12 | Fee Code is not valid for the Representation Order Date provided. |
       | PROW    | 2020-10-19 |                  | 2020-10-18              |                |                |                 |                  |              |                       |                       |               | ERROR | ERRCRM12 | Fee Code is not valid for the Representation Order Date provided. |
+      | PROH1   | 2016-04-01 |                  | 2025-12-21              |                |                |                 |                  |              |                       |                       |               | ERROR | ERRCRM12 | Fee Code is not valid for the Representation Order Date provided. |
+      | PROH2   | 2016-04-01 |                  | 2025-12-21              |                |                |                 |                  |              |                       |                       |               | ERROR | ERRCRM12 | Fee Code is not valid for the Representation Order Date provided. |
+
 
     @errcrm10
     Examples: ERRCRM10 - Net Cost is more than the Upper Cost Limitation.
@@ -315,7 +318,7 @@ Feature: Error and warning API
       | MISCASBI | 2015-03-22  |                  |                          |                |            |       |                        |                        |               | ERROR | ERRCIV2 | Case Start Date is too far in the past. |
       | MISCEMP  | 2013-03-31  |                  |                          |                |            |       |                        |                        |               | ERROR | ERRCIV2 | Case Start Date is too far in the past. |
       | PUB      | 2013-03-31  |                  |                          |                |            |       |                        |                        |               | ERROR | ERRCIV2 | Case Start Date is too far in the past. |
-      | WFB1     | 2023-03-31  |                  |                          |                |            |       |                        |                        |               | ERROR | ERRCIV2 | Case Start Date is too far in the past. |
+      | WFB1     | 2014-01-31  |                  |                          |                |            |       |                        |                        |               | ERROR | ERRCIV2 | Case Start Date is too far in the past. |
       | ASSA     | 2013-03-31  |                  |                          |                |            |       |                        |                        |               | ERROR | ERRCIV2 | Case Start Date is too far in the past. |
       | ASSS     | 2013-03-31  |                  |                          |                |            |       |                        |                        |               | ERROR | ERRCIV2 | Case Start Date is too far in the past. |
       | ASST     | 2013-03-31  |                  |                          |                |            |       |                        |                        |               | ERROR | ERRCIV2 | Case Start Date is too far in the past. |
