@@ -18,11 +18,90 @@ import {
 } from "../../../utils/scripts/dataGenartor/GenerateTwoCivilFilesForPeriods";
 import {GenerateSingleLegalHelpFile} from "../../../utils/scripts/dataGenartor/generateSingleLegalHelpFile";
 import {SubmissionSummaryPage} from "../../../pages/SubmissionSummaryPage";
+import {GenerateCrimeFilesForCalculations} from "../../../utils/scripts/dataGenartor/generateCrimeFilesForCalculations";
+import {
+    GenerateLegalHelpImmigrationFilesForCalculations
+} from "../../../utils/scripts/dataGenartor/GenerateLegalHelpImmigrationFilesForCalculations";
 
 
 
 function escapeRegExp(value: string): string {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+type Normaliser = (value: string) => any;
+
+const asNumber: Normaliser = v => Number(v);
+const asVat: Normaliser = v =>
+    v === 'Yes' ? 'Y' :
+        v === 'No'  ? 'N' : v;
+
+const MEDIATION_FIELD_MAP: Record<string, { target: string; transform?: Normaliser }> = {
+    feeCode: { target: 'feeCode' },
+    startDate: { target: 'caseStartDate' },
+
+    vatIndicator: { target: 'vatApplicable', transform: asVat },
+
+    numberOfMediationSessions: {
+        target: 'sessions',
+        transform: asNumber,
+    },
+
+    netDisbursementAmount: {
+        target: 'disbursementAmount',
+        transform: asNumber,
+    },
+
+    disbursementVatAmount: {
+        target: 'disbursementVat',
+        transform: asNumber,
+    },
+
+    office: { target: 'office' },
+};
+
+
+const FIELD_MAP: Record<string, { target: string; transform?: Normaliser }> = {
+    vatIndicator: { target: 'vatApplicable', transform: asVat },
+
+    netProfitCosts: { target: 'profitCost', transform: asNumber },
+    netCostOfCounsel: { target: 'counselCost', transform: asNumber },
+    netDisbursementAmount: { target: 'disbursementAmount', transform: asNumber },
+    disbursementVatAmount: { target: 'disbursementVat', transform: asNumber },
+
+    feeCode: { target: 'feeCode' },
+    office: { target: 'office' },
+};
+
+const FIELD_MAPS: Record<string, typeof FIELD_MAP> = {
+    'Legal help': FIELD_MAP,
+    'Mediation': MEDIATION_FIELD_MAP,
+};
+
+function normaliseClaims(
+    rows: Record<string, string>[],
+    fieldMap: typeof FIELD_MAP
+) {
+    return rows.map(row => {
+        const normalised: Record<string, any> = {};
+
+        for (const [sourceKey, value] of Object.entries(row)) {
+            if (value === '' || value == null) continue;
+
+            const mapping = fieldMap[sourceKey];
+
+            if (mapping) {
+                normalised[mapping.target] = mapping.transform
+                    ? mapping.transform(value)
+                    : value;
+            } else {
+                // pass-through for fields already matching claimOptions
+                normalised[sourceKey] = value;
+            }
+        }
+
+        return normalised;
+    });
 }
 
 /** --- Helper to support BOTH old and new generator return shapes --- */
@@ -167,6 +246,7 @@ Given('I generate {string} {string} file with the following claims', async funct
     // Extract office if provided in the first row
     const officeOverride = claims[0].office ?? undefined;
 
+
     let result: GenReturn;
 
     switch (areaOfLaw) {
@@ -220,6 +300,79 @@ Given('I generate {string} {string} file with the following claims', async funct
     await this.attach(`📁 Generated file: ${this.fileName}`, "text/plain");
     await this.attach(`🏢 Office: ${this.officeAccount}`, "text/plain");
 });
+
+
+// Given(
+//     'I generate {string} {string} file with the following civil claims',
+//     async function (this: CustomWorld, areaOfLaw, format, dataTable) {
+//
+//         const rawClaims = dataTable.hashes();
+//
+//         // @ts-ignore
+//         const claims = rawClaims.map(row => ({
+//             ...row,
+//
+//             // -----------------------
+//             // VAT NORMALISATION
+//             // -----------------------
+//             vatApplicable:
+//                 row.vatIndicator === 'Yes' ? 'Y' :
+//                     row.vatIndicator === 'No'  ? 'N' :
+//                         row.vatApplicable,
+//
+//             // -----------------------
+//             // NUMERIC NORMALISATION
+//             // -----------------------
+//             profitCost: row.netProfitCosts
+//                 ? Number(row.netProfitCosts)
+//                 : undefined,
+//
+//             counselCost: row.netCostOfCounsel
+//                 ? Number(row.netCostOfCounsel)
+//                 : undefined,
+//
+//             disbursementAmount: row.netDisbursementAmount
+//                 ? Number(row.netDisbursementAmount)
+//                 : undefined,
+//
+//             disbursementVat: row.disbursementVatAmount
+//                 ? Number(row.disbursementVatAmount)
+//                 : undefined,
+//         }));
+//
+//         const officeOverride = claims[0]?.office ?? undefined;
+//
+//         let result: GenReturn;
+//
+//         switch (areaOfLaw) {
+//             case "Legal help":
+//                 result = await GenerateCivilFilesOverride(
+//                     1,
+//                     claims.length,
+//                     format as any,
+//                     { claims, office: officeOverride }
+//                 );
+//                 break;
+//
+//             default:
+//                 throw new Error(
+//                     `"${areaOfLaw}" is not supported by the civil claims generator`
+//                 );
+//         }
+//
+//         const { filePaths, office } = normalizeGeneratorResult(result);
+//         const filePath = filePaths[0];
+//
+//         this.fileName = path.basename(filePath);
+//         this.generatedFilePath = filePath;
+//         this.filePath = filePath;
+//         this.officeAccount = officeOverride ?? office;
+//
+//         await this.attach(`📁 Generated file: ${this.fileName}`, "text/plain");
+//         await this.attach(`🏢 Office: ${this.officeAccount}`, "text/plain");
+//     }
+// );
+
 
 Given('I generate {string} {string} file with the following claims from period {string}', async function (this: CustomWorld, areaOfLaw, format, submissionPeriod, dataTable) {
     const claims: claimOptions[] = dataTable.hashes();
@@ -767,5 +920,164 @@ Given(
         await this.attach(`📄 Generated single Legal Help file: ${file}`, "text/plain");
         await this.attach(`📅 Submission period: ${period}`, "text/plain");
         await this.attach(`🏢 Office: ${office}`, "text/plain");
+    }
+);
+
+
+Given(
+    'I generate {string} {string} file with the following civil claims',
+    async function (this: CustomWorld, areaOfLaw, format, dataTable) {
+
+        const rawClaims = dataTable.hashes();
+
+        const fieldMap = FIELD_MAPS[areaOfLaw];
+        if (!fieldMap) {
+            throw new Error(`No field map configured for area of law: ${areaOfLaw}`);
+        }
+
+        const claims = normaliseClaims(rawClaims, fieldMap);
+        const officeOverride = claims[0]?.office;
+
+        let result: GenReturn;
+
+        switch (areaOfLaw) {
+            case 'Legal help':
+                result = await GenerateCivilFilesOverride(
+                    1,
+                    claims.length,
+                    format as any,
+                    { claims, office: officeOverride }
+                );
+                break;
+
+            case 'Mediation':
+                result = await GenerateMediationFilesOverride(
+                    1,
+                    claims.length,
+                    format as any,
+                    { claims, office: officeOverride }
+                );
+                break;
+
+            default:
+                throw new Error(`${areaOfLaw} not supported by override generator`);
+        }
+
+        const { filePaths, office } = normalizeGeneratorResult(result);
+        const filePath = filePaths[0];
+
+        this.generatedFilePath = filePath;
+        this.fileName = path.basename(filePath);
+        this.officeAccount = officeOverride ?? office;
+
+        await this.attach(`📁 Generated file: ${this.fileName}`, 'text/plain');
+        await this.attach(`🏢 Office: ${this.officeAccount}`, 'text/plain');
+    }
+);
+
+
+
+Given(
+    'I generate {string} {string} file with the following crime claims',
+    async function (
+        this: CustomWorld,
+        areaOfLaw: string,
+        format: string,
+        dataTable
+    ) {
+
+        if (areaOfLaw !== 'Crime lower') {
+            throw new Error(
+                `Crime calculation generator does not support area of law: ${areaOfLaw}`
+            );
+        }
+
+        const rawClaims = dataTable.hashes();
+
+        // 🔥 Store expected values for later assertions
+        // @ts-ignore
+        const claims = rawClaims.map(row => ({
+            feeCode: row.feeCode,
+            uniqueFileNumber: row.uniqueFileNumber,
+            startDate: row.startDate,
+            representationOrderDate: row.representationOrderDate,
+
+            netProfitCosts: row.netProfitCosts,
+            netTravelCosts: row.netTravelCosts,
+            netWaitingCosts: row.netWaitingCosts,
+            vatIndicator: row.vatIndicator,
+            netDisbursementAmount: row.netDisbursementAmount,
+            disbursementVatAmount: row.disbursementVatAmount,
+
+            expectedTotal: row.expectedTotal
+                ? `£${Number(row.expectedTotal).toFixed(2)}`
+                : undefined,
+        }));
+
+        const result = await GenerateCrimeFilesForCalculations(
+            1,
+            claims.length,
+            format as any,
+            { claims }
+        );
+
+        const filePath = result.filePaths[0];
+
+        this.generatedFilePath = filePath;
+        this.fileName = path.basename(filePath);
+        this.officeAccount = result.office;
+
+        // 👇 save for claim breakdown assertions
+        this.expectedCrimeClaim = claims[0];
+
+        await this.attach(`📁 Generated crime calculation file: ${this.fileName}`, 'text/plain');
+        await this.attach(`🏢 Office: ${this.officeAccount}`, 'text/plain');
+    }
+);
+
+Given(
+    'I generate {string} {string} file for office {string} with the following immigration claims',
+    async function (
+        this: CustomWorld,
+        areaOfLaw: string,
+        format: 'csv' | 'txt' | 'xml',
+        office: string,
+        dataTable
+    ) {
+        if (areaOfLaw !== 'Legal help') {
+            throw new Error(
+                `Immigration claims only supported for Legal help (received: ${areaOfLaw})`
+            );
+        }
+
+        const claims = dataTable.hashes();
+
+        // Store expected totals for later assertions
+        // @ts-ignore
+        this.expectedImmigrationClaims = claims.map(row => ({
+            expectedTotal: row.expectedTotal
+                ? `£${Number(row.expectedTotal).toFixed(2)}`
+                : undefined,
+        }));
+
+        const result = await GenerateLegalHelpImmigrationFilesForCalculations(
+            1,
+            claims.length,
+            format,
+            {
+                claims,
+                office
+            }
+        );
+
+        const filePath = result.filePaths[0];
+
+        this.filePath = filePath;
+        this.generatedFilePath = filePath;
+        this.fileName = filePath.split('/').pop();
+        this.officeAccount = result.office;
+
+        await this.attach(`📁 Generated file: ${this.fileName}`, 'text/plain');
+        await this.attach(`🏢 Office: ${this.officeAccount}`, 'text/plain');
     }
 );

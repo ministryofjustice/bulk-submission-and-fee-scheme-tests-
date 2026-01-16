@@ -98,7 +98,7 @@ async function generateOutcome(
       'NCD', 'MOB', 'DEA', 'HEA', 'VIS', 'BLI', 'MHC', 'LDD', 'COG', 'ILL', 'OTH', 'UKN', 'PHY', 'SEN'
     ]),
     stage_reached_code: random(['INVC', 'PROD', 'PROK']),
-    travel_waiting_costs: money(0, 40),
+    travel_waiting_costs: claimOverride?.travelWaitingCosts ?? money(0, 40),
     case_start_date: claimOverride?.caseStartDate ?? dateFmt(caseStart),
     rep_order_date: claimOverride?.repOrderDate ?? dateFmt(caseStart),
     work_concluded_date: claimOverride?.workConcludedDate ?? dateFmt(concluded),

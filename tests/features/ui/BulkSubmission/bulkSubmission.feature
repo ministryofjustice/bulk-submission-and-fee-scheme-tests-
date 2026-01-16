@@ -9,6 +9,10 @@ Feature: Bulk Submission via UI
   @content
 #  Scenario: Search results table layout matches design
   Scenario Outline: Successful bulk submission for <AreaOfLaw>
+
+    Given I generate "Legal help" "csv" file with the following civil claims
+      | feeCode | vatIndicator | netDisbursementAmount | disbursementVatAmount |
+      | CAPA    | Y            | 20                    | 10.5                  |
     When I generate "<AreaOfLaw>" "<Format>" file with "<Outcomes>" outcomes
     And I upload the generated file
     And I am on the Search page

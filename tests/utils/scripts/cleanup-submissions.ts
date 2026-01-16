@@ -136,7 +136,7 @@ async function getRecentSubmissionIdsForUser(
       SELECT id 
       FROM claims.submission
       WHERE provider_user_id = $1
-        AND created_on >= (CURRENT_DATE - INTERVAL '4 days')
+        AND created_on >= (CURRENT_DATE - INTERVAL '30 days')
   `;
 
     const results = await dataSource.query(query, [providerUser]);

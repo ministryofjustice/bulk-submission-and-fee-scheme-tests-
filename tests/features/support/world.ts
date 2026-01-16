@@ -59,6 +59,8 @@ export class World {
   secondFile: any;
   // @ts-ignore
   period: string;
+    expectedCrimeClaim: any;
+  expectedImmigrationClaims: any;
 
   constructor(options: IWorldOptions) {
     // @ts-ignore

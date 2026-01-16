@@ -37,6 +37,34 @@ export async function GenerateMediationFilesOverride(
                 line = line.replace(/FEE_CODE=[^,]+/, `FEE_CODE=${ovr.feeCode}`);
             }
 
+            if (ovr.disbursementAmount !== undefined) {
+                line = line.replace(
+                    /DISBURSEMENTS_AMOUNT=[^,]+/,
+                    `DISBURSEMENTS_AMOUNT=${ovr.disbursementAmount.toFixed(2)}`
+                );
+            }
+
+            if (ovr.disbursementVat !== undefined) {
+                line = line.replace(
+                    /DISBURSEMENTS_VAT=[^,]+/,
+                    `DISBURSEMENTS_VAT=${ovr.disbursementVat.toFixed(2)}`
+                );
+            }
+
+            if (ovr.vatApplicable) {
+                line = line.replace(
+                    /VAT_INDICATOR=[^,]+/,
+                    `VAT_INDICATOR=${ovr.vatApplicable}`
+                );
+            }
+
+            if (ovr.sessions !== undefined) {
+                line = line.replace(
+                    /NUMBER_OF_MEDIATION_SESSIONS=[^,]+/,
+                    `NUMBER_OF_MEDIATION_SESSIONS=${ovr.sessions}`
+                );
+            }
+
             return line;
         });
 

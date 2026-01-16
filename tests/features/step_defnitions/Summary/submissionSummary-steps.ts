@@ -16,6 +16,11 @@ const storeSummaryContext = (world: CustomWorld, summary: SummaryRecord) => {
     world.submissionReference = reference;
   }
 
+    const asCurrency = (value?: string) =>
+        value && value.trim() !== ''
+            ? `£${Number(value).toFixed(2)}`
+            : '';
+
   const account = summary['Account'];
   if (account) {
     world.officeAccount = account;
@@ -510,3 +515,33 @@ Then('I click the {string} tab', async function (this: CustomWorld, tabName: str
     throw new Error(`Tab ${tabName} not found`);
   }
 });
+
+
+Then(
+    'the submission summary total should be {string}',
+    async function (this: CustomWorld, expectedTotal: string) {
+
+        const summaryPage = this.submissionSummaryPage!;
+        const summary = await summaryPage.getSummaryData();
+
+        expect(summary['Calculated bulk claim value']).toBe(expectedTotal);
+    }
+);
+
+Then(
+    'the claim calculated value should be {string}',
+    async function (this: CustomWorld, expected: string) {
+
+        const claims = await this.submissionSummaryPage!.getClaimsData('Legal help');
+
+        expect(claims.length).toBeGreaterThan(0);
+        expect(claims[0].value).toBe(expected);
+    }
+);
+
+When(
+    'I view the first claim',
+    async function (this: CustomWorld) {
+        await this.submissionSummaryPage!.openClaimByIndex(0);
+    }
+);

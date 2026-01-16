@@ -35,4 +35,15 @@ export interface claimOptions {
   schemeId?: string;
   repOrderDate?: string;
   sessions?: string;
+  clientDob?: string;
+  counselCost?: number;
+  travelWaitingCosts?: number;
+  vatIndicator?: 'Y' | 'N';
+
+  hoInterview?: number;
+  adjournedHearing?: 'Y' | 'N';
+  jrFormFilling?: number;
+  cmrhOral?: number;
+  cmrhTelephone?: number;
+  detentionTravelWaitingCosts?: number;
 }

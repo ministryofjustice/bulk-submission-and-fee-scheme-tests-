@@ -66,38 +66,54 @@ async function generateOutcome(
     to: new Date('2005-12-31'),
   });
 
+  const repOrder = faker.date.between({
+    from: new Date('2016-04-01'),
+    to: end,
+  });
 
   return {
     case_ref_number: `${clean(first.slice(0, 3))}/${clean(last)}`,
     case_start_date: claimOverride?.caseStartDate ?? fmt(caseStart),
     case_id: pad(caseNum, 3),
     ufn: claimOverride?.ufn ?? makeUFN(caseStart, caseNum),
+
     client_forename: first,
     client_surname: last,
     client_date_of_birth: claimOverride?.clientDateOfBirth ?? fmt(dob),
     eligible_client_indicator: claimOverride?.eligibleClientIndicator ?? 'Y',
     ucn: claimOverride?.ucn ?? makeUCN(dob, last, first[0]),
+
     gender: random(['M', 'F']),
     ethnicity: '12',
     disability: 'NCD',
+
     profit_cost: claimOverride?.profitCost ?? money(50, 200),
-    disbursements_amount: money(0, 20),
-    disbursements_vat: money(0, 1.98),
-    counsel_cost: money(0, 50),
-    travel_costs: money(0, 15),
+    disbursements_amount: claimOverride?.disbursementAmount ?? money(0, 20),
+    disbursements_vat: claimOverride?.disbursementVat ?? money(0, 1.98),
+    counsel_cost: 19.33,
+    travel_costs: 5.86,
+
     work_concluded_date: claimOverride?.workConcludedDate ?? fmt(concluded),
     transfer_date: claimOverride?.transferDate ?? fmt(concluded),
     surgery_date: claimOverride?.surgeryDate ?? fmt(concluded),
+
+    /** ✅ NEW FIELD */
+    rep_order_date: claimOverride?.repOrderDate ?? fmt(repOrder),
+
     advice_time: 120,
     travel_time: 0,
     waiting_time: 0,
+
     vat_applicable: claimOverride?.vatApplicable ?? 'Y',
     london_nonlondon_rate: claimOverride?.londonNonLondonRate ?? 'N',
+
     outcome_code: 'FX',
     postal_application: claimOverride?.postalApplication ?? 'Y',
     nrm_advice: claimOverride?.nrmAdvice ?? 'Y',
+
     schedule_ref: `${office}/${new Date().getFullYear()}/${caseNum}`,
     client_post_code: faker.helpers.replaceSymbols('??## #??').toUpperCase(),
+
     legacy_case: claimOverride?.legacyCase ?? 'N',
     additional_travel_payment: claimOverride?.additionalTravelPayment ?? 'N',
     irc_surgery: claimOverride?.ircSurgery ?? 'N',
@@ -107,7 +123,7 @@ async function generateOutcome(
 }
 
 // ------------------------------
-// FILE GENERATOR (FULL OVERRIDES)
+// FILE GENERATOR
 // ------------------------------
 async function generateFile(
     base: string,
@@ -116,28 +132,29 @@ async function generateFile(
     office: string,
     claims?: claimOptions[]
 ) {
-  const { period, scheduleStart, scheduleEnd } = await getUniqueSubmissionPeriod(
-      office,
-      'LEGAL HELP'
-  );
+  const { period, scheduleStart, scheduleEnd } =
+      await getUniqueSubmissionPeriod(office, 'LEGAL HELP');
 
   let out = `OFFICE,account=${office}\n`;
   out += `SCHEDULE,submissionPeriod=${period},areaOfLaw=LEGAL HELP,scheduleNum=${office}/CIVIL\n`;
 
   for (let i = 0; i < count; i++) {
     const override = claims?.[i];
-    const baseRow = await generateOutcome(office, i, scheduleStart, scheduleEnd, override);
+    const baseRow = await generateOutcome(
+        office,
+        i,
+        scheduleStart,
+        scheduleEnd,
+        override
+    );
 
     const feeCode = override?.feeCode ?? random(feeCodes);
 
-    // @ts-ignore
     out +=
         `OUTCOME,` +
         `FEE_CODE=${feeCode},` +
         `matterType=FAMX:FAPP,` +
-        // @ts-ignore
         `CASE_REF_NUMBER=${baseRow.case_ref_number},` +
-        // @ts-ignore
         `CASE_START_DATE=${baseRow.case_start_date},` +
         `CASE_ID=${baseRow.case_id},` +
         `UFN=${baseRow.ufn},` +
@@ -150,9 +167,7 @@ async function generateFile(
         `GENDER=${baseRow.gender},` +
         `ETHNICITY=${baseRow.ethnicity},` +
         `DISABILITY=${baseRow.disability},` +
-        // @ts-ignore
         `CLIENT_POST_CODE=${baseRow.client_post_code},` +
-        // @ts-ignore
         `WORK_CONCLUDED_DATE=${baseRow.work_concluded_date},` +
         `CASE_STAGE_LEVEL=FPC01,` +
         `ADVICE_TIME=${baseRow.advice_time},` +
@@ -160,15 +175,12 @@ async function generateFile(
         `WAITING_TIME=${baseRow.waiting_time},` +
         `PROFIT_COST=${baseRow.profit_cost},` +
         `DISBURSEMENTS_AMOUNT=${baseRow.disbursements_amount},` +
-        // @ts-ignore
         `COUNSEL_COST=${baseRow.counsel_cost},` +
-        // @ts-ignore
         `DISBURSEMENTS_VAT=${baseRow.disbursements_vat},` +
         `TRAVEL_WAITING_COSTS=0.00,` +
         `VAT_INDICATOR=${baseRow.vat_applicable},` +
         `LONDON_NONLONDON_RATE=${baseRow.london_nonlondon_rate},` +
         `TRAVEL_COSTS=${baseRow.travel_costs},` +
-        // @ts-ignore
         `OUTCOME_CODE=${baseRow.outcome_code},` +
         `POSTAL_APPL_ACCP=${baseRow.postal_application},` +
         `NATIONAL_REF_MECHANISM_ADVICE=${baseRow.nrm_advice},` +
@@ -177,8 +189,9 @@ async function generateFile(
         `ELIGIBLE_CLIENT_INDICATOR=${baseRow.eligible_client_indicator},` +
         `IRC_SURGERY=${baseRow.irc_surgery},` +
         `SUBSTANTIVE_HEARING=${baseRow.substantive_hearing},` +
-        `TOLERANCE_INDICATOR=${baseRow.tolerance_indicator}, ` +
+        `TOLERANCE_INDICATOR=${baseRow.tolerance_indicator},` +
         `SURGERY_DATE=${baseRow.surgery_date},` +
+        `REP_ORDER_DATE=${baseRow.rep_order_date},` +
         `TRANSFER_DATE=${baseRow.transfer_date},` +
         `SCHEDULE_REF=${baseRow.schedule_ref}\n`;
   }
@@ -201,7 +214,8 @@ export async function GenerateCivilFile(
   const office = opts.office ?? random(offices);
 
   for (let i = 1; i <= files; i++) {
-    const suffix = opts.suffix ?? `${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    const suffix =
+        opts.suffix ?? `${Date.now()}_${Math.floor(Math.random() * 10000)}`;
     const name = `legal_${suffix}_${i}`;
 
     const inter = format === 'xml' ? 'csv' : format;
@@ -215,7 +229,9 @@ export async function GenerateCivilFile(
       await convertFileToXml(csv, xml);
       fs.unlinkSync(csv);
       paths.push(xml);
-    } else paths.push(csv);
+    } else {
+      paths.push(csv);
+    }
   }
 
   return { filePaths: paths, office };

@@ -38,15 +38,15 @@ Feature: Bulk Submission Upload Validation
     Given I generate "<AreaOfLaw>" "csv" file with "1" outcomes
     And I override the generated file field "<field>" with value "<value>"
     When I upload that file
-    Then the user sees an error message "<fieldDisplayValue> must be in minutes"
+    Then the user sees an error message "<fieldDisplayValue>"
     # NOTE: wider permutations of invalid numeric values are covered by laa-data-claims-api unit tests.
     # See: https://github.com/ministryofjustice/laa-data-claims-api/blob/main/claims-data/service/src/test/java/uk/gov/justice/laa/dstew/payments/claimsdata/mapper/BulkSubmissionMapperTests.java
     Examples:
-      | AreaOfLaw  | field        | value      | fieldDisplayValue |
-      | Legal help | TRAVEL_TIME  | 9999999999 | Travel Time       |
-      | Legal help | WAITING_TIME | 9999999999 | Waiting Time      |
-      | Legal help | TRAVEL_TIME  | NAN        | Travel Time       |
-      | Legal help | WAITING_TIME | NAN        | Waiting Time      |
+      | AreaOfLaw  | field        | value      |  | fieldDisplayValue               |
+      | Legal help | TRAVEL_TIME  | 9999999999 |  | Travel Time must be in minutes  |
+      | Legal help | WAITING_TIME | 9999999999 |  | Waiting Time must be in minutes |
+      | Legal help | TRAVEL_TIME  | NAN        |  | Travel Time must be in minutes  |
+      | Legal help | WAITING_TIME | NAN        |  | Waiting Time must be in minutes |
 
   Scenario Outline: Upload fails with Invalid Submission Period
     Given I generate "Legal help" "csv" file with "1" outcomes
