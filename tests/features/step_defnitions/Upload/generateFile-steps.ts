@@ -139,7 +139,7 @@ async function pollSubmissionUntilTerminal(world: CustomWorld, submissionId: str
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
 
         const resp = await world.client.get(
-            `${dstewbaseUrl}/api/v0/submissions?offices=${office}&submission_id=${submissionId}&page=0&size=20`,
+            `${dstewbaseUrl}/api/v1/submissions?offices=${office}&submission_id=${submissionId}&page=0&size=20`,
             {
                 headers: {
                     accept: 'application/json',
@@ -493,7 +493,7 @@ Given('I make the generated file invalid', async function (this: CustomWorld) {
     const dstewbaseUrl = process.env.DSTEW_API_BASE_URL;
     const dstewToken = process.env.DSTEW_API_TOKEN;
 
-    const patchUrl = `${dstewbaseUrl}/api/v0/submissions/${this.mostRecentSubmissionId}`;
+    const patchUrl = `${dstewbaseUrl}/api/v1/submissions/${this.mostRecentSubmissionId}`;
 
     await this.attach(`⏳ Updating submission to be invalid: ${patchUrl}`);
 
@@ -698,7 +698,7 @@ When('I upload with generated file via the API', async function (this: CustomWor
 
     const office = pickOffice(this);
     const uploadUrl =
-        `${dstewbaseUrl}/api/v0/bulk-submissions` +
+        `${dstewbaseUrl}/api/v1/bulk-submissions` +
         `?userId=Test.User-submit-a-bulk-claim-auto-test%40devl.justice.gov.uk&offices=${office}`;
 
     const uploadResp = await this.client.post(uploadUrl, form, {
@@ -803,7 +803,7 @@ When(
 
             const officeParam = pickOffice(this);
             const uploadUrl =
-                `${dstewbaseUrl}/api/v0/bulk-submissions` +
+                `${dstewbaseUrl}/api/v1/bulk-submissions` +
                 `?userId=Test.User-submit-a-bulk-claim-auto-test%40devl.justice.gov.uk&offices=${officeParam}`;
 
             const uploadResp = await this.client.post(uploadUrl, form, {
