@@ -120,7 +120,7 @@ Feature: Display message checks
       | Travel Waiting Costs Amount must be a valid monetary value                                                                                 |
       | Prior Authority Reference must be exactly 7 alphanumeric characters                                                                        |
       | Adjourned Hearing Fee Amount must be between 0 and 9                                                                                       |
-#      | Costs Damages Recovered Amount must be a valid monetary value                                                                              |
+      | Costs Damages Recovered Amount must be a valid monetary value                                                                              |
       | Meetings Attended Code must be valid                                                                                                       |
 #      | Detention Travel Waiting Costs Amount must be a valid monetary value                                                                       |
       | JR Form Filling Amount must be a valid monetary value                                                                                      |
@@ -185,7 +185,6 @@ Feature: Display message checks
       | youthCourt              | A     | Invalid value 'A' supplied for field 'Youth Court'. Valid values are 'Y' or 'N'                 |
       | clientLegallyAided      | A     | Invalid value 'A' supplied for field 'Is Legally Aided'. Valid values are 'Y' or 'N'            |
 
-    @ignore
   Scenario: Crime Lower: Should check display messages are shown for format based errors (regex)
     Given I upload "tests/data/invalid/crime_lower_regex_errors.csv"
     And I wait on validation in progress screen
@@ -203,7 +202,6 @@ Feature: Display message checks
       | Police Station Court Prison ID must be 1–6 alphanumeric characters and contain at least one letter                                         |
       | DSCC Number must be exactly 10 alphanumeric characters                                                                                     |
       | MAAT ID must be up to 10 alphanumeric characters                                                                                           |
-      | Prison Law Prior Approval Number must be exactly 10 alphanumeric characters                                                                |
       | Scheme ID must be exactly 4 alphanumeric characters                                                                                        |
       | Mediation Sessions Count must be between 1 and 99                                                                                          |
       | Mediation Time Minutes must be between 0 and 99999                                                                                         |
@@ -240,7 +238,6 @@ Feature: Display message checks
       | Net Waiting Costs Amount must be a valid monetary value                                                                                    |
       | Prior Authority Reference must be exactly 7 alphanumeric characters                                                                        |
       | Adjourned Hearing Fee Amount must be between 0 and 9                                                                                       |
-      | Costs Damages Recovered Amount must be a valid monetary value                                                                              |
       | Meetings Attended Code must be valid                                                                                                       |
       | Detention Travel Waiting Costs Amount must be a valid monetary value                                                                       |
       | JR Form Filling Amount must be a valid monetary value                                                                                      |
