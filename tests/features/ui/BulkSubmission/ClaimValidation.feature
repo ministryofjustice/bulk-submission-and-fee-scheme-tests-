@@ -106,7 +106,7 @@ Feature: Display message checks
       | Standard Fee Category Code must be valid                                                                                                   |
       | Outcome Code must be exactly 2 characters and contain only letters, numbers, and hyphens                                                   |
       | Designated Accredited Representative Code must be valid                                                                                    |
-      | Mental Health Tribunal Reference must be in format XX/YYYY/YYYY or XXYYYZZZ                                                                |
+      | Mental Health Tribunal Reference must be in format AA/NNNN/NNNNN (English) or AANNNNNN (Welsh)                                              |
       | Follow On Work must be a single character                                                                                                  |
       | Exemption Criteria Satisfied must be 2 uppercase letters followed by 3 digits                                                              |
       | Exceptional Case Funding Reference must be 7 digits followed by 2 uppercase letters                                                        |
@@ -224,7 +224,7 @@ Feature: Display message checks
       | Standard Fee Category Code must be valid                                                                                                   |
       | Outcome Code must be a valid crime lower outcome code or left blank                                                                        |
       | Designated Accredited Representative Code must be valid                                                                                    |
-      | Mental Health Tribunal Reference must be in format XX/YYYY/YYYY or XXYYYZZZ                                                                |
+      | Mental Health Tribunal Reference must be in format AA/NNNN/NNNNN (English) or AANNNNNN (Welsh)                                              |
       | Follow On Work must be a single character                                                                                                  |
       | Exemption Criteria Satisfied must be 2 uppercase letters followed by 3 digits                                                              |
       | Exceptional Case Funding Reference must be 7 digits followed by 2 uppercase letters                                                        |
@@ -337,7 +337,7 @@ Feature: Display message checks
       | Standard Fee Category Code must be valid                                                                                                   |
       | Outcome Code must be a valid mediation outcome code or left blank                                                                          |
       | Designated Accredited Representative Code must be valid                                                                                    |
-      | Mental Health Tribunal Reference must be in format XX/YYYY/YYYY or XXYYYZZZ                                                                |
+      | Mental Health Tribunal Reference must be in format AA/NNNN/NNNNN (English) or AANNNNNN (Welsh)                                              |
       | Follow On Work must be a single character                                                                                                  |
       | Exemption Criteria Satisfied must be 2 uppercase letters followed by 3 digits                                                              |
       | Exceptional Case Funding Reference must be 7 digits followed by 2 uppercase letters                                                        |
