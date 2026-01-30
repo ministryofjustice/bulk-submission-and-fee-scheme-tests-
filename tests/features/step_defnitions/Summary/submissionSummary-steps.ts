@@ -10,7 +10,7 @@ type SummaryRecord = Record<string, string | undefined>;
 const normalizeWhitespace = (text: string) => text.replace(/\s+/g, ' ').trim();
 
 const storeSummaryContext = (world: CustomWorld, summary: SummaryRecord) => {
-  const reference = summary['Reference'];
+  const reference = summary['Submission reference'];
   if (reference) {
     world.cleanupSubmissionIds.add(reference);
     world.submissionReference = reference;
