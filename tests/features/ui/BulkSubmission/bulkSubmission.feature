@@ -83,5 +83,5 @@ Feature: Bulk Submission via UI
     Examples:
       | AreaOfLaw   | Format | Outcomes |
       | Legal help  | csv    | 2        |
-      | Mediation   | csv    | 2        |
+      #| Mediation   | csv    | 2        | Disabled as mediation duplicate checks have been disabled in event service BC-423
       | Crime lower | csv    | 3        |
