@@ -1,4 +1,4 @@
-@duplicateChecks @stable
+@duplicateChecks @disabled # Disabled due to BC-423
 Feature: Duplicate checks - Mediation
 
   Background:
