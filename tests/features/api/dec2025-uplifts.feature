@@ -107,11 +107,11 @@ Feature: Fee Calculations for Dec 2025 uplifts
     @dec2025_police_other_hourly_rate
     Examples: Police Other Hourly Rate
       | feeCode | startDate   | uniqueFileNumber | netProfitCosts | netTravelCosts | netWaitingCosts | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
-      | INVA    | 2016-04-01  | 221225/001       | 200            | 50             | 60              | Yes          | 20                    | 10.5                  | 406.50        |
+      | INVA    | 2016-04-01  | 221225/001       | 200            | 50             | 60              | Yes          | 20                    | 10.5                  | 402.50        |
       | INVE    | 2016-04-01  | 221225/001       | 400            | 200            | 100             | No           | 20                    | 15.5                  | 735.50        |
-      | INVH    | 2016-04-01  | 221225/001       | 400            | 200            | 100             | Yes          | 20                    | 15.5                  | 879.50        |
+      | INVH    | 2016-04-01  | 221225/001       | 400            | 200            | 100             | Yes          | 20                    | 15.5                  | 875.50        |
       | INVK    | 2016-04-01  | 221225/001       | 400            | 200            | 100             | No           | 20                    | 10.5                  | 730.50        |
-      | INVL    | 2016-04-01  | 221225/001       | 400            | 200            | 100             |Yes           | 20                    | 10.5                  | 874.50        |
+      | INVL    | 2016-04-01  | 221225/001       | 400            | 200            | 100             |Yes           | 20                    | 10.5                  | 870.50        |
       | INVM    | 2021-06-07  | 221225/001       | 20             | 50             | 60              |No            | 20                    | 15.5                  | 165.50        |
 
     @dec2025_police_other_fixed_fee

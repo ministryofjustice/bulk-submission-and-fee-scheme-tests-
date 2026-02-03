@@ -597,3 +597,10 @@ Feature: Error and warning API
       | IMCE    | 2023-04-01 | 1700.00        | 68.01            |                                | 50                             | 100           |                           |                        | 2              | 2                    | WARNING | WARIA3 | The claim exceeds the Escape Case Threshold. An Escape Case Claim must be submitted for further costs to be paid. |
       | IMCF    | 2023-04-01 | 2837.00        | 20.01            |                                | 50                             | 100           |                           | 2                      | 3              | 1                    | WARNING | WARIA3 | The claim exceeds the Escape Case Threshold. An Escape Case Claim must be submitted for further costs to be paid. |
       | IMLB    | 2013-04-01 | 968.01         |                  |                                | 50                             | 100           | 1                         |                        |                |                      | WARNING | WARIA3 | The claim exceeds the Escape Case Threshold. An Escape Case Claim must be submitted for further costs to be paid. |
+
+    @waria8
+    Examples: IA100 Dec 2025 uplift change
+      | feeCode | startDate  | netProfitCosts | immigrationPriorAuthorityNumber  | vatIndicator | netDisbursementAmount | disbursementVatAmount | type     | code    | message                                                                                |
+      | IA100   | 2013-04-01 | 140.01         |                                  | Yes          |                       | 10.0                  | WARNING  | WARIA8  | Costs have been capped. Costs for the Fee Code used cannot exceed the specified limit. |
+      | IA100   | 2013-04-02 | 150.01         |                                  | No           |                       | 10.5                  | WARNING  | WARIA8  | Costs have been capped. Costs for the Fee Code used cannot exceed the specified limit. |
+
