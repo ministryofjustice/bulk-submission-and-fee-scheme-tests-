@@ -18,33 +18,74 @@ Feature: Content check for the UI matching UX designs
     When I upload the generated file and wait for import in progress screen
     Then the page content matches "upload_check.html"
 
-  Scenario Outline: Claim details show fee calculation headings for <AreaOfLaw>
+  Scenario: Claim details show fee calculation headings for "Legal help"
     Given I am on the bulk import page
-    When I generate "<AreaOfLaw>" "csv" file with "1" outcomes
+    When I generate "Legal help" "csv" file with "1" outcomes
     And I upload the generated file
-    And I should see the submission summary for "<AreaOfLaw>"
+    And I should see the submission summary for "Legal help"
     And I open the first claim in the submission
     Then I should see the following fee calculation headings:
-      | Heading                           |
-      | Fixed Fee                         |
-      | Net Profit Cost                   |
-      | Net Disbursements                 |
-      | Disbursement VAT                  |
-      | Net Cost of Counsel               |
-      | Travel and Waiting Costs          |
-      | Adjourned Hearing Fee             |
-      | JR / Form Filling                 |
-      | Detention Travel & Waiting Costs  |
-      | CMRH Telephone                    |
-      | CMRH Oral                         |
-      | Home Office Interview             |
-      | Substantive Hearing               |
-      | VAT                               |
-    Examples:
-      | AreaOfLaw   |
-      | Mediation   |
-      | Legal help  |
-      | Crime lower |
+      | Heading                          |
+      | Fixed Fee                        |
+      | Net Profit Cost                  |
+      | Net Disbursements                |
+      | Disbursement VAT                 |
+      | Net Cost of Counsel              |
+      | Travel & Waiting Costs           |
+      | Adjourned Hearing Fee            |
+      | JR / Form Filling                |
+      | Detention Travel & Waiting Costs |
+      | CMRH Telephone                   |
+      | CMRH Oral                        |
+      | Home Office Interview            |
+      | Substantive Hearing              |
+      | VAT                              |
+
+  Scenario: Claim details show fee calculation headings for "Crime lower"
+    Given I am on the bulk import page
+    When I generate "Crime lower" "csv" file with "1" outcomes
+    And I upload the generated file
+    And I should see the submission summary for "Crime lower"
+    And I open the first claim in the submission
+    Then I should see the following fee calculation headings:
+      | Heading                          |
+      | Fixed Fee                        |
+      | Net Profit Cost                  |
+      | Net Disbursements                |
+      | Disbursement VAT                 |
+      | Net Cost of Counsel              |
+      | Travel Costs                     |
+      | Waiting Costs                    |
+      | Adjourned Hearing Fee            |
+      | JR / Form Filling                |
+      | Detention Travel & Waiting Costs |
+      | CMRH Telephone                   |
+      | CMRH Oral                        |
+      | Home Office Interview            |
+      | Substantive Hearing              |
+      | VAT                              |
+
+  Scenario: Claim details show fee calculation headings for "Mediation"
+    Given I am on the bulk import page
+    When I generate "Mediation" "csv" file with "1" outcomes
+    And I upload the generated file
+    And I should see the submission summary for "Mediation"
+    And I open the first claim in the submission
+    Then I should see the following fee calculation headings:
+      | Heading                          |
+      | Fixed Fee                        |
+      | Net Profit Cost                  |
+      | Net Disbursements                |
+      | Disbursement VAT                 |
+      | Net Cost of Counsel              |
+      | Adjourned Hearing Fee            |
+      | JR / Form Filling                |
+      | Detention Travel & Waiting Costs |
+      | CMRH Telephone                   |
+      | CMRH Oral                        |
+      | Home Office Interview            |
+      | Substantive Hearing              |
+      | VAT                              |
 
   Scenario: Search page content matches design
     Given I am on the Search page
