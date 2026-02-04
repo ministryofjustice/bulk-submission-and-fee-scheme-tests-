@@ -122,7 +122,7 @@ Then('the search results table matches the expected layout', async function (thi
   const headerTexts = await table.locator('thead tr th').allTextContents();
   const normalizedHeaders = headerTexts.map((text) => text.trim().replace(/\s+/g, ' '));
 
-  const expectedHeaders = ['Date submitted', 'Office account', 'Area of law', 'Status'];
+  const expectedHeaders = ['Date submitted', 'Office account', 'Area of law', 'Submission period', 'Status'];
   expect(normalizedHeaders).toEqual(expectedHeaders);
 
   const rows = table.locator('tbody tr');
@@ -140,10 +140,12 @@ Then('the search results table matches the expected layout', async function (thi
     const dateSubmitted = (await cells.nth(0).innerText()).trim();
     const officeAccount = (await cells.nth(1).innerText()).trim();
     const areaOfLaw = (await cells.nth(2).innerText()).trim();
-    const status = (await cells.nth(3).innerText()).trim();
+    const submissionPeriod = (await cells.nth(3).innerText()).trim();
+    const status = (await cells.nth(4).innerText()).trim();
 
     expect(datePattern.test(dateSubmitted)).toBeTruthy();
     expect(officeAccount.length).toBeGreaterThan(0);
+    expect(submissionPeriod.length).toBeGreaterThan(0);
     expect(status.length).toBeGreaterThan(0);
     expect(allowedAreas.has(areaOfLaw)).toBeTruthy();
   }
