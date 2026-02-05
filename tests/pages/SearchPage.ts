@@ -45,6 +45,7 @@ export class SearchPage extends BasePage {
       'Date submitted',
       'Office account',
       'Area of law',
+      'Submission period',
       'Status'
     ];
     const actualHeaders = await this.tableHeaders.allInnerTexts();
