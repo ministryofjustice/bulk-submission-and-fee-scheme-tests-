@@ -55,13 +55,24 @@ async function generateOutcome(
     caseNum: number,
     scheduleStart?: string,
     scheduleEnd?: string,
-    claimOverride?: claimOptions
+    claimOverride?: claimOptions,
+    period?: string
 ) {
   const first = faker.person.firstName();
   const last = faker.person.lastName();
 
   let start = scheduleStart ? new Date(scheduleStart) : new Date('2017-02-02');
   let end = scheduleEnd ? new Date(scheduleEnd) : new Date('2018-12-31');
+  // Convert period to Date (MMM-uuuu). Set end to last day of the month before the period month, to ensure generated dates are always within the period
+  if (period) {
+    const [monthStr, yearStr] = period.split('-');
+    const month = new Date(`${monthStr} 1, ${yearStr}`).getMonth();
+    const year = parseInt(yearStr, 10);
+    end = new Date(year, month, 0); // Last day of the month
+    // Go one month previous
+    end = 
+        new Date(end.getFullYear(), end.getMonth() - 1, end.getDate());
+  }
 
   if (start < GLOBAL_MIN_CASE_DATE) start = new Date(GLOBAL_MIN_CASE_DATE);
 
@@ -162,7 +173,7 @@ async function generateFile(
 
   for (let i = 0; i < outcomesCount; i++) {
     const o = options.claims?.[i];
-    const base = await generateOutcome(office, i, scheduleStart, scheduleEnd, o);
+    const base = await generateOutcome(office, i, scheduleStart, scheduleEnd, o, submissionPeriod ?? undefined);
 
 
     const feeCode = o?.feeCode ?? random(feeCodes);

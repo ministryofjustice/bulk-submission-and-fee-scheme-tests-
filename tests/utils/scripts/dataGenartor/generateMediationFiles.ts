@@ -35,7 +35,8 @@ const generateOutcome = async (
     caseNum: number,
     scheduleStart?: string,
     scheduleEnd?: string,
-    claimOverride?: claimOptions
+    claimOverride?: claimOptions,
+    period?: string
 ) => {
   const client1First = faker.person.firstName();
   const client1Last = faker.person.lastName();
@@ -46,7 +47,17 @@ const generateOutcome = async (
   const dob2 = faker.date.between({ from: new Date('1950-01-01'), to: new Date('2000-12-31') });
 
   const start = scheduleStart ? new Date(scheduleStart) : new Date('2015-05-01');
-  const end = scheduleEnd ? new Date(scheduleEnd) : new Date('2025-10-31');
+  let end = scheduleEnd ? new Date(scheduleEnd) : new Date('2025-10-31');
+  // Convert period to Date (MMM-uuuu). Set end to last day of the month before the period month, to ensure generated dates are always within the period
+  if (period) {
+    const [monthStr, yearStr] = period.split('-');
+    const month = new Date(`${monthStr} 1, ${yearStr}`).getMonth();
+    const year = parseInt(yearStr, 10);
+    end = new Date(year, month, 0); // Last day of the month
+    // Go one month previous
+    end = 
+        new Date(end.getFullYear(), end.getMonth() - 1, end.getDate());
+  }
 
   const caseStartDate = faker.date.between({ from: start, to: end });
   const medConcluded = faker.date.between({ from: caseStartDate, to: end });
@@ -132,7 +143,7 @@ const generateFile = async (
 
   for (let i = 0; i < outcomesCount; i++) {
     const override = options.claims?.[i];
-    const o = await generateOutcome(office, i, scheduleStart, scheduleEnd, override);
+    const o = await generateOutcome(office, i, scheduleStart, scheduleEnd, override, period);
 
 
 

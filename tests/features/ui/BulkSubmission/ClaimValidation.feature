@@ -45,17 +45,17 @@ Feature: Display message checks
 
   Scenario: Legal Help: Should check display messages are shown for out of bound dates
     Given I generate "Legal help" "csv" file with the following claims
-      | caseStartDate | workConcludedDate | transferDate | repOrderDate | clientDob   |
-      | 31/12/1994    | 31/12/1994        | 31/12/1994   | 31/03/2016   | 05/01/1899  |
+      | caseStartDate | workConcludedDate | transferDate | repOrderDate | clientDob  |
+      |    31/12/1994 |        31/12/1994 |   31/12/1994 |   31/03/2016 | 05/01/1899 |
     And I upload the generated file
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "LEGAL HELP":
-      | Error Message                                                  |
-      | Case Start Date must be between 01/01/1995 and today           |
-      | Case Concluded Date must be between 01/01/1995 and today       |
-      | Transfer Date must be between 01/01/1995 and today             |
-      | Representation Order Date must be between 01/04/2016 and today |
-      | Client Date of Birth must be between 01/01/1900 and today      |
+      | Error Message                                                                                       |
+      | Case Start Date must be between 01/01/1995 and today                                                |
+      | Case Concluded Date cannot be later than the end date of the submission period or before 01/01/1995 |
+      | Transfer Date must be between 01/01/1995 and today                                                  |
+      | Representation Order Date must be between 01/04/2016 and today                                      |
+      | Client Date of Birth must be between 01/01/1900 and today                                           |
 
   Scenario Outline: Legal Help: Should check parse errors for <fieldName>
     Given I generate "Legal help" "csv" file with the following claims
@@ -63,6 +63,7 @@ Feature: Display message checks
       | <value>     |
     When I upload that file
     Then the user sees an error message "<errorMessage>"
+
     Examples:
       | fieldName               | value | errorMessage                                                                                    |
       | vatApplicable           | A     | Invalid value 'A' supplied for field 'VAT Applicable'. Valid values are 'Y' or 'N'              |
@@ -122,7 +123,6 @@ Feature: Display message checks
       | Adjourned Hearing Fee Amount must be between 0 and 9                                                                                       |
       | Costs Damages Recovered Amount must be a valid monetary value                                                                              |
       | Meetings Attended Code must be valid                                                                                                       |
-#      | Detention Travel Waiting Costs Amount must be a valid monetary value                                                                       |
       | JR Form Filling Amount must be a valid monetary value                                                                                      |
       | Advice Type Code must be valid                                                                                                             |
       | Medical Reports Count must be between 0 and 10                                                                                             |
@@ -133,6 +133,7 @@ Feature: Display message checks
       | AIT Hearing Centre Code must be valid                                                                                                      |
       | HO Interview must be between 0 and 9                                                                                                       |
       | Local Authority Number must contain only letters and numbers, and be a maximum of 30 characters                                            |
+#      | Detention Travel Waiting Costs Amount must be a valid monetary value                                                                       |
 
   Scenario: Crime Lower: Should check display messages are shown for missing field based errors
     Given I upload "tests/data/invalid/crime_lower_missing_fields.csv"
@@ -150,12 +151,12 @@ Feature: Display message checks
     And I wait on validation in progress screen
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "CRIME LOWER":
-      | Error Message                                                  |
-      | Case Start Date must be between 01/01/1995 and today           |
-      | Case Concluded Date must be between 01/04/2016 and today       |
-      | Transfer Date must be between 01/01/1995 and today             |
-      | Representation Order Date must be between 01/04/2016 and today |
-      | Client Date of Birth must be between 01/01/1900 and today      |
+      | Error Message                                                                                       |
+      | Case Start Date must be between 01/01/1995 and today                                                |
+      | Case Concluded Date cannot be later than the end date of the submission period or before 01/04/2016 |
+      | Transfer Date must be between 01/01/1995 and today                                                  |
+      | Representation Order Date must be between 01/04/2016 and today                                      |
+      | Client Date of Birth must be between 01/01/1900 and today                                           |
 
   Scenario Outline: Crime Lower: Should check parse errors for <fieldName>
     Given I generate "Crime lower" "csv" file with the following claims
@@ -163,6 +164,7 @@ Feature: Display message checks
       | <value>     |
     When I upload that file
     Then the user sees an error message "<errorMessage>"
+
     Examples:
       | fieldName               | value | errorMessage                                                                                    |
       | caseStartDate           | abc   | Case Start Date must be a valid date in the format DD/MM/YYYY                                   |
@@ -280,11 +282,11 @@ Feature: Display message checks
     And I wait on validation in progress screen
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "MEDIATION":
-      | Error Message                                                  |
-      | Case Start Date must be between 01/01/1995 and today           |
-      | Case Concluded Date must be between 01/01/1995 and today       |
-      | Client Date of Birth must be between 01/01/1900 and today      |
-      | Client 2 Date of Birth must be between 01/01/1900 and today      |
+      | Error Message                                                                                       |
+      | Case Start Date must be between 01/01/1995 and today                                                |
+      | Case Concluded Date cannot be later than the end date of the submission period or before 01/01/1995 |
+      | Client Date of Birth must be between 01/01/1900 and today                                           |
+      | Client 2 Date of Birth must be between 01/01/1900 and today                                         |
 
   Scenario Outline: Mediation: Should check parse errors for <fieldName>
     Given I generate "Mediation" "csv" file with the following claims
@@ -292,6 +294,7 @@ Feature: Display message checks
       | <value>     |
     When I upload that file
     Then the user sees an error message "<errorMessage>"
+
     Examples:
       | fieldName                | value | errorMessage                                                                                             |
       | caseStartDate            | abc   | Case Start Date must be a valid date in the format DD/MM/YYYY                                            |
@@ -350,7 +353,6 @@ Feature: Display message checks
       | Disbursements VAT Amount must be a valid monetary value                                                                                    |
       | Prior Authority Reference must be exactly 7 alphanumeric characters                                                                        |
       | Adjourned Hearing Fee Amount must be between 0 and 9                                                                                       |
-#      | Costs Damages Recovered Amount must be a valid monetary value                                                                              |
       | Meetings Attended Code must be valid                                                                                                       |
       | Detention Travel Waiting Costs Amount must be a valid monetary value                                                                       |
       | JR Form Filling Amount must be a valid monetary value                                                                                      |
@@ -369,29 +371,28 @@ Feature: Display message checks
       | Client 2 Gender code must be valid                                                                                                         |
       | Client 2 Ethnicity Code must be valid                                                                                                      |
       | Client 2 Disability Code must be valid                                                                                                     |
-
+#      | Costs Damages Recovered Amount must be a valid monetary value                                                                              |
 
   Scenario: Crime Lower: Should check display messages are shown for value based errors (regex)
     Given I upload "tests/data/invalid/crime_lower_value_regex_errors.csv"
     And I wait on validation in progress screen
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "CRIME LOWER":
-      | Error Message                                                                             |
-      | disbursements vat amount has exceeded the maximum accepted value                          |
+      | Error Message                                                    |
+      | disbursements vat amount has exceeded the maximum accepted value |
 
   Scenario: Mediation: Should check display messages are shown for value based errors (regex)
     Given I upload "tests/data/invalid/mediation_value_regex_errors.csv"
     And I wait on validation in progress screen
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "Mediation":
-      | Error Message                                                                             |
-      | disbursements vat amount has exceeded the maximum accepted value                          |
+      | Error Message                                                    |
+      | disbursements vat amount has exceeded the maximum accepted value |
 
   Scenario: Legal Help: Should check display messages are shown for value based errors (regex)
     Given I upload "tests/data/invalid/legal_help_value_regex_errors.csv"
     And I wait on validation in progress screen
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "Legal Help":
-      | Error Message                                                                             |
-      | disbursements vat amount has exceeded the maximum accepted value                          |
-
+      | Error Message                                                    |
+      | disbursements vat amount has exceeded the maximum accepted value |

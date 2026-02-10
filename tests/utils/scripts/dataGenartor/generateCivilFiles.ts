@@ -38,15 +38,27 @@ async function generateOutcome(
     caseNum: number,
     scheduleStart?: string,
     scheduleEnd?: string,
-    claimOverride?: claimOptions
+    claimOverride?: claimOptions,
+    period?: string
 ) {
   const first = faker.person.firstName();
   const last = faker.person.lastName();
 
   let start = scheduleStart ? new Date(scheduleStart) : new Date('1995-01-01');
   let end = scheduleEnd ? new Date(scheduleEnd) : new Date();
+  // Convert period to Date (MMM-uuuu). Set end to last day of the month before the period month, to ensure generated dates are always within the period
+  if (period) {
+    const [monthStr, yearStr] = period.split('-');
+    const month = new Date(`${monthStr} 1, ${yearStr}`).getMonth();
+    const year = parseInt(yearStr, 10);
+    end = new Date(year, month, 0); // Last day of the month
+    // Go one month previous
+    end = 
+        new Date(end.getFullYear(), end.getMonth() - 1, end.getDate());
+  }
 
   const MIN = new Date('1995-01-01');
+  
   const today = new Date();
 
   if (start < MIN) start = MIN;
@@ -145,7 +157,8 @@ async function generateFile(
         i,
         scheduleStart,
         scheduleEnd,
-        override
+        override,
+        period
     );
 
     const feeCode = override?.feeCode ?? random(feeCodes);
