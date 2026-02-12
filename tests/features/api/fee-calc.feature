@@ -158,13 +158,13 @@ Feature: Fee Calculation API
 
     @police_station_work
     Examples: Police Station Work
-      | feeCode  | startDate  | uniqueFileNumber  | policeStationId | policeStationSchemeId  | netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal |
-      | INVC     | 2016-04-01 | 110516/001        | NE001           | 1001                   | 20                    | 10.50                 | true         | 0                         | 0                      | 188.18        |
-      | INVC     | 2016-04-01 | 110516/002        | NE003           | 1001                   | 20                    | 10.50                 | false        | 0                         | 0                      | 166.46        |
-      | INVC     | 2022-09-30 | 121022/003        | NE016           | 1004                   | 20                    | 15.50                 | true         | 0                         | 0                      | 245.80        |
-      | INVC     | 2022-09-30 | 121022/004        | NE041           | 1010                   | 20                    | 15.50                 | false        | 0                         | 0                      | 197.11        |
-      | INVC     | 2024-12-06 | 131224/005        | RD052           | 1141                   | 20                    | 15.50                 | true         | 0                         | 0                      | 325.94        |
-      | INVC     | 2024-12-06 | 131224/006        | RD091           | 1142                   | 20                    | 15.50                 | false        | 0                         | 0                      | 259.02        |
+      | feeCode  | startDate  | uniqueFileNumber  | policeStationId | policeStationSchemeId  | netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal | representationOrderDate |
+      | INVC     | 2016-04-01 | 110516/001        | NE001           | 1001                   | 20                    | 10.50                 | true         | 0                         | 0                      | 188.18        | 2016-04-02              |
+      | INVC     | 2016-04-01 | 110516/002        | NE003           | 1001                   | 20                    | 10.50                 | false        | 0                         | 0                      | 166.46        |                         |
+      | INVC     | 2022-09-30 | 121022/003        | NE016           | 1004                   | 20                    | 15.50                 | true         | 0                         | 0                      | 245.80        |                         |
+      | INVC     | 2022-09-30 | 121022/004        | NE041           | 1010                   | 20                    | 15.50                 | false        | 0                         | 0                      | 197.11        |                         |
+      | INVC     | 2024-12-06 | 131224/005        | RD052           | 1141                   | 20                    | 15.50                 | true         | 0                         | 0                      | 325.94        |                         |
+      | INVC     | 2024-12-06 | 131224/006        | RD091           | 1142                   | 20                    | 15.50                 | false        | 0                         | 0                      | 259.02        |                         |
 
     @police_station_work_all_INVC
     Examples: Police station work all INVC codes 01-04-16
@@ -1073,16 +1073,16 @@ Feature: Fee Calculation API
 
     @prison_law
     Examples: Prison Law
-      | feeCode  | startDate  | uniqueFileNumber  | netTravelCosts| netWaitingCosts  | netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal |
-      | PRIA     | 2016-04-01 | 110516/001        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 271.40        |
-      | PRIB1    | 2016-04-01 | 010416/002        | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 234.43        |
-      | PRIB2    | 2016-04-01 | 110619/003        | 0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 712.49        |
-      | PRIC1    | 2016-04-01 | 161224/004        | 0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 472.71        |
-      | PRIC2    | 2016-04-01 | 200118/005        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 1775.83       |
-      | PRID1    | 2016-04-01 | 020416/006        | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 234.43        |
-      | PRID2    | 2016-04-01 | 110516/001        | 0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 712.49        |
-      | PRIE1    | 2016-04-01 | 010416/002        | 0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 472.71        |
-      | PRIE2    | 2016-04-01 | 020416/003        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 1775.83       |
+      | feeCode  | startDate  | uniqueFileNumber  | netTravelCosts| netWaitingCosts  | netDisbursementAmount | disbursementVatAmount | vatIndicator | numberOfMediationSessions | boltOnAdjournedHearing | expectedTotal | representationOrderDate |
+      | PRIA     | 2016-04-01 | 110516/001        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 271.40        | 2016-05-12              |
+      | PRIB1    | 2016-04-01 | 010416/002        | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 234.43        |                         |
+      | PRIB2    | 2016-04-01 | 110619/003        | 0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 712.49        |                         |
+      | PRIC1    | 2016-04-01 | 161224/004        | 0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 472.71        |                         |
+      | PRIC2    | 2016-04-01 | 200118/005        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 1775.83       | 2018-05-12              |
+      | PRID1    | 2016-04-01 | 020416/006        | 0             | 0                | 20                    | 10.50                 | false        | 0                         | 0                      | 234.43        |                         |
+      | PRID2    | 2016-04-01 | 110516/001        | 0             | 0                | 20                    | 15.50                 | true         | 0                         | 0                      | 712.49        |                         |
+      | PRIE1    | 2016-04-01 | 010416/002        | 0             | 0                | 20                    | 15.50                 | false        | 0                         | 0                      | 472.71        |                         |
+      | PRIE2    | 2016-04-01 | 020416/003        | 0             | 0                | 20                    | 10.50                 | true         | 0                         | 0                      | 1775.83       |                         |
 
     @appeals_and_reviews
     Examples: Appeals and Reviews
@@ -1237,11 +1237,10 @@ Feature: Fee Calculation API
 
     @pre_order_cover
     Examples: Pre Order Cover
-      | feeCode | startDate  | uniqueFileNumber | netProfitCosts | netTravelCosts | netWaitingCosts | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
-      | PROP1   | 2016-04-01 | 110516/001       | 5              | 10             | 2               | Yes          | 20                    | 10.5                  | 50.90         |
-      | PROP1   | 2022-09-30 | 290922/002       | 10             | 0              | 3               | No           | 20                    | 10.5                  | 43.50         |
-      | PROP1   | 2022-09-30 | 161223/003       | 3              | 2              | 0               | Yes          | 20                    | 15.5                  | 41.50         |
-      | PROP2   | 2016-04-01 | 020416/004       | 5              | 10             | 2               | No           | 20                    | 15.5                  | 52.50         |
-      | PROP2   | 2022-09-30 | 290922/005       | 10             | 0              | 3               | Yes          | 20                    | 10.5                  | 46.10         |
-      | PROP2   | 2022-09-30 | 161224/006       | 3              | 2              | 0               | No           | 20                    | 10.5                  | 35.50         |
-
+      | feeCode | startDate  | uniqueFileNumber | netProfitCosts | netTravelCosts | netWaitingCosts | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal | representationOrderDate |
+      | PROP1   | 2016-04-01 | 110516/001       | 5              | 10             | 2               | Yes          | 20                    | 10.5                  | 50.90         | 2016-04-02              |
+      | PROP1   | 2022-09-30 | 290922/002       | 10             | 0              | 3               | No           | 20                    | 10.5                  | 43.50         |                         |
+      | PROP1   | 2022-09-30 | 161223/003       | 3              | 2              | 0               | Yes          | 20                    | 15.5                  | 41.50         |                         |
+      | PROP2   | 2016-04-01 | 020416/004       | 5              | 10             | 2               | No           | 20                    | 15.5                  | 52.50         |                         |
+      | PROP2   | 2022-09-30 | 290922/005       | 10             | 0              | 3               | Yes          | 20                    | 10.5                  | 46.10         |                         |
+      | PROP2   | 2022-09-30 | 161224/006       | 3              | 2              | 0               | No           | 20                    | 10.5                  | 35.50         |                         |
