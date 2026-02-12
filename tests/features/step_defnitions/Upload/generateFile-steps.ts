@@ -667,6 +667,37 @@ When(
     }
 );
 
+When(
+    'I upload the generated file with mime type {string}',
+    async function (mimeType: string) {
+
+        let filePath = this.generatedFilePath;
+
+        if (!filePath) {
+            throw new Error("No file path found for upload.");
+        }
+
+        await this.attach(`📁 Uploading file: ${filePath}`, "text/plain");
+
+        const bulkImportPage = new BulkImportPage(this.page!);
+
+        await bulkImportPage.uploadFile(filePath, {mimeType: mimeType});
+        await bulkImportPage.clickUpload();
+
+        const successBanner = this.page.locator(".govuk-notification-banner--success");
+        const errorBanner = this.page.locator(".moj-alert--error");
+
+        try {
+            await Promise.race([
+                successBanner.waitFor({ state: "visible", timeout: 40000 }),
+                errorBanner.waitFor({ state: "visible", timeout: 40000 }),
+            ]);
+        } catch {
+            await this.attach("⚠️ No banner appeared after upload.", "text/plain");
+        }
+
+    }
+);
 
 // ======================================================
 //            API UPLOAD (SINGLE STEP)
