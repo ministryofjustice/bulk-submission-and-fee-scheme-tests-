@@ -684,18 +684,6 @@ When(
         await bulkImportPage.uploadFile(filePath, {mimeType: mimeType});
         await bulkImportPage.clickUpload();
 
-        const successBanner = this.page.locator(".govuk-notification-banner--success");
-        const errorBanner = this.page.locator(".moj-alert--error");
-
-        try {
-            await Promise.race([
-                successBanner.waitFor({ state: "visible", timeout: 40000 }),
-                errorBanner.waitFor({ state: "visible", timeout: 40000 }),
-            ]);
-        } catch {
-            await this.attach("⚠️ No banner appeared after upload.", "text/plain");
-        }
-
     }
 );
 

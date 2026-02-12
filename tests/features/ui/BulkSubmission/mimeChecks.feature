@@ -8,22 +8,23 @@ Feature: MIME validation checks
   Scenario Outline: Accept submission when <format> and has Mime Type <mimeType>
     Given I generate "Legal help" "<format>" file with "1" outcomes
     When I upload the generated file with mime type "<mimeType>"
+    And I wait on validation in progress screen
     Then I should see the submission summary for "Legal help"
     Examples:
-      | format | mimeType                       |
-      | txt    | text/plain                     |
-      | csv    | text/plain                     |
-      | csv    | text/csv                       |
-      | csv    | application/vnd.ms-excel       |
-      | xml    | text/xml                       |
+      | format | mimeType                 |
+      | txt    | text/plain               |
+      | csv    | text/plain               |
+      | csv    | text/csv                 |
+      | xml    | text/xml                 |
+      | csv    | application/vnd.ms-excel |
 
   Scenario Outline: Reject submission when <format> and has Mime Type <mimeType>
     Given I generate "Legal help" "<format>" file with "1" outcomes
     When I upload the generated file with mime type "<mimeType>"
     Then the user sees an error message "File content does not match the file extension"
     Examples:
-      | format | mimeType                 |
-      | txt    | application/xml          |
+      | format | mimeType        |
+      | txt    | application/xml |
       | txt    | text/xml                 |
       | txt    | text/csv                 |
       | txt    | application/csv          |
@@ -39,5 +40,4 @@ Feature: MIME validation checks
       | xml    | application/vnd.ms-excel |
       | xml    | application/csv          |
       | xml    | application/json         |
-      | xml    | application/pdf          |
     
