@@ -14,8 +14,12 @@ class BulkImportPage extends BasePage {
 
   }
 
-  async uploadFile(filePath: string) {
-    await this.fileInput.setInputFiles(filePath);
+  async uploadFile(filePath: string, options?: { mimeType?: string }) {
+    await this.fileInput.setInputFiles({
+      name: filePath.split('/').pop() || 'file',
+      mimeType: options?.mimeType || '',
+      buffer: require('fs').readFileSync(filePath)
+    });
   }
 
   async clickUpload() {

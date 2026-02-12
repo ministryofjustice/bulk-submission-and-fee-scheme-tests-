@@ -667,6 +667,25 @@ When(
     }
 );
 
+When(
+    'I upload the generated file with mime type {string}',
+    async function (mimeType: string) {
+
+        let filePath = this.generatedFilePath;
+
+        if (!filePath) {
+            throw new Error("No file path found for upload.");
+        }
+
+        await this.attach(`📁 Uploading file: ${filePath}`, "text/plain");
+
+        const bulkImportPage = new BulkImportPage(this.page!);
+
+        await bulkImportPage.uploadFile(filePath, {mimeType: mimeType});
+        await bulkImportPage.clickUpload();
+
+    }
+);
 
 // ======================================================
 //            API UPLOAD (SINGLE STEP)
