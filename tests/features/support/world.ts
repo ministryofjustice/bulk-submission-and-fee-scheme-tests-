@@ -38,6 +38,7 @@ export class World {
   mostRecentSubmissionId: any;
   searchFromDate: any;
   searchToDate: any;
+  searchSubmissionPeriod: any;
   expectedCount: number | undefined;
   allSubmissionIds: any;
 

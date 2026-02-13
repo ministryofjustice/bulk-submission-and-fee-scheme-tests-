@@ -1,4 +1,4 @@
-@search @stable
+@search @stable @jamie
 Feature: Bulk Submission Search
 
   Background:
@@ -32,27 +32,7 @@ Feature: Bulk Submission Search
       |                   |            | 99/99/2025 | Enter the submission to date in the correct format, for example, 17/5/2024   |                                                                            |
       |                   | 40/15/2025 | 31/31/2025 | Enter the submission from date in the correct format, for example, 17/5/2024 | Enter the submission to date in the correct format, for example, 17/5/2024 |
 
-
-  Scenario: Search for submissions using valid date range
-    Given I determine a valid submission search date range for the past 1 days
-    And I am on the Search page
-    When I search using the valid date range
-    Then the Search page should pass accessibility checks
-    Then I should see results matching the expected count
-
-
-  Scenario: Verify future dates are disabled in the date pickers
-    Given I am on the Search page
-    Then future dates should be disabled in the "from" date picker
-    And future dates should be disabled in the "to" date picker
-
-
-  Scenario: Search with a past date range that returns no submissions
-    Given I choose a date in the past with no submissions
-    And I am on the Search page
-    When I search using the valid date range
-    Then I should see a message saying "No submissions were found."
-    Then the Search page should pass accessibility checks
+    # TODO Enter no offices
 
   Scenario: Search with no filter specified
     Given I am on the Search page

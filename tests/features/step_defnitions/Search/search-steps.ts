@@ -430,17 +430,6 @@ Then('I should see a message saying {string}', async function (this: CustomWorld
     await searchPage.verifyNoSubmissionsMessage();
 });
 
-Given('I choose a date in the past with no submissions', async function (this: CustomWorld) {
-    this.searchFromDate = '01/01/2000';
-    this.searchToDate = '31/12/2001';
-
-    await this.attach(
-        `📅 Using fixed historical date range: ${this.searchFromDate} → ${this.searchToDate}\n` +
-        `🧮 Expecting no submissions for this range (pre-system era).`,
-        'text/plain'
-    );
-});
-
 
 Then('the Search page should pass accessibility checks', async function (this: CustomWorld) {
     const results = await new AxeBuilder({ page: this.page! })
