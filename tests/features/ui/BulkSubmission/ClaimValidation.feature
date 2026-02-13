@@ -175,6 +175,8 @@ Feature: Display message checks
 
   Scenario: Crime Lower: Should check display messages are shown for out of bound dates with concluded date before 01/04/2016
     Given I upload "tests/data/invalid/crime_lower_wrong_dates_with_concluded_date_before_01_04_2016.csv"
+  Scenario: Crime Lower: Should check display messages are shown for out of bound dates with concluded date before 01/04/2016
+    Given I upload "tests/data/invalid/crime_lower_wrong_dates_with_concluded_date_before_01_04_2016.csv"
     And I wait on validation in progress screen
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "CRIME LOWER":
@@ -190,12 +192,30 @@ Feature: Display message checks
     And I wait on validation in progress screen
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "CRIME LOWER":
+      | Error Message                                                                                       |
+      | Case Start Date must be between 01/01/1995 and today                                                |
+      | Case Concluded Date cannot be before 01/04/2016                                                     |
+      | Transfer Date must be between 01/01/1995 and today                                                  |
+      | Representation Order Date must be between 01/04/2016 and today                                      |
+      | Client Date of Birth must be between 01/01/1900 and today                                           |
       | Error Message                                                                                  |
       | Case Start Date must be between 01/01/1995 and today                                           |
       | Case Concluded Date cannot be later than the 20th of the month following the submission period |
       | Transfer Date must be between 01/01/1995 and today                                             |
       | Representation Order Date must be between 01/04/2016 and today                                 |
       | Client Date of Birth must be between 01/01/1900 and today                                      |
+
+  Scenario: Crime Lower: Should check display messages are shown for out of bound dates with concluded date after the 20th of the month following the submission period
+    Given I upload "tests/data/invalid/crime_lower_wrong_dates_with_concluded_date_after_20th_of_month_following_submission_period.csv"
+    And I wait on validation in progress screen
+    When I should see an error banner saying "1 claim has errors for missing or incorrect information"
+    And I should see the following submission error messages for "CRIME LOWER":
+      | Error Message                                                                                       |
+      | Case Start Date must be between 01/01/1995 and today                                                |
+      | Case Concluded Date cannot be later than the 20th of the month following the submission period      |
+      | Transfer Date must be between 01/01/1995 and today                                                  |
+      | Representation Order Date must be between 01/04/2016 and today                                      |
+      | Client Date of Birth must be between 01/01/1900 and today
 
   Scenario: Crime Lower: Should check display messages are shown for out of bound dates with concluded date in the future
     Given I upload "tests/data/invalid/crime_lower_wrong_dates_with_concluded_date_in_the_future.csv"
