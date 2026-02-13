@@ -46,16 +46,16 @@ Feature: Display message checks
   Scenario: Legal Help: Should check display messages are shown for out of bound dates
     Given I generate "Legal help" "csv" file with the following claims
       | caseStartDate | workConcludedDate | transferDate | repOrderDate | clientDob  |
-      |    31/12/1994 |        31/12/1994 |   31/12/1994 |   31/03/2016 | 05/01/1899 |
+      | 31/12/1994    | 31/12/1994        | 31/12/1994   | 31/03/2016   | 05/01/1899 |
     And I upload the generated file
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "LEGAL HELP":
-      | Error Message                                                                                       |
-      | Case Start Date must be between 01/01/1995 and today                                                |
-      | Case Concluded Date cannot be later than the end date of the submission period or before 01/01/1995 |
-      | Transfer Date must be between 01/01/1995 and today                                                  |
-      | Representation Order Date must be between 01/04/2016 and today                                      |
-      | Client Date of Birth must be between 01/01/1900 and today                                           |
+      | Error Message                                                  |
+      | Case Start Date must be between 01/04/2013 and today           |
+      | Case Concluded Date cannot be before 01/04/2013                |
+      | Transfer Date must be between 01/04/2013 and today             |
+      | Representation Order Date must be between 01/04/2016 and today |
+      | Client Date of Birth must be between 01/01/1900 and today      |
 
   Scenario Outline: Legal Help: Should check parse errors for <fieldName>
     Given I generate "Legal help" "csv" file with the following claims
@@ -150,12 +150,12 @@ Feature: Display message checks
     And I wait on validation in progress screen
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "CRIME LOWER":
-      | Error Message                                                                                       |
-      | Case Start Date must be between 01/01/1995 and today                                                |
-      | Case Concluded Date cannot be later than the end date of the submission period or before 01/04/2016 |
-      | Transfer Date must be between 01/01/1995 and today                                                  |
-      | Representation Order Date must be between 01/04/2016 and today                                      |
-      | Client Date of Birth must be between 01/01/1900 and today                                           |
+      | Error Message                                                  |
+      | Case Start Date must be between 01/04/2013 and today           |
+      | Case Concluded Date cannot be before 01/04/2016                |
+      | Transfer Date must be between 01/04/2013 and today             |
+      | Representation Order Date must be between 01/04/2016 and today |
+      | Client Date of Birth must be between 01/01/1900 and today      |
 
   Scenario Outline: Crime Lower: Should check parse errors for <fieldName>
     Given I generate "Crime lower" "csv" file with the following claims
@@ -280,11 +280,11 @@ Feature: Display message checks
     And I wait on validation in progress screen
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "MEDIATION":
-      | Error Message                                                                                       |
-      | Case Start Date must be between 01/01/1995 and today                                                |
-      | Case Concluded Date cannot be later than the end date of the submission period or before 01/01/1995 |
-      | Client Date of Birth must be between 01/01/1900 and today                                           |
-      | Client 2 Date of Birth must be between 01/01/1900 and today                                         |
+      | Error Message                                               |
+      | Case Start Date must be between 01/04/2013 and today        |
+      | Case Concluded Date cannot be before 01/04/2013             |
+      | Client Date of Birth must be between 01/01/1900 and today   |
+      | Client 2 Date of Birth must be between 01/01/1900 and today |
 
   Scenario Outline: Mediation: Should check parse errors for <fieldName>
     Given I generate "Mediation" "csv" file with the following claims
