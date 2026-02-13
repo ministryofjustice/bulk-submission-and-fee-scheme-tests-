@@ -298,7 +298,7 @@ Feature: Display message checks
       | Client 2 Date of Birth must be between 01/01/1900 and today                                         |
 
   Scenario: Mediation: Should check display messages are shown for out of bound dates with concluded date in the future
-    Given I upload "tests/data/invalid/mediation_wrong_date_ranges_with_concluded_date_in_the_future.csv"
+    Given I upload "tests/data/invalid/mediation_wrong_dates_with_concluded_date_in_the_future.csv"
     And I wait on validation in progress screen
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "MEDIATION":
