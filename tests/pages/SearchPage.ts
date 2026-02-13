@@ -3,9 +3,11 @@ import { BasePage } from './BasePage';
 import {goToPaginationPage} from "../utils/scripts/pageNavigation";
 
 export class SearchPage extends BasePage {
-  private submittedDateFromInput: Locator;
-  private submittedDateToInput: Locator;
-  private submissionReferenceInput: Locator;
+  private submissionPeriodInput: Locator;
+  private areaOfLawInput: Locator;
+  private submissionOutcomeCompletedInput: Locator;
+  private submissionOutcomeAllInput: Locator;
+  // TODO: private officeAccountInputs: Locator;
   private clearAllLink: Locator;
   private fieldErrorMessages: Locator;
 
@@ -21,9 +23,10 @@ export class SearchPage extends BasePage {
     super(page, 'Search for a submission', 'Search');
 
     // --- Page-specific locators ---
-    this.submittedDateFromInput = page.locator('#submittedDateFrom-input');
-    this.submittedDateToInput = page.locator('#submittedDateTo-input');
-    this.submissionReferenceInput = page.locator('#submissionId-input');
+    this.submissionPeriodInput = page.locator('#submission-period');
+    this.areaOfLawInput = page.locator('#area-of-law');
+    this.submissionOutcomeCompletedInput = page.locator('#completed-radio-option');
+    this.submissionOutcomeAllInput = page.locator('#all-radio-option');
     this.clearAllLink = page.getByRole('link', { name: 'Clear all' });
     this.fieldErrorMessages = page.locator('.govuk-error-message');
 
@@ -54,16 +57,21 @@ export class SearchPage extends BasePage {
 
 
   // --- Actions ---
-  async enterSubmittedDateFrom(date: string) {
-    await this.submittedDateFromInput.fill(date);
+  async selectSubmissionPeriod(period: string) {
+    // TODO: May not work straight away due to being accessible autocomplete component
+    await this.submissionPeriodInput.selectOption(period);
   }
 
-  async enterSubmittedDateTo(date: string) {
-    await this.submittedDateToInput.fill(date);
+  async selectAreaOfLaw(areaOfLaw: string) {
+    await this.areaOfLawInput.selectOption(areaOfLaw);
   }
 
-  async enterSubmissionReference(ref: string) {
-    await this.submissionReferenceInput.fill(ref);
+  async selectCompletedSubmissionOutcomeRadio(){
+    await this.submissionOutcomeCompletedInput.click();
+  }
+
+  async selectAllSubmissionOutcomeRadio(){
+    await this.submissionOutcomeAllInput.click();
   }
 
   async clickClearAll() {
@@ -97,9 +105,10 @@ export class SearchPage extends BasePage {
   }
 
   async expectFieldValueCleared() {
-    await expect(this.submittedDateFromInput).toHaveValue('');
-    await expect(this.submittedDateToInput).toHaveValue('');
-    await expect(this.submissionReferenceInput).toHaveValue('');
+    await expect(this.submissionPeriodInput).toHaveValue('');
+    await expect(this.areaOfLawInput).toHaveValue('All');
+    await expect(this.submissionOutcomeCompletedInput).toBeChecked({checked: true});
+    await expect(this.submissionOutcomeAllInput).toBeChecked({checked: false});
   }
 
   // --- Results ---
