@@ -13,11 +13,26 @@ import {SearchPage} from "../../../pages/SearchPage";
 import { injectAxe, checkA11y } from '@axe-core/playwright';
 import AxeBuilder from '@axe-core/playwright';
 import { createDataSourceManager } from '../../../utils/db/dataSourceManager';
+import {parse, format} from 'date-fns';
 
 
 dotenv.config();
 
 const dataSourceManager = createDataSourceManager({ label: 'search-steps' });
+
+/**
+ * Converts submission period from MMM-uuuu format to MMMM uuuu format
+ * Example: "Jan-2024" -> "January 2024"
+ */
+function convertSubmissionPeriodFormat(period: string): string {
+    try {
+        const parsedDate = parse(period, 'MMM-yyyy', new Date());
+        return format(parsedDate, 'MMMM yyyy');
+    } catch (error) {
+        console.warn(`Failed to convert period "${period}":`, error);
+        return period;
+    }
+}
 
 
 Given('I am on the Search page', async function (this: CustomWorld) {
@@ -142,21 +157,6 @@ Given(
 );
 
 
-// --- When I search using the most recent submission reference ---
-When(
-    'I search using the most recent submission reference',
-    async function (this: CustomWorld) {
-        if (!this.mostRecentSubmissionId) {
-            throw new Error('❌ No submission ID found in context. Ensure the previous step ran successfully.');
-        }
-
-        const searchPage = new SearchPage(this.page!);
-        await searchPage.enterSubmissionReference(this.mostRecentSubmissionId);
-        await searchPage.submit(); // using BasePage’s submit()
-        await this.attach(`🔍 Searched using submission reference: ${this.mostRecentSubmissionId}`, 'text/plain');
-    }
-);
-
 When(
     'I open the most recent submission from the results list',
     async function (this: CustomWorld) {
@@ -208,17 +208,6 @@ Then('I should see one search result for that submission', async function (this:
     );
 });
 
-When('I search using an invalid submission reference', async function (this: CustomWorld) {
-    const searchPage = new SearchPage(this.page!);
-
-    // Provide a malformed or non-existent UUID
-    const invalidId = '1234-invalid-uuid';
-    await searchPage.enterSubmissionReference(invalidId);
-    await searchPage.submit();
-
-    await this.attach(`🔍 Searched using invalid submission reference: ${invalidId}`, 'text/plain');
-});
-
 // --- Then I should see a validation message saying "Enter a valid submission reference" ---
 Then('I should see a validation message saying {string}', async function (this: CustomWorld, expectedMessage: string) {
     const searchPage = new SearchPage(this.page!);
@@ -233,19 +222,24 @@ When('I enter invalid search criteria:', async function (this: CustomWorld, tabl
     const searchPage = new SearchPage(this.page!);
 
     if (data.submissionReference) {
-        await searchPage.enterSubmissionReference(data.submissionReference);
+        //await searchPage.enterSubmissionReference(data.submissionReference);
         await this.attach(`🧾 Entered invalid reference: ${data.submissionReference}`, 'text/plain');
     }
 
     if (data.fromDate) {
-        await searchPage.enterSubmittedDateFrom(data.fromDate);
+        //await searchPage.enterSubmittedDateFrom(data.fromDate);
         await this.attach(`🧾 Entered invalid From date: ${data.fromDate}`, 'text/plain');
     }
 
     if (data.toDate) {
-        await searchPage.enterSubmittedDateTo(data.toDate);
+        //await searchPage.enterSubmittedDateTo(data.toDate);
         await this.attach(`🧾 Entered invalid To date: ${data.toDate}`, 'text/plain');
     }
+});
+
+When('I deselect all office accounts', async function (this: CustomWorld) {
+    const searchPage = new SearchPage(this.page!);
+    await searchPage.deselectAllOfficeAccounts();
 });
 
 When('I click search', async function (this: CustomWorld) {
@@ -270,25 +264,13 @@ Then('I should see the following validation messages:', async function (this: Cu
     );
 });
 
-Given('I determine a valid submission search date range for the past {int} days', async function (this: CustomWorld, days: number) {
+Given('I determine a valid submission search criteria', async function (this: CustomWorld) {
     const dbAvailable = await dataSourceManager.ensureInitialized();
     const dataSource = dataSourceManager.getDataSource();
 
     if (!dbAvailable) {
-        const to = new Date();
-        const from = new Date(to);
-        from.setDate(to.getDate() - days);
-        const formatDate = (date: Date) =>
-            date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
-
-        this.searchFromDate = formatDate(from);
-        this.searchToDate = formatDate(to);
-
-        this.expectedCount = undefined;
-        this.allSubmissionIds = [];
-
         await this.attach(
-            `⚠️ Database unavailable. Using fallback date range ${this.searchFromDate} → ${this.searchToDate} and skipping DB expectations.`,
+            `⚠️ Database unavailable.`,
             'text/plain'
         );
         return;
@@ -296,81 +278,49 @@ Given('I determine a valid submission search date range for the past {int} days'
 
     // 🧭 Use dynamic interval based on parameter
     let result = await dataSource.query(`
-        SELECT
-            COUNT(*) AS total,
-            TO_CHAR(MIN(created_on), 'DD/MM/YYYY') AS from_date,
-            TO_CHAR(MAX(created_on), 'DD/MM/YYYY') AS to_date,
-            (SELECT ARRAY_AGG(id ORDER BY created_on DESC)
-             FROM claims.submission
-             WHERE office_account_number IN (
-                '0P322F','2L849T','1T102C','2L846P','2L847Q','2L848R',
-                '2M047H','2M463K','2N199K','2N493E','2N758T','2P746R',
-                '2P747T','2Q779P','2Q780Q'
-             )
-             AND created_on >= date_trunc('day', NOW() - INTERVAL '${days} days')
-             ) AS all_ids
-        FROM claims.submission
-        WHERE office_account_number IN (
-            '0P322F','2L849T','1T102C','2L846P','2L847Q','2L848R',
-            '2M047H','2M463K','2N199K','2N493E','2N758T','2P746R',
-            '2P747T','2Q779P','2Q780Q'
-        )
-        AND created_on >= date_trunc('day', NOW() - INTERVAL '${days} days');
+        select submission.submission_period,
+               submission.office_account_number,
+               submission.area_of_law,
+               submission.status,
+               count(*) as total
+        from claims.submission
+        group by submission_period, office_account_number, status, area_of_law
+        order by count(*) desc;
     `);
-
-    // 🧩 Fallback if empty
-    if (!result[0]?.total || Number(result[0].total) === 0) {
-        console.warn(`⚠️ No recent data found for ${days} days, falling back to oldest range...`);
-        result = await dataSource.query(`
-            SELECT
-                COUNT(*) AS total,
-                TO_CHAR(MIN(created_on), 'DD/MM/YYYY') AS from_date,
-                TO_CHAR(MAX(created_on), 'DD/MM/YYYY') AS to_date,
-                (SELECT ARRAY_AGG(id ORDER BY created_on DESC)
-                 FROM claims.submission
-                 WHERE office_account_number IN (
-                    '0P322F','2L849T','1T102C','2L846P','2L847Q','2L848R',
-                    '2M047H','2M463K','2N199K','2N493E','2N758T','2P746R',
-                    '2P747T','2Q779P','2Q780Q'
-                 )
-                 ) AS all_ids
-            FROM claims.submission
-            WHERE office_account_number IN (
-                '0P322F','2L849T','1T102C','2L846P','2L847Q','2L848R',
-                '2M047H','2M463K','2N199K','2N493E','2N758T','2P746R',
-                '2P747T','2Q779P','2Q780Q'
-            );
-        `);
-    }
 
     await dataSourceManager.destroy();
 
-    this.searchFromDate = result[0].from_date;
-    this.searchToDate = result[0].to_date;
+    this.searchSubmissionPeriod = convertSubmissionPeriodFormat(result[0].submission_period);
+    this.searchOfficeAccount = result[0].office_account_number;
+    this.searchAreaOfLaw = result[0].area_of_law;
+    this.searchStatus = result[0].status;
     this.expectedCount = Number(result[0].total);
-    this.allSubmissionIds = result[0].all_ids || [];
-
-    const previewIds = this.allSubmissionIds.slice(0, 3).join('\n  - ');
 
     await this.attach(
-        `📅 Using dynamic range (${days} days): ${this.searchFromDate} → ${this.searchToDate}\n` +
-        `🧮 Expected count: ${this.expectedCount}\n` +
-        `🗂️ Total stored IDs: ${this.allSubmissionIds.length}\n` +
-        (previewIds ? `🔎 Sample IDs:\n  - ${previewIds}` : '⚠️ No IDs returned'),
+        `🔎 Using submission period: ${this.searchSubmissionPeriod}\n` +
+        `🔎 Using office account: ${this.searchOfficeAccount}\n` +
+        `🔎 Using area of law: ${this.searchAreaOfLaw}\n` +
+        `🔎 Using searchStatus: ${this.searchStatus}\n` +
+        `🧮 Expected count: ${this.expectedCount}\n`,
         'text/plain'
     );
 });
 
-
-When('I search using the valid date range', async function (this: CustomWorld) {
+When('I search using the valid search criteria', async function (this: CustomWorld) {
     const searchPage = new SearchPage(this.page!);
+    
+    await searchPage.selectSubmissionPeriod(this.searchSubmissionPeriod);
+    await searchPage.selectAreaOfLaw(this.searchAreaOfLaw);
+    await searchPage.selectCorrespondingSubmissionStatus(this.searchStatus);
+    // TODO: Change office account filter
 
-    await searchPage.enterSubmittedDateFrom(this.searchFromDate);
-    await searchPage.enterSubmittedDateTo(this.searchToDate);
-    await searchPage.submit();
-
-    await this.attach(
-        `🔍 Performed search between ${this.searchFromDate} and ${this.searchToDate}`,
+    await searchPage.submit(); // using BasePage’s submit()
+    await this.attach(`🔍 Searched using:\n` +
+        `🔎 Using submission period: ${this.searchSubmissionPeriod}\n` +
+        `🔎 Using office account: ${this.searchOfficeAccount}\n` +
+        `🔎 Using area of law: ${this.searchAreaOfLaw}\n` +
+        `🔎 Using searchStatus: ${this.searchStatus}\n` +
+        `🧮 Expected count: ${this.expectedCount}\n`,
         'text/plain'
     );
 });
@@ -419,11 +369,6 @@ Then('I should see results matching the expected count', async function (this: C
     }
 });
 
-Then('future dates should be disabled in the {string} date picker', async function (this: CustomWorld, field: string) {
-    const searchPage = new SearchPage(this.page!);
-    await searchPage.verifyFutureDatesDisabled(field as 'from' | 'to');
-    await this.attach(`✅ Verified that future dates are disabled for the ${field} date picker.`, 'text/plain');
-});
 
 Then('I should see a message saying {string}', async function (this: CustomWorld, expectedMessage: string) {
     const searchPage = new SearchPage(this.page!);

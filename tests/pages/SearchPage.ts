@@ -7,7 +7,8 @@ export class SearchPage extends BasePage {
   private areaOfLawInput: Locator;
   private submissionOutcomeCompletedInput: Locator;
   private submissionOutcomeAllInput: Locator;
-  // TODO: private officeAccountInputs: Locator;
+  private chooseOfficeAccountsDetails: Locator;
+  private officeAccountLegend: Locator;
   private clearAllLink: Locator;
   private fieldErrorMessages: Locator;
 
@@ -29,9 +30,11 @@ export class SearchPage extends BasePage {
     this.submissionOutcomeAllInput = page.locator('#all-radio-option');
     this.clearAllLink = page.getByRole('link', { name: 'Clear all' });
     this.fieldErrorMessages = page.locator('.govuk-error-message');
+    this.chooseOfficeAccountsDetails = page.locator('#choose-office-account-details-summary');
+    this.officeAccountLegend = page.locator('#office-account-legend');
 
     // --- Results locators ---
-    this.resultsHeading = page.locator('h2.govuk-heading-m');
+    this.resultsHeading = page.locator('#results-heading');
     this.resultsTable = page.locator('table.govuk-table');
     this.firstResultLink = page.locator('table.govuk-table tbody tr:first-child td:first-child a');
     this.firstResultStatus = page.locator('table.govuk-table tbody tr:first-child td:last-child');
@@ -59,7 +62,10 @@ export class SearchPage extends BasePage {
   // --- Actions ---
   async selectSubmissionPeriod(period: string) {
     // TODO: May not work straight away due to being accessible autocomplete component
-    await this.submissionPeriodInput.selectOption(period);
+    await this.submissionPeriodInput.fill(period);
+    await this.page.waitForTimeout(2000);
+    await this.submissionPeriodInput.press('Enter');
+    await this.page.waitForTimeout(2000);
   }
 
   async selectAreaOfLaw(areaOfLaw: string) {
@@ -72,6 +78,21 @@ export class SearchPage extends BasePage {
 
   async selectAllSubmissionOutcomeRadio(){
     await this.submissionOutcomeAllInput.click();
+  }
+
+  async selectCorrespondingSubmissionStatus(submissionStatus: string) {
+    await this.selectAllSubmissionOutcomeRadio();
+  }
+
+  async deselectAllOfficeAccounts() {
+    if(!await this.officeAccountLegend.isVisible()){
+      await this.chooseOfficeAccountsDetails.click();
+    }
+    const checkedOfficeAccounts = this.page.locator('.govuk-checkboxes__input:checked');
+
+    while (await checkedOfficeAccounts.count() > 0) {
+      await checkedOfficeAccounts.first().uncheck();
+    }
   }
 
   async clickClearAll() {
@@ -163,56 +184,6 @@ export class SearchPage extends BasePage {
 
     console.log(`✅ Finished pagination. Total collected IDs: ${ids.size}`);
     return Array.from(ids);
-  }
-
-  async verifyFutureDatesDisabled(dateField: 'from' | 'to') {
-    // Identify correct toggle and calendar
-    const toggleSelector =
-        dateField === 'from'
-            ? 'button[aria-controls="datepicker-submittedDateFrom-input"]'
-            : 'button[aria-controls="datepicker-submittedDateTo-input"]';
-
-    const calendarSelector =
-        dateField === 'from'
-            ? '.moj-datepicker__calendar[aria-labelledby="datepicker-title-submittedDateFrom-input"]'
-            : '.moj-datepicker__calendar[aria-labelledby="datepicker-title-submittedDateTo-input"]';
-
-    const toggle = this.page.locator(toggleSelector);
-    const calendar = this.page.locator(calendarSelector);
-
-    // 🧭 Ensure picker is open (click only if not visible)
-    if (!(await calendar.isVisible())) {
-      await toggle.focus();
-      await toggle.press('Enter'); // less flaky than click
-      await expect(calendar).toBeVisible({ timeout: 5000 });
-    }
-
-    // Determine tomorrow’s date
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    const formatted = `${tomorrow.getDate()}/${tomorrow.getMonth() + 1}/${tomorrow.getFullYear()}`;
-
-    const tomorrowCell = calendar.locator(`button[data-testid="${formatted}"]`);
-
-    // Capture screenshot with open picker for debugging
-    await this.page.screenshot({
-      path: `reports/attachments/date-picker-${dateField}-${Date.now()}.png`,
-      fullPage: true,
-    });
-
-    // Check if the cell is disabled
-    const isDisabled =
-        (await tomorrowCell.getAttribute('disabled')) !== null ||
-        (await tomorrowCell.getAttribute('aria-disabled')) === 'true';
-
-    // Close picker gracefully
-    await this.page.keyboard.press('Escape');
-    await expect(calendar).toBeHidden({ timeout: 3000 });
-
-    // Assert and log
-    expect(isDisabled).toBeTruthy();
-    console.log(`✅ Verified future date ${formatted} is disabled in ${dateField} picker`);
   }
 
   async verifyNoSubmissionsMessage() {

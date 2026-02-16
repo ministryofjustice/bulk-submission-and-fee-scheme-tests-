@@ -36,8 +36,12 @@ export class World {
   claimDetailPage?: ClaimDetailPage;
   bulkInProgressPage?: BulkInProgressPage;
   mostRecentSubmissionId: any;
-  searchFromDate: any;
-  searchToDate: any;
+  searchSubmissionPeriod: any;
+  searchFromDate: any; // TODO: To remove
+  searchToDate: any; // TODO: To remove
+  searchOfficeAccount: any;
+  searchAreaOfLaw: any;
+  searchStatus: any;
   expectedCount: number | undefined;
   allSubmissionIds: any;
 
