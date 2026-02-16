@@ -180,8 +180,8 @@ Feature: Display message checks
     And I should see the following submission error messages for "CRIME LOWER":
       | Error Message                                                  |
       | Case Start Date must be between 01/01/1995 and today           |
-      | Case Concluded Date cannot be before 01/04/2013                |
-      | Transfer Date must be between 01/04/1995 and today             |
+      | Case Concluded Date cannot be before 01/04/2016                |
+      | Transfer Date must be between 01/01/1995 and today             |
       | Representation Order Date must be between 01/04/2016 and today |
       | Client Date of Birth must be between 01/01/1900 and today      |
 
