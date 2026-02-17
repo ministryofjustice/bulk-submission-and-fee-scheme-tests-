@@ -264,6 +264,7 @@ Then('I should see the following validation messages:', async function (this: Cu
     );
 });
 
+/* This finds a search criteria which would fill all fields */
 Given('I determine a valid submission search criteria', async function (this: CustomWorld) {
     const dbAvailable = await dataSourceManager.ensureInitialized();
     const dataSource = dataSourceManager.getDataSource();
@@ -276,7 +277,6 @@ Given('I determine a valid submission search criteria', async function (this: Cu
         return;
     }
 
-    // 🧭 Use dynamic interval based on parameter
     let result = await dataSource.query(`
         select submission.submission_period,
                submission.office_account_number,
@@ -306,13 +306,123 @@ Given('I determine a valid submission search criteria', async function (this: Cu
     );
 });
 
+/* This finds a search criteria which would just suit submission period */
+Given('I determine a valid submission period for search criteria', async function (this: CustomWorld) {
+    const dbAvailable = await dataSourceManager.ensureInitialized();
+    const dataSource = dataSourceManager.getDataSource();
+
+    if (!dbAvailable) {
+        await this.attach(
+            `⚠️ Database unavailable.`,
+            'text/plain'
+        );
+        return;
+    }
+
+    let result = await dataSource.query(`
+        select submission.submission_period,
+               count(*) as total
+        from claims.submission
+        group by submission_period
+        order by count(*) desc;
+    `);
+
+    await dataSourceManager.destroy();
+
+    this.searchSubmissionPeriod = convertSubmissionPeriodFormat(result[0].submission_period);
+    this.searchOfficeAccount = undefined;
+    this.searchAreaOfLaw = undefined;
+    this.searchStatus = undefined;
+    this.expectedCount = Number(result[0].total);
+
+    await this.attach(
+        `🔎 Using submission period: ${this.searchSubmissionPeriod}\n` +
+        `🧮 Expected count: ${this.expectedCount}\n`,
+        'text/plain'
+    );
+});
+
+/* This finds a search criteria which would just suit area of law */
+Given('I determine a valid area of law for search criteria', async function (this: CustomWorld) {
+    const dbAvailable = await dataSourceManager.ensureInitialized();
+    const dataSource = dataSourceManager.getDataSource();
+
+    if (!dbAvailable) {
+        await this.attach(
+          `⚠️ Database unavailable.`,
+          'text/plain'
+        );
+        return;
+    }
+
+    let result = await dataSource.query(`
+        select submission.area_of_law,
+               count(*) as total
+        from claims.submission
+        group by area_of_law
+        order by count(*) desc;
+    `);
+
+    await dataSourceManager.destroy();
+
+    this.searchSubmissionPeriod = undefined;
+    this.searchOfficeAccount = undefined;
+    this.searchAreaOfLaw = result[0].area_of_law;
+    this.searchStatus = undefined;
+    this.expectedCount = Number(result[0].total);
+
+    await this.attach(
+      `🔎 Using area of law: ${this.searchAreaOfLaw}\n` +
+      `🧮 Expected count: ${this.expectedCount}\n`,
+      'text/plain'
+    );
+});
+
+/* This finds a search criteria which would just suit office account */
+Given('I determine a valid office account for search criteria', async function (this: CustomWorld) {
+    const dbAvailable = await dataSourceManager.ensureInitialized();
+    const dataSource = dataSourceManager.getDataSource();
+
+    if (!dbAvailable) {
+        await this.attach(
+          `⚠️ Database unavailable.`,
+          'text/plain'
+        );
+        return;
+    }
+
+    let result = await dataSource.query(`
+        select submission.office_account_number,
+               count(*) as total
+        from claims.submission
+        group by office_account_number
+        order by count(*) desc;
+    `);
+
+    await dataSourceManager.destroy();
+
+    this.searchSubmissionPeriod = undefined;
+    this.searchOfficeAccount = result[0].office_account_number;
+    this.searchAreaOfLaw = undefined;
+    this.searchStatus = undefined;
+    this.expectedCount = Number(result[0].total);
+
+    await this.attach(
+      `🔎 Using office account: ${this.searchOfficeAccount}\n` +
+      `🧮 Expected count: ${this.expectedCount}\n`,
+      'text/plain'
+    );
+});
+
+
+
 When('I search using the valid search criteria', async function (this: CustomWorld) {
     const searchPage = new SearchPage(this.page!);
     
     await searchPage.selectSubmissionPeriod(this.searchSubmissionPeriod);
     await searchPage.selectAreaOfLaw(this.searchAreaOfLaw);
     await searchPage.selectCorrespondingSubmissionStatus(this.searchStatus);
-    // TODO: Change office account filter
+    await searchPage.selectOfficeAccount(this.searchOfficeAccount);
 
     await searchPage.submit(); // using BasePage’s submit()
     await this.attach(`🔍 Searched using:\n` +
@@ -369,23 +479,67 @@ Then('I should see results matching the expected count', async function (this: C
     }
 });
 
-
 Then('I should see a message saying {string}', async function (this: CustomWorld, expectedMessage: string) {
     const searchPage = new SearchPage(this.page!);
     await searchPage.verifyNoSubmissionsMessage();
 });
 
-Given('I choose a date in the past with no submissions', async function (this: CustomWorld) {
-    this.searchFromDate = '01/01/2000';
-    this.searchToDate = '31/12/2001';
+Given('I choose a submission period with no submissions', async function (this: CustomWorld) {
+
+    const dbAvailable = await dataSourceManager.ensureInitialized();
+    const dataSource = dataSourceManager.getDataSource();
+
+    if (!dbAvailable) {
+        await this.attach(
+          `⚠️ Database unavailable.`,
+          'text/plain'
+        );
+        return;
+    }
+
+    // Generate all periods from JAN-2016 to DEC-2025
+    const allPeriods: string[] = [];
+    for (let year = 2016; year <= 2025; year++) {
+        for (let month = 0; month < 12; month++) {
+            const date = new Date(year, month, 1);
+            const period = format(date, 'MMM-yyyy').toUpperCase();
+            allPeriods.push(period);
+        }
+    }
+
+    // Query existing periods from DB
+    let result = await dataSource.query(`
+        select distinct submission.submission_period
+        from claims.submission
+        order by submission_period;
+    `);
+
+    await dataSourceManager.destroy();
+
+    const existingPeriods = result.map((row: any) => row.submission_period);
+
+    // Find first period that doesn't exist
+    const nonExistentPeriod = allPeriods.find(period => !existingPeriods.includes(period));
+
+    console.log(`nonExistentPeriod: ${nonExistentPeriod}`);
+
+    if (!nonExistentPeriod) {
+        throw new Error('Could not find any non-existent submission period between JAN-2015 and DEC-2025');
+    }
+
+    this.searchSubmissionPeriod = convertSubmissionPeriodFormat(nonExistentPeriod);
+    this.searchOfficeAccount = undefined;
+    this.searchAreaOfLaw = undefined;
+    this.searchStatus = undefined;
+    this.expectedCount = 0;
 
     await this.attach(
-        `📅 Using fixed historical date range: ${this.searchFromDate} → ${this.searchToDate}\n` +
-        `🧮 Expecting no submissions for this range (pre-system era).`,
-        'text/plain'
+      `📅 Found non-existent submission period: ${this.searchSubmissionPeriod}\n` +
+      `🧮 Expecting no submissions for this period.`,
+      'text/plain'
     );
+    
 });
-
 
 Then('the Search page should pass accessibility checks', async function (this: CustomWorld) {
     const results = await new AxeBuilder({ page: this.page! })

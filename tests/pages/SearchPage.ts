@@ -1,5 +1,5 @@
-import { Page, Locator, expect } from '@playwright/test';
-import { BasePage } from './BasePage';
+import {Page, Locator, expect} from '@playwright/test';
+import {BasePage} from './BasePage';
 import {goToPaginationPage} from "../utils/scripts/pageNavigation";
 
 export class SearchPage extends BasePage {
@@ -28,7 +28,7 @@ export class SearchPage extends BasePage {
     this.areaOfLawInput = page.locator('#area-of-law');
     this.submissionOutcomeCompletedInput = page.locator('#completed-radio-option');
     this.submissionOutcomeAllInput = page.locator('#all-radio-option');
-    this.clearAllLink = page.getByRole('link', { name: 'Clear all' });
+    this.clearAllLink = page.getByRole('link', {name: 'Clear all'});
     this.fieldErrorMessages = page.locator('.govuk-error-message');
     this.chooseOfficeAccountsDetails = page.locator('#choose-office-account-details-summary');
     this.officeAccountLegend = page.locator('#office-account-legend');
@@ -61,31 +61,41 @@ export class SearchPage extends BasePage {
 
   // --- Actions ---
   async selectSubmissionPeriod(period: string) {
-    // TODO: May not work straight away due to being accessible autocomplete component
-    await this.submissionPeriodInput.fill(period);
-    await this.page.waitForTimeout(2000);
-    await this.submissionPeriodInput.press('Enter');
-    await this.page.waitForTimeout(2000);
+    if (period) {
+      await this.submissionPeriodInput.fill(period);
+      await this.submissionPeriodInput.press('Enter');
+    }
   }
 
   async selectAreaOfLaw(areaOfLaw: string) {
-    await this.areaOfLawInput.selectOption(areaOfLaw);
+    if (areaOfLaw) {
+      await this.areaOfLawInput.selectOption(areaOfLaw);
+    }
   }
 
-  async selectCompletedSubmissionOutcomeRadio(){
+  async selectCompletedSubmissionOutcomeRadio() {
     await this.submissionOutcomeCompletedInput.click();
   }
 
-  async selectAllSubmissionOutcomeRadio(){
+  async selectAllSubmissionOutcomeRadio() {
     await this.submissionOutcomeAllInput.click();
   }
 
   async selectCorrespondingSubmissionStatus(submissionStatus: string) {
-    await this.selectAllSubmissionOutcomeRadio();
+    if (submissionStatus) {
+      await this.selectAllSubmissionOutcomeRadio();
+    }
+  }
+
+  async selectOfficeAccount(officeAccount: string) {
+    if (officeAccount) {
+      await this.deselectAllOfficeAccounts();
+      await this.page.locator(`input[value="${officeAccount}"]`).click();
+    }
   }
 
   async deselectAllOfficeAccounts() {
-    if(!await this.officeAccountLegend.isVisible()){
+    if (!await this.officeAccountLegend.isVisible()) {
       await this.chooseOfficeAccountsDetails.click();
     }
     const checkedOfficeAccounts = this.page.locator('.govuk-checkboxes__input:checked');
@@ -110,13 +120,13 @@ export class SearchPage extends BasePage {
 
   async expectErrorForInvalidToDateFormat() {
     await expect(this.errorSummary).toContainText(
-        'Enter the submission to date in the correct format, for example, 17/5/2024'
+      'Enter the submission to date in the correct format, for example, 17/5/2024'
     );
   }
 
   async expectErrorForMissingToDate() {
     await expect(this.errorSummary).toContainText(
-        'Enter the submission to date when you enter a submission from date.'
+      'Enter the submission to date when you enter a submission from date.'
     );
   }
 
@@ -134,7 +144,7 @@ export class SearchPage extends BasePage {
 
   // --- Results ---
   async expectResultsVisible() {
-    await this.resultsHeading.waitFor({ state: 'visible', timeout: 10000 });
+    await this.resultsHeading.waitFor({state: 'visible', timeout: 10000});
     await expect(this.resultsHeading).toContainText('Search result');
     await expect(this.resultsTable).toBeVisible();
   }
@@ -144,7 +154,7 @@ export class SearchPage extends BasePage {
   }
 
   async expectResultStatus(expectedStatus: string) {
-    await expect(this.firstResultStatus).toContainText(expectedStatus, { ignoreCase: true });
+    await expect(this.firstResultStatus).toContainText(expectedStatus, {ignoreCase: true});
   }
 
   async expectSubmissionLinkMatches(submissionId: string) {
@@ -176,8 +186,8 @@ export class SearchPage extends BasePage {
       if (count < 10) break;
 
       // 🧭 Find the “Next” link by rel="next"
-      if(!(await goToPaginationPage(this.page, 'next'))) {
-          break;
+      if (!(await goToPaginationPage(this.page, 'next'))) {
+        break;
       }
       pageNumber++;
     }
@@ -187,8 +197,8 @@ export class SearchPage extends BasePage {
   }
 
   async verifyNoSubmissionsMessage() {
-    const noResults = this.page.locator('p.govuk-body', { hasText: 'No submissions were found.' });
-    await expect(noResults).toBeVisible({ timeout: 5000 });
+    const noResults = this.page.locator('p.govuk-body', {hasText: 'No submissions were found.'});
+    await expect(noResults).toBeVisible({timeout: 5000});
     console.log('✅ Verified that "No submissions were found." message is displayed');
   }
 
