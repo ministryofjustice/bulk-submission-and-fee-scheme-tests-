@@ -1,4 +1,4 @@
-@stable @claimValidation @validationChecks
+@stable @claimValidation @validationChecks @broke
 Feature: Display message checks
 
   Background:

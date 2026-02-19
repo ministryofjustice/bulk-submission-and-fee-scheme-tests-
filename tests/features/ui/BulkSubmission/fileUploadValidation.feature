@@ -1,4 +1,4 @@
-@fileUpload @stable @PreSubmissionValidationChecks
+@fileUpload @stable @PreSubmissionValidationChecks @jamie
 Feature: Bulk Submission Upload Validation
 
   Background:
