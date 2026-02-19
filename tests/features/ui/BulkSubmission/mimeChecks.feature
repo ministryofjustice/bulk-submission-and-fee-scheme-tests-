@@ -1,4 +1,4 @@
-@validationChecks @stable @broke
+@validationChecks @stable
 Feature: MIME validation checks
 
   Background:

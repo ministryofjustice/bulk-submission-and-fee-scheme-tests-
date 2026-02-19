@@ -1,4 +1,4 @@
-@search @stable @jamie
+@search @stable
 Feature: Bulk Submission Search
 
   Background:
