@@ -1,4 +1,4 @@
-@search @stable
+@search @stable @jamie
 Feature: Bulk Submission Search
 
   Background:
@@ -25,6 +25,13 @@ Feature: Bulk Submission Search
 
   Scenario: Search for submissions via Area of Law
     Given I determine a valid area of law for search criteria
+    And I am on the Search page
+    When I search using the valid search criteria
+    Then the Search page should pass accessibility checks
+    Then I should see results matching the expected count
+
+  Scenario: Search for submissions via Submission Status
+    Given I determine a valid submissions status for search criteria
     And I am on the Search page
     When I search using the valid search criteria
     Then the Search page should pass accessibility checks

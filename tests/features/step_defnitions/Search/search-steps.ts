@@ -264,154 +264,131 @@ Then('I should see the following validation messages:', async function (this: Cu
     );
 });
 
-/* This finds a search criteria which would fill all fields */
-Given('I determine a valid submission search criteria', async function (this: CustomWorld) {
+/**
+ * Helper function to determine valid search criteria based on specified fields
+ */
+async function determineSearchCriteria(
+    world: CustomWorld,
+    criteriaType: 'all' | 'submission_period' | 'area_of_law' | 'status' | 'office_account'
+) {
     const dbAvailable = await dataSourceManager.ensureInitialized();
     const dataSource = dataSourceManager.getDataSource();
 
     if (!dbAvailable) {
-        await this.attach(
-            `⚠️ Database unavailable.`,
-            'text/plain'
-        );
+        await world.attach(`⚠️ Database unavailable.`, 'text/plain');
         return;
     }
 
-    let result = await dataSource.query(`
-        select submission.submission_period,
-               submission.office_account_number,
-               submission.area_of_law,
-               submission.status,
-               count(*) as total
-        from claims.submission
-        group by submission_period, office_account_number, status, area_of_law
-        order by count(*) desc;
-    `);
+    const queries = {
+        all: `
+            select submission.submission_period,
+                   submission.office_account_number,
+                   submission.area_of_law,
+                   submission.status,
+                   count(*) as total
+            from claims.submission
+            where submission.status = 'VALIDATION_SUCCEEDED'
+            OR submission.status = 'VALIDATION_FAILED'
+            group by submission_period, office_account_number, status, area_of_law
+            order by count(*) desc;
+        `,
+        submission_period: `
+            select submission.submission_period,
+                   count(*) as total
+            from claims.submission
+            group by submission_period
+            order by count(*) desc;
+        `,
+        area_of_law: `
+            select submission.area_of_law,
+                   count(*) as total
+            from claims.submission
+            group by area_of_law
+            order by count(*) desc;
+        `,
+        status: `
+            select submission.status,
+                   count(*) as total
+            from claims.submission
+            group by submission.status
+            order by count(*) desc;
+        `,
+        office_account: `
+            select submission.office_account_number,
+                   count(*) as total
+            from claims.submission
+            group by office_account_number
+            order by count(*) desc;
+        `
+    };
 
+    const result = await dataSource.query(queries[criteriaType]);
     await dataSourceManager.destroy();
 
-    this.searchSubmissionPeriod = convertSubmissionPeriodFormat(result[0].submission_period);
-    this.searchOfficeAccount = result[0].office_account_number;
-    this.searchAreaOfLaw = result[0].area_of_law;
-    this.searchStatus = result[0].status;
-    this.expectedCount = Number(result[0].total);
+    // Reset all fields
+    world.searchSubmissionPeriod = undefined;
+    world.searchOfficeAccount = undefined;
+    world.searchAreaOfLaw = undefined;
+    world.searchStatus = undefined;
 
-    await this.attach(
-        `🔎 Using submission period: ${this.searchSubmissionPeriod}\n` +
-        `🔎 Using office account: ${this.searchOfficeAccount}\n` +
-        `🔎 Using area of law: ${this.searchAreaOfLaw}\n` +
-        `🔎 Using searchStatus: ${this.searchStatus}\n` +
-        `🧮 Expected count: ${this.expectedCount}\n`,
-        'text/plain'
-    );
+    // Set only the relevant fields based on criteria type
+    if (criteriaType === 'all' || criteriaType === 'submission_period') {
+        world.searchSubmissionPeriod = convertSubmissionPeriodFormat(result[0].submission_period);
+    }
+    if (criteriaType === 'all' || criteriaType === 'office_account') {
+        world.searchOfficeAccount = result[0].office_account_number;
+    }
+    if (criteriaType === 'all' || criteriaType === 'area_of_law') {
+        world.searchAreaOfLaw = result[0].area_of_law;
+    }
+    if (criteriaType === 'all' || criteriaType === 'status') {
+        world.searchStatus = result[0].status;
+    }
+
+    world.expectedCount = Number(result[0].total);
+
+    // Build attachment message with only populated fields
+    const attachmentLines = [];
+    if (world.searchSubmissionPeriod !== undefined) {
+        attachmentLines.push(`🔎 Using submission period: ${world.searchSubmissionPeriod}`);
+    }
+    if (world.searchOfficeAccount !== undefined) {
+        attachmentLines.push(`🔎 Using office account: ${world.searchOfficeAccount}`);
+    }
+    if (world.searchAreaOfLaw !== undefined) {
+        attachmentLines.push(`🔎 Using area of law: ${world.searchAreaOfLaw}`);
+    }
+    if (world.searchStatus !== undefined) {
+        attachmentLines.push(`🔎 Using status: ${world.searchStatus}`);
+    }
+    attachmentLines.push(`🧮 Expected count: ${world.expectedCount}`);
+
+    await world.attach(attachmentLines.join('\n') + '\n', 'text/plain');
+}
+
+/* This finds a search criteria which would fill all fields */
+Given('I determine a valid submission search criteria', async function (this: CustomWorld) {
+    await determineSearchCriteria(this, 'all');
 });
 
 /* This finds a search criteria which would just suit submission period */
 Given('I determine a valid submission period for search criteria', async function (this: CustomWorld) {
-    const dbAvailable = await dataSourceManager.ensureInitialized();
-    const dataSource = dataSourceManager.getDataSource();
-
-    if (!dbAvailable) {
-        await this.attach(
-            `⚠️ Database unavailable.`,
-            'text/plain'
-        );
-        return;
-    }
-
-    let result = await dataSource.query(`
-        select submission.submission_period,
-               count(*) as total
-        from claims.submission
-        group by submission_period
-        order by count(*) desc;
-    `);
-
-    await dataSourceManager.destroy();
-
-    this.searchSubmissionPeriod = convertSubmissionPeriodFormat(result[0].submission_period);
-    this.searchOfficeAccount = undefined;
-    this.searchAreaOfLaw = undefined;
-    this.searchStatus = undefined;
-    this.expectedCount = Number(result[0].total);
-
-    await this.attach(
-        `🔎 Using submission period: ${this.searchSubmissionPeriod}\n` +
-        `🧮 Expected count: ${this.expectedCount}\n`,
-        'text/plain'
-    );
+    await determineSearchCriteria(this, 'submission_period');
 });
 
 /* This finds a search criteria which would just suit area of law */
 Given('I determine a valid area of law for search criteria', async function (this: CustomWorld) {
-    const dbAvailable = await dataSourceManager.ensureInitialized();
-    const dataSource = dataSourceManager.getDataSource();
+    await determineSearchCriteria(this, 'area_of_law');
+});
 
-    if (!dbAvailable) {
-        await this.attach(
-          `⚠️ Database unavailable.`,
-          'text/plain'
-        );
-        return;
-    }
-
-    let result = await dataSource.query(`
-        select submission.area_of_law,
-               count(*) as total
-        from claims.submission
-        group by area_of_law
-        order by count(*) desc;
-    `);
-
-    await dataSourceManager.destroy();
-
-    this.searchSubmissionPeriod = undefined;
-    this.searchOfficeAccount = undefined;
-    this.searchAreaOfLaw = result[0].area_of_law;
-    this.searchStatus = undefined;
-    this.expectedCount = Number(result[0].total);
-
-    await this.attach(
-      `🔎 Using area of law: ${this.searchAreaOfLaw}\n` +
-      `🧮 Expected count: ${this.expectedCount}\n`,
-      'text/plain'
-    );
+/* This finds a search criteria which would just suit status */
+Given('I determine a valid submissions status for search criteria', async function (this: CustomWorld) {
+    await determineSearchCriteria(this, 'status');
 });
 
 /* This finds a search criteria which would just suit office account */
 Given('I determine a valid office account for search criteria', async function (this: CustomWorld) {
-    const dbAvailable = await dataSourceManager.ensureInitialized();
-    const dataSource = dataSourceManager.getDataSource();
-
-    if (!dbAvailable) {
-        await this.attach(
-          `⚠️ Database unavailable.`,
-          'text/plain'
-        );
-        return;
-    }
-
-    let result = await dataSource.query(`
-        select submission.office_account_number,
-               count(*) as total
-        from claims.submission
-        group by office_account_number
-        order by count(*) desc;
-    `);
-
-    await dataSourceManager.destroy();
-
-    this.searchSubmissionPeriod = undefined;
-    this.searchOfficeAccount = result[0].office_account_number;
-    this.searchAreaOfLaw = undefined;
-    this.searchStatus = undefined;
-    this.expectedCount = Number(result[0].total);
-
-    await this.attach(
-      `🔎 Using office account: ${this.searchOfficeAccount}\n` +
-      `🧮 Expected count: ${this.expectedCount}\n`,
-      'text/plain'
-    );
+    await determineSearchCriteria(this, 'office_account');
 });
 
 

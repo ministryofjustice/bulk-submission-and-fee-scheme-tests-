@@ -5,7 +5,8 @@ import {goToPaginationPage} from "../utils/scripts/pageNavigation";
 export class SearchPage extends BasePage {
   private submissionPeriodInput: Locator;
   private areaOfLawInput: Locator;
-  private submissionOutcomeCompletedInput: Locator;
+  private submissionOutcomeSucceededInput: Locator;
+  private submissionOutcomeFailedInput: Locator;
   private submissionOutcomeAllInput: Locator;
   private chooseOfficeAccountsDetails: Locator;
   private officeAccountLegend: Locator;
@@ -26,7 +27,8 @@ export class SearchPage extends BasePage {
     // --- Page-specific locators ---
     this.submissionPeriodInput = page.locator('#submission-period');
     this.areaOfLawInput = page.locator('#area-of-law');
-    this.submissionOutcomeCompletedInput = page.locator('#completed-radio-option');
+    this.submissionOutcomeSucceededInput = page.locator('#succeeded-radio-option');
+    this.submissionOutcomeFailedInput = page.locator('#failed-radio-option');
     this.submissionOutcomeAllInput = page.locator('#all-radio-option');
     this.clearAllLink = page.getByRole('link', {name: 'Clear all'});
     this.fieldErrorMessages = page.locator('.govuk-error-message');
@@ -73,8 +75,12 @@ export class SearchPage extends BasePage {
     }
   }
 
-  async selectCompletedSubmissionOutcomeRadio() {
-    await this.submissionOutcomeCompletedInput.click();
+  async selectSucceededSubmissionOutcomeRadio() {
+    await this.submissionOutcomeSucceededInput.click();
+  }
+
+  async selectFailedSubmissionOutcomeRadio() {
+    await this.submissionOutcomeFailedInput.click();
   }
 
   async selectAllSubmissionOutcomeRadio() {
@@ -83,6 +89,12 @@ export class SearchPage extends BasePage {
 
   async selectCorrespondingSubmissionStatus(submissionStatus: string) {
     if (submissionStatus) {
+      if(submissionStatus === 'VALIDATION_SUCCEEDED'){
+        await this.selectSucceededSubmissionOutcomeRadio();
+      }else{
+        await this.selectFailedSubmissionOutcomeRadio();
+      }
+    } else{
       await this.selectAllSubmissionOutcomeRadio();
     }
   }
@@ -138,7 +150,7 @@ export class SearchPage extends BasePage {
   async expectFieldValueCleared() {
     await expect(this.submissionPeriodInput).toHaveValue('');
     await expect(this.areaOfLawInput).toHaveValue('All');
-    await expect(this.submissionOutcomeCompletedInput).toBeChecked({checked: true});
+    await expect(this.submissionOutcomeSucceededInput).toBeChecked({checked: true});
     await expect(this.submissionOutcomeAllInput).toBeChecked({checked: false});
   }
 
