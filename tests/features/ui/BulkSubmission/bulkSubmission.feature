@@ -29,6 +29,7 @@ Feature: Bulk Submission via UI
       | Crime lower | csv    | 3        | 3      |
 
 
+    @Jamie
   Scenario Outline: Successful nil bulk submission for <AreaOfLaw>
     When I generate "<AreaOfLaw>" "<Format>" file with "<Outcomes>" outcomes
     And I upload the generated file
