@@ -1,4 +1,4 @@
-@content @stable @jamie
+@content @stable
 Feature: Content check for the UI matching UX designs
 
   Background:

@@ -19,7 +19,7 @@ Feature: Submission details - Fixed fee & Fee type
       | FPB020  | Escaped    | View (1) |
       | FPB010  | No         |          |
 
-  @feeSchemeWarning  @escapeCaseCoverage @jamie
+  @feeSchemeWarning  @escapeCaseCoverage
   Scenario: Should show both escaped and fixed claims - Crime lower
     Given I generate "Crime" "csv" file with the following claims
       | feeCode | travelCost | travelWaitingCosts |
