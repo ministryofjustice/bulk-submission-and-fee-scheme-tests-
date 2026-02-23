@@ -59,8 +59,8 @@ Feature: Display message checks
 
   Scenario: Legal Help: Should check display messages are shown for out of bound dates with concluded date after the 20th of the month following the submission period
     Given I generate "Legal help" "csv" file with the following claims
-      | caseStartDate | submissionPeriod | workConcludedDate | transferDate | repOrderDate | clientDob  |
-      | 31/12/1994    | JUL-2020         | 21/08/2020        | 31/12/1994   | 31/03/2016   | 05/01/1899 |
+      | caseStartDate | workConcludedDate | transferDate | repOrderDate | clientDob  |
+      | 31/12/1994    | later             | 31/12/1994   | 31/03/2016   | 05/01/1899 |
     And I upload the generated file
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "LEGAL HELP":

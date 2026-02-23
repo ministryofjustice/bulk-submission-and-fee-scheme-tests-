@@ -67,6 +67,15 @@ export async function GenerateCivilFilesOverride(
             }
 
             if (override.workConcludedDate) {
+                if(override.workConcludedDate.includes('later')){
+                    // Set to yesterday's date, should be later than submission period but not future date
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    const day = String(yesterday.getDate()).padStart(2, '0');
+                    const month = String(yesterday.getMonth() + 1).padStart(2, '0');
+                    const year = yesterday.getFullYear();
+                    override.workConcludedDate = `${day}/${month}/${year}`;
+                }
                 line = line.replace(
                     /WORK_CONCLUDED_DATE=[^,]+/,
                     `WORK_CONCLUDED_DATE=${override.workConcludedDate}`
