@@ -57,7 +57,6 @@ Feature: Display message checks
       | Representation Order Date must be between 01/04/2016 and today |
       | Client Date of Birth must be between 01/01/1900 and today      |
 
-  @jamie
   Scenario: Legal Help: Should check display messages are shown for out of bound dates with concluded date after the 20th of the month following the submission period
     Given I generate "Legal help" "csv" file with the following claims
       | caseStartDate | workConcludedDate | transferDate | repOrderDate | clientDob  |
