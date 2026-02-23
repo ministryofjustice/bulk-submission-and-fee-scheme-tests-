@@ -95,7 +95,7 @@ async function generateOutcome(
     eligible_client_indicator: claimOverride?.eligibleClientIndicator ?? 'Y',
     ucn: claimOverride?.ucn ?? makeUCN(dob, last, first[0]),
 
-    gender: random(['M', 'F']),
+    gender: random(['M', 'F', 'm', 'f']),
     ethnicity: '12',
     disability: 'NCD',
 

@@ -96,7 +96,7 @@ async function generateOutcome(
     client_forename: first,
     client_surname: last,
     client_date_of_birth: claimOverride?.clientDateOfBirth ?? dateFmt(dob),
-    gender: random(['M', 'F']),
+    gender: random(['M', 'F', 'm', 'f']),
     ethnicity: random(['99', '01', '02', '03', '04']),
     profit_cost: claimOverride?.profitCost ?? money(10, 200),
     disbursements_amount: claimOverride?.disbursementAmount ?? money(0, 50),
