@@ -27,6 +27,12 @@ const clean = (s: string) => s.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
 const generateUFN = (d: Date, caseNum: number) =>
     `${pad(d.getDate())}${pad(d.getMonth() + 1)}${String(d.getFullYear()).slice(-2)}/${pad(caseNum, 3)}`;
 
+// ✅ Only addition needed: ensure faker "from" is always <= "to"
+const ensureValidRange = (from: Date, to: Date): { from: Date; to: Date } => {
+  if (from.getTime() > to.getTime()) return { from: to, to: from };
+  return { from, to };
+};
+
 // ------------------------------
 // 2️⃣ Outcome Generator
 // ------------------------------
@@ -48,25 +54,33 @@ const generateOutcome = async (
 
   const start = scheduleStart ? new Date(scheduleStart) : new Date('2015-05-01');
   let end = scheduleEnd ? new Date(scheduleEnd) : new Date('2025-10-31');
-  // Convert period to Date (MMM-uuuu). Set end to last day of the month before the period month, to ensure generated dates are always within the period
+
+  // Convert period to Date (MMM-uuuu). Set end to last day of the month before the period month,
+  // to ensure generated dates are always within the period
   if (period) {
     const [monthStr, yearStr] = period.split('-');
     const month = new Date(`${monthStr} 1, ${yearStr}`).getMonth();
     const year = parseInt(yearStr, 10);
     end = new Date(year, month, 0); // Last day of the month
     // Go one month previous
-    end = 
-        new Date(end.getFullYear(), end.getMonth() - 1, end.getDate());
+    end = new Date(end.getFullYear(), end.getMonth() - 1, end.getDate());
   }
 
-  const caseStartDate = faker.date.between({ from: start, to: end });
-  const medConcluded = faker.date.between({ from: caseStartDate, to: end });
-  const workConcluded =  faker.date.between({ from: caseStartDate, to: medConcluded });
+  // ✅ Only change needed: wrap faker ranges so "from" is never after "to"
+  const caseStartDate = faker.date.between(ensureValidRange(start, end));
+  const medConcluded = faker.date.between(ensureValidRange(caseStartDate, end));
+  const workConcluded = faker.date.between(ensureValidRange(caseStartDate, medConcluded));
 
   const ufn = claimOverride?.ufn ?? generateUFN(caseStartDate, caseNum);
 
-  const ucn1 = claimOverride?.ucn ?? `${pad(dob1.getDate())}${pad(dob1.getMonth() + 1)}${dob1.getFullYear()}/${client1Last[0].toUpperCase()}/${clean(client1Last).slice(0, 4)}`;
-  const ucn2 =  `${pad(dob2.getDate())}${pad(dob2.getMonth() + 1)}${dob2.getFullYear()}/${client2Last[0].toUpperCase()}/${clean(client2Last).slice(0, 4)}`;
+  const ucn1 =
+      claimOverride?.ucn ??
+      `${pad(dob1.getDate())}${pad(dob1.getMonth() + 1)}${dob1.getFullYear()}/${client1Last[0].toUpperCase()}/${clean(
+          client1Last
+      ).slice(0, 4)}`;
+  const ucn2 = `${pad(dob2.getDate())}${pad(dob2.getMonth() + 1)}${dob2.getFullYear()}/${client2Last[0].toUpperCase()}/${clean(
+      client2Last
+  ).slice(0, 4)}`;
 
   return {
     case_ref_number: faker.number.int({ min: 1000, max: 9999 }),
@@ -98,7 +112,7 @@ const generateOutcome = async (
     mediation_time: faker.number.int({ min: 60, max: 240 }),
     fee_code: claimOverride?.feeCode ?? randomFrom(feeCodes),
     disbursements_amount: claimOverride?.disbursementAmount ?? faker.number.float({ min: 0, max: 200, fractionDigits: 2 }),
-    disbursements_vat:  claimOverride?.disbursementVat ?? faker.number.float({ min: 0, max: 50, fractionDigits: 2 }),
+    disbursements_vat: claimOverride?.disbursementVat ?? faker.number.float({ min: 0, max: 50, fractionDigits: 2 }),
     vat_indicator: claimOverride?.vatApplicable ?? randomFrom(['Y', 'N']),
     unique_case_id: `${ufn}`,
     outreach: faker.helpers.arrayElement(['000', '001', '002']),
@@ -129,10 +143,7 @@ const generateFile = async (
 ) => {
   const office = options.office ?? randomFrom(offices);
 
-  const { period, scheduleStart, scheduleEnd } = await getUniqueSubmissionPeriod(
-      office,
-      AREA_OF_LAW
-  );
+  const { period, scheduleStart, scheduleEnd } = await getUniqueSubmissionPeriod(office, AREA_OF_LAW);
 
   const mon = period.slice(0, 3).toUpperCase();
   const yr = period.slice(-2);
@@ -144,8 +155,6 @@ const generateFile = async (
   for (let i = 0; i < outcomesCount; i++) {
     const override = options.claims?.[i];
     const o = await generateOutcome(office, i, scheduleStart, scheduleEnd, override, period);
-
-
 
     content +=
         `OUTCOME,` +
@@ -188,12 +197,12 @@ const generateFile = async (
         `CLIENT2_POSTAL_APPL_ACCP=${o.client2_postalApplAccp},` +
         `SCHEDULE_REF=${scheduleNum},` +
         `NATIONAL_REF_MECHANISM_ADVICE=${o.nrm_advice}, ` +
-        `LEGACY_CASE=${o.legacy_case}, `+
+        `LEGACY_CASE=${o.legacy_case}, ` +
         `LONDON_NONLONDON_RATE=${o.london_nonlondon_rate}, ` +
-        `ADDITIONAL_TRAVEL_PAYMENT=${o.additional_travel_payment}, `+
+        `ADDITIONAL_TRAVEL_PAYMENT=${o.additional_travel_payment}, ` +
         `ELIGIBLE_CLIENT_INDICATOR=${o.eligible_client_indicator}, ` +
-        `IRC_SURGERY=${o.irc_surgery}, `+
-        `SUBSTANTIVE_HEARING=${o.substantive_hearing}, `+
+        `IRC_SURGERY=${o.irc_surgery}, ` +
+        `SUBSTANTIVE_HEARING=${o.substantive_hearing}, ` +
         `TOLERANCE_INDICATOR=${o.tolerance_indicator}, ` +
         `DUTY_SOLICITOR=${o.duty_solicitor}, ` +
         `YOUTH_COURT=${o.youth_court}\n`;
