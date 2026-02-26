@@ -1,183 +1,334 @@
 <main class="govuk-main-wrapper" id="main-content">
-  <div class="govuk-width-container">
-    <div class="govuk-grid-row">
-      <div class="govuk-grid-column-full">
+    <div class="govuk-width-container">
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-full">
 
-        <form id="claims-search-form" action="/submissions/search" method="POST"><input type="hidden" name="_csrf" value="wjZDT3vEYYrUAmImvBIOeihJ2ROEAMp0h3i-6t22gv6s80vp-wV1LkmmAuv5MVRCiT86GEwr9CqzNf5ZtEza3-3UscjJkXzf">
-          <input type="hidden" name="_csrf" value="wjZDT3vEYYrUAmImvBIOeihJ2ROEAMp0h3i-6t22gv6s80vp-wV1LkmmAuv5MVRCiT86GEwr9CqzNf5ZtEza3-3UscjJkXzf">
-
-
-
-          <h1 class="govuk-heading-l">Search for a submission</h1>
+                <form id="claims-search-form" action="/submissions/search" method="POST"><input type="hidden" name="_csrf" value="-OzLMfDxzeWIPB5lvrxg_tywL65YoFV-dtpftAPPqQ3uAIquyd3_VMnJq9elCCsGjJFUmuyHApdsxmVTT-9sjGaqmTiMN-jL">
+                    <input type="hidden" name="_csrf" value="-OzLMfDxzeWIPB5lvrxg_tywL65YoFV-dtpftAPPqQ3uAIquyd3_VMnJq9elCCsGjJFUmuyHApdsxmVTT-9sjGaqmTiMN-jL">
 
 
-          <div class="search-panel govuk-!-margin-bottom-6">
-            <fieldset class="govuk-fieldset">
-              <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
-                <span>Submission date</span>
-                <div class="govuk-body">For example, 17/5/2024. Give both dates.</div>
-              </legend>
 
-              <div class="govuk-grid-row govuk-!-margin-bottom-0">
-                <div id="from-date-form-group" class="govuk-form-group govuk-grid-column-one-third">
-                  <div class="govuk-date-input__item">
-                    <div class="moj-datepicker" data-module="moj-date-picker" data-max-date="30/10/2025" data-moj-date-picker-init="">
+                    <h1 class="govuk-heading-l">Search for a submission</h1>
 
-                      <div class="govuk-form-group">
-                        <label class="govuk-label" id="submittedDateFrom-label" for="submittedDateFrom-input">From</label>
 
-                        <div class="moj-datepicker__wrapper"><div class="govuk-input__wrapper"><input class="govuk-input moj-js-datepicker-input" id="submittedDateFrom-input" type="text" aria-describedby="submittedDateFrom-label" autocomplete="off" name="submittedDateFrom" value=""><button class="moj-datepicker__toggle moj-js-datepicker-toggle" type="button" aria-haspopup="dialog" aria-controls="datepicker-submittedDateFrom-input" aria-expanded="false">
-                          <span class="govuk-visually-hidden">Choose date</span>
-                          <svg width="32" height="24" focusable="false" class="moj-datepicker-icon" aria-hidden="true" role="img" viewBox="0 0 22 22">
-                            <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M16.1333 2.93333H5.86668V4.4C5.86668 5.21002 5.21003 5.86667 4.40002 5.86667C3.59 5.86667 2.93335 5.21002 2.93335 4.4V2.93333H2C0.895431 2.93333 0 3.82877 0 4.93334V19.2667C0 20.3712 0.89543 21.2667 2 21.2667H20C21.1046 21.2667 22 20.3712 22 19.2667V4.93333C22 3.82876 21.1046 2.93333 20 2.93333H19.0667V4.4C19.0667 5.21002 18.41 5.86667 17.6 5.86667C16.79 5.86667 16.1333 5.21002 16.1333 4.4V2.93333ZM20.5333 8.06667H1.46665V18.8C1.46665 19.3523 1.91436 19.8 2.46665 19.8H19.5333C20.0856 19.8 20.5333 19.3523 20.5333 18.8V8.06667Z"></path>
-                            <rect x="3.66669" width="1.46667" height="5.13333" rx="0.733333" fill="currentColor"></rect>
-                            <rect x="16.8667" width="1.46667" height="5.13333" rx="0.733333" fill="currentColor"></rect>
-                          </svg>
-                        </button></div><div id="datepicker-submittedDateFrom-input" class="moj-datepicker__dialog" role="dialog" aria-modal="true" aria-labelledby="datepicker-title-submittedDateFrom-input" hidden=""><div class="moj-datepicker__dialog-header">
-                          <div class="moj-datepicker__dialog-navbuttons">
-                            <button type="button" class="moj-datepicker__button moj-js-datepicker-prev-year">
-                              <span class="govuk-visually-hidden">Previous year</span>
-                              <svg width="44" height="40" viewBox="0 0 44 40" fill="none" focusable="false" aria-hidden="true" role="img">
-                                <path fill-rule="evenodd" clip-rule="evenodd" d="M23.1643 20L28.9572 14.2071L27.5429 12.7929L20.3358 20L27.5429 27.2071L28.9572 25.7929L23.1643 20Z" fill="currentColor"></path>
-                                <path fill-rule="evenodd" clip-rule="evenodd" d="M17.1643 20L22.9572 14.2071L21.5429 12.7929L14.3358 20L21.5429 27.2071L22.9572 25.7929L17.1643 20Z" fill="currentColor"></path>
-                              </svg>
-                            </button>
+                    <div class="search-panel govuk-!-margin-bottom-6">
+                        <div class="govuk-grid-row">
 
-                            <button type="button" class="moj-datepicker__button moj-js-datepicker-prev-month">
-                              <span class="govuk-visually-hidden">Previous month</span>
-                              <svg width="44" height="40" viewBox="0 0 44 40" fill="none" focusable="false" aria-hidden="true" role="img">
-                                <path fill-rule="evenodd" clip-rule="evenodd" d="M20.5729 20L25.7865 14.2071L24.5137 12.7929L18.0273 20L24.5137 27.2071L25.7865 25.7929L20.5729 20Z" fill="currentColor"></path>
-                              </svg>
-                            </button>
-                          </div>
+                            <div class="govuk-grid-column-full">
+                                <h2 class="govuk-heading-m">Filter</h2>
+                            </div>
 
-                          <h2 id="datepicker-title-submittedDateFrom-input" class="moj-datepicker__dialog-title moj-js-datepicker-month-year" aria-live="polite">October 2025</h2>
+                            <div class="govuk-grid-column-one-third">
+                                <fieldset class="govuk-fieldset">
 
-                          <div class="moj-datepicker__dialog-navbuttons">
-                            <button type="button" class="moj-datepicker__button moj-js-datepicker-next-month">
-                              <span class="govuk-visually-hidden">Next month</span>
-                              <svg width="44" height="40" viewBox="0 0 44 40" fill="none" focusable="false" aria-hidden="true" role="img">
-                                <path fill-rule="evenodd" clip-rule="evenodd" d="M23.4271 20L18.2135 14.2071L19.4863 12.7929L25.9727 20L19.4863 27.2071L18.2135 25.7929L23.4271 20Z" fill="currentColor"></path>
-                              </svg>
-                            </button>
+                                    <div class="govuk-body govuk-input--width-10">
+                                        <div class="autocomplete-wrapper ">
+                                            <label class="govuk-label govuk-label--s" for="submission-period">Submission period</label>
+                                            <div><div class="autocomplete__wrapper"><div class="autocomplete__status" style="border: 0px; clip: rect(0px, 0px, 0px, 0px); height: 1px; margin-bottom: -1px; margin-right: -1px; overflow: hidden; padding: 0px; position: absolute; white-space: nowrap; width: 1px;"><div id="submission-period__status--A" role="status" aria-atomic="true" aria-live="polite"></div><div id="submission-period__status--B" role="status" aria-atomic="true" aria-live="polite"></div></div><input aria-describedby="submission-period__assistiveHint" aria-expanded="false" aria-controls="submission-period__listbox" aria-autocomplete="both" autocomplete="off" class="autocomplete__input autocomplete__input--default govuk-extension__background_white" id="submission-period" name="" placeholder="" type="text" role="combobox"><ul aria-labelledby="submission-period" id="submission-period__listbox" role="listbox" class="autocomplete__menu autocomplete__menu--inline autocomplete__menu--hidden"></ul><span id="submission-period__assistiveHint" style="display: none;">When autocomplete results are available use up and down arrows to review and enter to select.  Touch device users, explore by touch or with swipe gestures.</span></div></div><select class="govuk-select" id="submission-period-select" data-module="make-autocomplete" name="submissionPeriod" style="display: none;">
 
-                            <button type="button" class="moj-datepicker__button moj-js-datepicker-next-year">
-                              <span class="govuk-visually-hidden">Next year</span>
-                              <svg width="44" height="40" viewBox="0 0 44 40" fill="none" focusable="false" aria-hidden="true" role="img">
-                                <path fill-rule="evenodd" clip-rule="evenodd" d="M20.8357 20L15.0428 14.2071L16.4571 12.7929L23.6642 20L16.4571 27.2071L15.0428 25.7929L20.8357 20Z" fill="currentColor"></path>
-                                <path fill-rule="evenodd" clip-rule="evenodd" d="M26.8357 20L21.0428 14.2071L22.4571 12.7929L29.6642 20L22.4571 27.2071L21.0428 25.7929L26.8357 20Z" fill="currentColor"></path>
-                              </svg>
-                            </button>
-                          </div>
+                                            <option value=""></option>
+                                            <option value="JAN-2026" id="submission-period-0">January 2026</option>
+                                            <option value="DEC-2025" id="submission-period-1">December 2025</option>
+                                            <option value="NOV-2025" id="submission-period-2">November 2025</option>
+                                            <option value="OCT-2025" id="submission-period-3">October 2025</option>
+                                            <option value="SEP-2025" id="submission-period-4">September 2025</option>
+                                            <option value="AUG-2025" id="submission-period-5">August 2025</option>
+                                            <option value="JUL-2025" id="submission-period-6">July 2025</option>
+                                            <option value="JUN-2025" id="submission-period-7">June 2025</option>
+                                            <option value="MAY-2025" id="submission-period-8">May 2025</option>
+                                            <option value="APR-2025" id="submission-period-9">April 2025</option>
+                                            <option value="MAR-2025" id="submission-period-10">March 2025</option>
+                                            <option value="FEB-2025" id="submission-period-11">February 2025</option>
+                                            <option value="JAN-2025" id="submission-period-12">January 2025</option>
+                                            <option value="DEC-2024" id="submission-period-13">December 2024</option>
+                                            <option value="NOV-2024" id="submission-period-14">November 2024</option>
+                                            <option value="OCT-2024" id="submission-period-15">October 2024</option>
+                                            <option value="SEP-2024" id="submission-period-16">September 2024</option>
+                                            <option value="AUG-2024" id="submission-period-17">August 2024</option>
+                                            <option value="JUL-2024" id="submission-period-18">July 2024</option>
+                                            <option value="JUN-2024" id="submission-period-19">June 2024</option>
+                                            <option value="MAY-2024" id="submission-period-20">May 2024</option>
+                                            <option value="APR-2024" id="submission-period-21">April 2024</option>
+                                            <option value="MAR-2024" id="submission-period-22">March 2024</option>
+                                            <option value="FEB-2024" id="submission-period-23">February 2024</option>
+                                            <option value="JAN-2024" id="submission-period-24">January 2024</option>
+                                            <option value="DEC-2023" id="submission-period-25">December 2023</option>
+                                            <option value="NOV-2023" id="submission-period-26">November 2023</option>
+                                            <option value="OCT-2023" id="submission-period-27">October 2023</option>
+                                            <option value="SEP-2023" id="submission-period-28">September 2023</option>
+                                            <option value="AUG-2023" id="submission-period-29">August 2023</option>
+                                            <option value="JUL-2023" id="submission-period-30">July 2023</option>
+                                            <option value="JUN-2023" id="submission-period-31">June 2023</option>
+                                            <option value="MAY-2023" id="submission-period-32">May 2023</option>
+                                            <option value="APR-2023" id="submission-period-33">April 2023</option>
+                                            <option value="MAR-2023" id="submission-period-34">March 2023</option>
+                                            <option value="FEB-2023" id="submission-period-35">February 2023</option>
+                                            <option value="JAN-2023" id="submission-period-36">January 2023</option>
+                                            <option value="DEC-2022" id="submission-period-37">December 2022</option>
+                                            <option value="NOV-2022" id="submission-period-38">November 2022</option>
+                                            <option value="OCT-2022" id="submission-period-39">October 2022</option>
+                                            <option value="SEP-2022" id="submission-period-40">September 2022</option>
+                                            <option value="AUG-2022" id="submission-period-41">August 2022</option>
+                                            <option value="JUL-2022" id="submission-period-42">July 2022</option>
+                                            <option value="JUN-2022" id="submission-period-43">June 2022</option>
+                                            <option value="MAY-2022" id="submission-period-44">May 2022</option>
+                                            <option value="APR-2022" id="submission-period-45">April 2022</option>
+                                            <option value="MAR-2022" id="submission-period-46">March 2022</option>
+                                            <option value="FEB-2022" id="submission-period-47">February 2022</option>
+                                            <option value="JAN-2022" id="submission-period-48">January 2022</option>
+                                            <option value="DEC-2021" id="submission-period-49">December 2021</option>
+                                            <option value="NOV-2021" id="submission-period-50">November 2021</option>
+                                            <option value="OCT-2021" id="submission-period-51">October 2021</option>
+                                            <option value="SEP-2021" id="submission-period-52">September 2021</option>
+                                            <option value="AUG-2021" id="submission-period-53">August 2021</option>
+                                            <option value="JUL-2021" id="submission-period-54">July 2021</option>
+                                            <option value="JUN-2021" id="submission-period-55">June 2021</option>
+                                            <option value="MAY-2021" id="submission-period-56">May 2021</option>
+                                            <option value="APR-2021" id="submission-period-57">April 2021</option>
+                                            <option value="MAR-2021" id="submission-period-58">March 2021</option>
+                                            <option value="FEB-2021" id="submission-period-59">February 2021</option>
+                                            <option value="JAN-2021" id="submission-period-60">January 2021</option>
+                                            <option value="DEC-2020" id="submission-period-61">December 2020</option>
+                                            <option value="NOV-2020" id="submission-period-62">November 2020</option>
+                                            <option value="OCT-2020" id="submission-period-63">October 2020</option>
+                                            <option value="SEP-2020" id="submission-period-64">September 2020</option>
+                                            <option value="AUG-2020" id="submission-period-65">August 2020</option>
+                                            <option value="JUL-2020" id="submission-period-66">July 2020</option>
+                                            <option value="JUN-2020" id="submission-period-67">June 2020</option>
+                                            <option value="MAY-2020" id="submission-period-68">May 2020</option>
+                                            <option value="APR-2020" id="submission-period-69">April 2020</option>
+                                            <option value="MAR-2020" id="submission-period-70">March 2020</option>
+                                            <option value="FEB-2020" id="submission-period-71">February 2020</option>
+                                            <option value="JAN-2020" id="submission-period-72">January 2020</option>
+                                            <option value="DEC-2019" id="submission-period-73">December 2019</option>
+                                            <option value="NOV-2019" id="submission-period-74">November 2019</option>
+                                            <option value="OCT-2019" id="submission-period-75">October 2019</option>
+                                            <option value="SEP-2019" id="submission-period-76">September 2019</option>
+                                            <option value="AUG-2019" id="submission-period-77">August 2019</option>
+                                            <option value="JUL-2019" id="submission-period-78">July 2019</option>
+                                            <option value="JUN-2019" id="submission-period-79">June 2019</option>
+                                            <option value="MAY-2019" id="submission-period-80">May 2019</option>
+                                            <option value="APR-2019" id="submission-period-81">April 2019</option>
+                                            <option value="MAR-2019" id="submission-period-82">March 2019</option>
+                                            <option value="FEB-2019" id="submission-period-83">February 2019</option>
+                                            <option value="JAN-2019" id="submission-period-84">January 2019</option>
+                                            <option value="DEC-2018" id="submission-period-85">December 2018</option>
+                                            <option value="NOV-2018" id="submission-period-86">November 2018</option>
+                                            <option value="OCT-2018" id="submission-period-87">October 2018</option>
+                                            <option value="SEP-2018" id="submission-period-88">September 2018</option>
+                                            <option value="AUG-2018" id="submission-period-89">August 2018</option>
+                                            <option value="JUL-2018" id="submission-period-90">July 2018</option>
+                                            <option value="JUN-2018" id="submission-period-91">June 2018</option>
+                                            <option value="MAY-2018" id="submission-period-92">May 2018</option>
+                                            <option value="APR-2018" id="submission-period-93">April 2018</option>
+                                            <option value="MAR-2018" id="submission-period-94">March 2018</option>
+                                            <option value="FEB-2018" id="submission-period-95">February 2018</option>
+                                            <option value="JAN-2018" id="submission-period-96">January 2018</option>
+                                            <option value="DEC-2017" id="submission-period-97">December 2017</option>
+                                            <option value="NOV-2017" id="submission-period-98">November 2017</option>
+                                            <option value="OCT-2017" id="submission-period-99">October 2017</option>
+                                            <option value="SEP-2017" id="submission-period-100">September 2017</option>
+                                            <option value="AUG-2017" id="submission-period-101">August 2017</option>
+                                            <option value="JUL-2017" id="submission-period-102">July 2017</option>
+                                            <option value="JUN-2017" id="submission-period-103">June 2017</option>
+                                            <option value="MAY-2017" id="submission-period-104">May 2017</option>
+                                            <option value="APR-2017" id="submission-period-105">April 2017</option>
+                                            <option value="MAR-2017" id="submission-period-106">March 2017</option>
+                                            <option value="FEB-2017" id="submission-period-107">February 2017</option>
+                                            <option value="JAN-2017" id="submission-period-108">January 2017</option>
+                                            <option value="DEC-2016" id="submission-period-109">December 2016</option>
+                                            <option value="NOV-2016" id="submission-period-110">November 2016</option>
+                                            <option value="OCT-2016" id="submission-period-111">October 2016</option>
+                                            <option value="SEP-2016" id="submission-period-112">September 2016</option>
+                                            <option value="AUG-2016" id="submission-period-113">August 2016</option>
+                                            <option value="JUL-2016" id="submission-period-114">July 2016</option>
+                                            <option value="JUN-2016" id="submission-period-115">June 2016</option>
+                                            <option value="MAY-2016" id="submission-period-116">May 2016</option>
+                                            <option value="APR-2016" id="submission-period-117">April 2016</option>
+                                            <option value="MAR-2016" id="submission-period-118">March 2016</option>
+                                            <option value="FEB-2016" id="submission-period-119">February 2016</option>
+                                            <option value="JAN-2016" id="submission-period-120">January 2016</option>
+                                            <option value="DEC-2015" id="submission-period-121">December 2015</option>
+                                            <option value="NOV-2015" id="submission-period-122">November 2015</option>
+                                            <option value="OCT-2015" id="submission-period-123">October 2015</option>
+                                            <option value="SEP-2015" id="submission-period-124">September 2015</option>
+                                            <option value="AUG-2015" id="submission-period-125">August 2015</option>
+                                            <option value="JUL-2015" id="submission-period-126">July 2015</option>
+                                            <option value="JUN-2015" id="submission-period-127">June 2015</option>
+                                            <option value="MAY-2015" id="submission-period-128">May 2015</option>
+                                            <option value="APR-2015" id="submission-period-129">April 2015</option>
+                                        </select>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+                            <div class="govuk-grid-column-one-third">
+                                <fieldset class="govuk-fieldset">
+
+                                    <div class="govuk-body govuk-input--width-10">
+                                        <label class="govuk-label govuk-label--s" for="area-of-law">Area of law</label>
+                                        <select class="govuk-select" id="area-of-law" name="areaOfLaw">
+
+                                            <option value="">All</option>
+                                            <option value="LEGAL_HELP">Legal help</option>
+                                            <option value="CRIME_LOWER">Crime lower</option>
+                                            <option value="MEDIATION">Mediation</option>
+
+                                        </select>
+                                    </div>
+                                </fieldset>
+                            </div>
+                            <div class="govuk-grid-column-full">
+                                <fieldset class="govuk-fieldset">
+
+                                    <div class="govuk-body">
+
+                                        <div class="govuk-form-group">
+                                            <fieldset class="govuk-fieldset">
+                                                <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">Submission outcome</legend>
+                                                <div class="govuk-radios govuk-radios--inline govuk-radios--small" data-module="govuk-radios" data-govuk-radios-init="">
+                                                    <div class="govuk-radios__item">
+                                                        <input class="govuk-radios__input" id="succeeded-radio-option" type="radio" value="SUCCEEDED" name="submissionStatuses" checked="checked">
+                                                        <label class="govuk-label govuk-radios__label" for="succeeded-radio-option">Succeeded submissions</label>
+                                                    </div>
+                                                    <div class="govuk-radios__item">
+                                                        <input class="govuk-radios__input" id="failed-radio-option" type="radio" value="FAILED" name="submissionStatuses">
+                                                        <label class="govuk-label govuk-radios__label" for="failed-radio-option">Failed submissions</label>
+                                                    </div>
+                                                    <div class="govuk-radios__item">
+                                                        <input class="govuk-radios__input" id="all-radio-option" type="radio" value="ALL" name="submissionStatuses">
+                                                        <label class="govuk-label govuk-radios__label" for="all-radio-option">All submissions</label>
+                                                    </div>
+                                                </div>
+                                            </fieldset>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+
+                            <div class="govuk-grid-column-full">
+                                <details class="govuk-details">
+                                    <summary class="govuk-details__summary" id="choose-office-account-details-summary">
+                                        <span class="govuk-details__summary-text">Choose office account</span>
+                                    </summary>
+                                    <div class="govuk-details__text">
+                                        <div class="govuk-form-group">
+                                            <fieldset class="govuk-fieldset">
+                                                <legend class="govuk-fieldset__legend govuk-fieldset__legend--s" id="office-account-legend">Office account</legend>
+
+                                                <div class="govuk-checkboxes govuk-radios--inline govuk-checkboxes--small" data-module="govuk-checkboxes" id="offices-input" data-govuk-checkboxes-init="">
+
+                                                    <div class="govuk-checkboxes__item">
+
+                                                        <input class="govuk-checkboxes__input" id="offices-input" type="checkbox" name="offices" value="0P322F" checked="checked">
+                                                        <label class="govuk-label govuk-checkboxes__label" for="offices-input">0P322F</label>
+                                                    </div>
+
+                                                    <div class="govuk-checkboxes__item">
+
+                                                        <input class="govuk-checkboxes__input" id="offices-input-1" type="checkbox" name="offices" value="2L849T" checked="checked">
+                                                        <label class="govuk-label govuk-checkboxes__label" for="offices-input-1">2L849T</label>
+                                                    </div>
+
+                                                    <div class="govuk-checkboxes__item">
+
+                                                        <input class="govuk-checkboxes__input" id="offices-input-2" type="checkbox" name="offices" value="1T102C" checked="checked">
+                                                        <label class="govuk-label govuk-checkboxes__label" for="offices-input-2">1T102C</label>
+                                                    </div>
+
+                                                    <div class="govuk-checkboxes__item">
+
+                                                        <input class="govuk-checkboxes__input" id="offices-input-3" type="checkbox" name="offices" value="2L846P" checked="checked">
+                                                        <label class="govuk-label govuk-checkboxes__label" for="offices-input-3">2L846P</label>
+                                                    </div>
+
+                                                    <div class="govuk-checkboxes__item">
+
+                                                        <input class="govuk-checkboxes__input" id="offices-input-4" type="checkbox" name="offices" value="2L847Q" checked="checked">
+                                                        <label class="govuk-label govuk-checkboxes__label" for="offices-input-4">2L847Q</label>
+                                                    </div>
+
+                                                    <div class="govuk-checkboxes__item">
+
+                                                        <input class="govuk-checkboxes__input" id="offices-input-5" type="checkbox" name="offices" value="2L848R" checked="checked">
+                                                        <label class="govuk-label govuk-checkboxes__label" for="offices-input-5">2L848R</label>
+                                                    </div>
+
+                                                    <div class="govuk-checkboxes__item">
+
+                                                        <input class="govuk-checkboxes__input" id="offices-input-6" type="checkbox" name="offices" value="2M047H" checked="checked">
+                                                        <label class="govuk-label govuk-checkboxes__label" for="offices-input-6">2M047H</label>
+                                                    </div>
+
+                                                    <div class="govuk-checkboxes__item">
+
+                                                        <input class="govuk-checkboxes__input" id="offices-input-7" type="checkbox" name="offices" value="2M463K" checked="checked">
+                                                        <label class="govuk-label govuk-checkboxes__label" for="offices-input-7">2M463K</label>
+                                                    </div>
+
+                                                    <div class="govuk-checkboxes__item">
+
+                                                        <input class="govuk-checkboxes__input" id="offices-input-8" type="checkbox" name="offices" value="2N199K" checked="checked">
+                                                        <label class="govuk-label govuk-checkboxes__label" for="offices-input-8">2N199K</label>
+                                                    </div>
+
+                                                    <div class="govuk-checkboxes__item">
+
+                                                        <input class="govuk-checkboxes__input" id="offices-input-9" type="checkbox" name="offices" value="2N493E" checked="checked">
+                                                        <label class="govuk-label govuk-checkboxes__label" for="offices-input-9">2N493E</label>
+                                                    </div>
+
+                                                    <div class="govuk-checkboxes__item">
+
+                                                        <input class="govuk-checkboxes__input" id="offices-input-10" type="checkbox" name="offices" value="2N758T" checked="checked">
+                                                        <label class="govuk-label govuk-checkboxes__label" for="offices-input-10">2N758T</label>
+                                                    </div>
+
+                                                    <div class="govuk-checkboxes__item">
+
+                                                        <input class="govuk-checkboxes__input" id="offices-input-11" type="checkbox" name="offices" value="2P746R" checked="checked">
+                                                        <label class="govuk-label govuk-checkboxes__label" for="offices-input-11">2P746R</label>
+                                                    </div>
+
+                                                    <div class="govuk-checkboxes__item">
+
+                                                        <input class="govuk-checkboxes__input" id="offices-input-12" type="checkbox" name="offices" value="2P747T" checked="checked">
+                                                        <label class="govuk-label govuk-checkboxes__label" for="offices-input-12">2P747T</label>
+                                                    </div>
+
+                                                    <div class="govuk-checkboxes__item">
+
+                                                        <input class="govuk-checkboxes__input" id="offices-input-13" type="checkbox" name="offices" value="2Q779P" checked="checked">
+                                                        <label class="govuk-label govuk-checkboxes__label" for="offices-input-13">2Q779P</label>
+                                                    </div>
+
+                                                    <div class="govuk-checkboxes__item">
+
+                                                        <input class="govuk-checkboxes__input" id="offices-input-14" type="checkbox" name="offices" value="2Q780Q" checked="checked">
+                                                        <label class="govuk-label govuk-checkboxes__label" for="offices-input-14">2Q780Q</label>
+                                                    </div>
+
+
+                                                </div>
+                                            </fieldset>
+                                        </div>
+                                    </div>
+                                </details>
+                            </div>
+
+                            <div class="govuk-grid-column-full">
+                                <div class="govuk-button-group">
+                                    <button type="submit" class="govuk-button" data-module="govuk-button" id="searchButton" data-govuk-button-init="">Search</button>
+                                    <a class="govuk-link" href="/submissions/search">Clear all</a>
+                                </div>
+                            </div>
                         </div>
-
-                          <table class="moj-datepicker__calendar moj-js-datepicker-grid" role="application" aria-labelledby="datepicker-title-submittedDateFrom-input">
-                            <thead>
-                            <tr><th scope="col"><span aria-hidden="true">Mon</span><span class="govuk-visually-hidden">Monday</span></th><th scope="col"><span aria-hidden="true">Tue</span><span class="govuk-visually-hidden">Tuesday</span></th><th scope="col"><span aria-hidden="true">Wed</span><span class="govuk-visually-hidden">Wednesday</span></th><th scope="col"><span aria-hidden="true">Thu</span><span class="govuk-visually-hidden">Thursday</span></th><th scope="col"><span aria-hidden="true">Fri</span><span class="govuk-visually-hidden">Friday</span></th><th scope="col"><span aria-hidden="true">Sat</span><span class="govuk-visually-hidden">Saturday</span></th><th scope="col"><span aria-hidden="true">Sun</span><span class="govuk-visually-hidden">Sunday</span></th></tr>
-                            </thead>
-
-                            <tbody><tr><td><button type="button" data-testid="29/9/2025" style="display: none;"><span class="govuk-visually-hidden">Monday 29 September 2025</span><span aria-hidden="true">29</span></button></td><td><button type="button" data-testid="30/9/2025" style="display: none;"><span class="govuk-visually-hidden">Tuesday 30 September 2025</span><span aria-hidden="true">30</span></button></td><td><button type="button" data-testid="1/10/2025" style="display: block;"><span class="govuk-visually-hidden">Wednesday 1 October 2025</span><span aria-hidden="true">1</span></button></td><td><button type="button" data-testid="2/10/2025" style="display: block;"><span class="govuk-visually-hidden">Thursday 2 October 2025</span><span aria-hidden="true">2</span></button></td><td><button type="button" data-testid="3/10/2025" style="display: block;"><span class="govuk-visually-hidden">Friday 3 October 2025</span><span aria-hidden="true">3</span></button></td><td><button type="button" data-testid="4/10/2025" style="display: block;"><span class="govuk-visually-hidden">Saturday 4 October 2025</span><span aria-hidden="true">4</span></button></td><td><button type="button" data-testid="5/10/2025" style="display: block;"><span class="govuk-visually-hidden">Sunday 5 October 2025</span><span aria-hidden="true">5</span></button></td></tr><tr><td><button type="button" data-testid="6/10/2025" style="display: block;"><span class="govuk-visually-hidden">Monday 6 October 2025</span><span aria-hidden="true">6</span></button></td><td><button type="button" data-testid="7/10/2025" style="display: block;"><span class="govuk-visually-hidden">Tuesday 7 October 2025</span><span aria-hidden="true">7</span></button></td><td><button type="button" data-testid="8/10/2025" style="display: block;"><span class="govuk-visually-hidden">Wednesday 8 October 2025</span><span aria-hidden="true">8</span></button></td><td><button type="button" data-testid="9/10/2025" style="display: block;"><span class="govuk-visually-hidden">Thursday 9 October 2025</span><span aria-hidden="true">9</span></button></td><td><button type="button" data-testid="10/10/2025" style="display: block;"><span class="govuk-visually-hidden">Friday 10 October 2025</span><span aria-hidden="true">10</span></button></td><td><button type="button" data-testid="11/10/2025" style="display: block;"><span class="govuk-visually-hidden">Saturday 11 October 2025</span><span aria-hidden="true">11</span></button></td><td><button type="button" data-testid="12/10/2025" style="display: block;"><span class="govuk-visually-hidden">Sunday 12 October 2025</span><span aria-hidden="true">12</span></button></td></tr><tr><td><button type="button" data-testid="13/10/2025" style="display: block;"><span class="govuk-visually-hidden">Monday 13 October 2025</span><span aria-hidden="true">13</span></button></td><td><button type="button" data-testid="14/10/2025" style="display: block;"><span class="govuk-visually-hidden">Tuesday 14 October 2025</span><span aria-hidden="true">14</span></button></td><td><button type="button" data-testid="15/10/2025" style="display: block;"><span class="govuk-visually-hidden">Wednesday 15 October 2025</span><span aria-hidden="true">15</span></button></td><td><button type="button" data-testid="16/10/2025" style="display: block;"><span class="govuk-visually-hidden">Thursday 16 October 2025</span><span aria-hidden="true">16</span></button></td><td><button type="button" data-testid="17/10/2025" style="display: block;"><span class="govuk-visually-hidden">Friday 17 October 2025</span><span aria-hidden="true">17</span></button></td><td><button type="button" data-testid="18/10/2025" style="display: block;"><span class="govuk-visually-hidden">Saturday 18 October 2025</span><span aria-hidden="true">18</span></button></td><td><button type="button" data-testid="19/10/2025" style="display: block;"><span class="govuk-visually-hidden">Sunday 19 October 2025</span><span aria-hidden="true">19</span></button></td></tr><tr><td><button type="button" data-testid="20/10/2025" style="display: block;"><span class="govuk-visually-hidden">Monday 20 October 2025</span><span aria-hidden="true">20</span></button></td><td><button type="button" data-testid="21/10/2025" style="display: block;"><span class="govuk-visually-hidden">Tuesday 21 October 2025</span><span aria-hidden="true">21</span></button></td><td><button type="button" data-testid="22/10/2025" style="display: block;"><span class="govuk-visually-hidden">Wednesday 22 October 2025</span><span aria-hidden="true">22</span></button></td><td><button type="button" data-testid="23/10/2025" style="display: block;"><span class="govuk-visually-hidden">Thursday 23 October 2025</span><span aria-hidden="true">23</span></button></td><td><button type="button" data-testid="24/10/2025" style="display: block;"><span class="govuk-visually-hidden">Friday 24 October 2025</span><span aria-hidden="true">24</span></button></td><td><button type="button" data-testid="25/10/2025" style="display: block;"><span class="govuk-visually-hidden">Saturday 25 October 2025</span><span aria-hidden="true">25</span></button></td><td><button type="button" data-testid="26/10/2025" style="display: block;"><span class="govuk-visually-hidden">Sunday 26 October 2025</span><span aria-hidden="true">26</span></button></td></tr><tr><td><button type="button" data-testid="27/10/2025" style="display: block;"><span class="govuk-visually-hidden">Monday 27 October 2025</span><span aria-hidden="true">27</span></button></td><td><button type="button" data-testid="28/10/2025" style="display: block;"><span class="govuk-visually-hidden">Tuesday 28 October 2025</span><span aria-hidden="true">28</span></button></td><td><button type="button" data-testid="29/10/2025" style="display: block;"><span class="govuk-visually-hidden">Wednesday 29 October 2025</span><span aria-hidden="true">29</span></button></td><td><button type="button" data-testid="30/10/2025" style="display: block;"><span class="govuk-visually-hidden">Thursday 30 October 2025</span><span aria-hidden="true">30</span></button></td><td><button type="button" aria-disabled="true" data-testid="31/10/2025" style="display: block;"><span class="govuk-visually-hidden">Excluded date, Friday 31 October 2025</span><span aria-hidden="true">31</span></button></td><td><button type="button" aria-disabled="true" data-testid="1/11/2025" style="display: none;"><span class="govuk-visually-hidden">Excluded date, Saturday 1 November 2025</span><span aria-hidden="true">1</span></button></td><td><button type="button" aria-disabled="true" data-testid="2/11/2025" style="display: none;"><span class="govuk-visually-hidden">Excluded date, Sunday 2 November 2025</span><span aria-hidden="true">2</span></button></td></tr><tr><td><button type="button" aria-disabled="true" data-testid="3/11/2025" style="display: none;"><span class="govuk-visually-hidden">Excluded date, Monday 3 November 2025</span><span aria-hidden="true">3</span></button></td><td><button type="button" aria-disabled="true" data-testid="4/11/2025" style="display: none;"><span class="govuk-visually-hidden">Excluded date, Tuesday 4 November 2025</span><span aria-hidden="true">4</span></button></td><td><button type="button" aria-disabled="true" data-testid="5/11/2025" style="display: none;"><span class="govuk-visually-hidden">Excluded date, Wednesday 5 November 2025</span><span aria-hidden="true">5</span></button></td><td><button type="button" aria-disabled="true" data-testid="6/11/2025" style="display: none;"><span class="govuk-visually-hidden">Excluded date, Thursday 6 November 2025</span><span aria-hidden="true">6</span></button></td><td><button type="button" aria-disabled="true" data-testid="7/11/2025" style="display: none;"><span class="govuk-visually-hidden">Excluded date, Friday 7 November 2025</span><span aria-hidden="true">7</span></button></td><td><button type="button" aria-disabled="true" data-testid="8/11/2025" style="display: none;"><span class="govuk-visually-hidden">Excluded date, Saturday 8 November 2025</span><span aria-hidden="true">8</span></button></td><td><button type="button" aria-disabled="true" data-testid="9/11/2025" style="display: none;"><span class="govuk-visually-hidden">Excluded date, Sunday 9 November 2025</span><span aria-hidden="true">9</span></button></td></tr></tbody>
-                          </table>
-
-                          <div class="govuk-button-group">
-                            <button type="button" class="govuk-button moj-js-datepicker-ok">Select</button>
-                            <button type="button" class="govuk-button govuk-button--secondary moj-js-datepicker-cancel">Close</button>
-                          </div></div></div>
-                      </div>
                     </div>
-                  </div>
-                </div>
 
-                <div id="to-date-form-group" class="govuk-form-group govuk-grid-column-one-third">
-                  <div class="govuk-date-input__item">
-                    <div class="moj-datepicker" data-module="moj-date-picker" data-max-date="30/10/2025" data-moj-date-picker-init="">
-                      <div class="govuk-form-group">
-                        <label class="govuk-label" id="submittedDateTo-label" for="submittedDateTo-input">To</label>
 
-                        <div class="moj-datepicker__wrapper"><div class="govuk-input__wrapper"><input class="govuk-input moj-js-datepicker-input" id="submittedDateTo-input" type="text" aria-describedby="submittedDateTo-label" autocomplete="off" name="submittedDateTo" value=""><button class="moj-datepicker__toggle moj-js-datepicker-toggle" type="button" aria-haspopup="dialog" aria-controls="datepicker-submittedDateTo-input" aria-expanded="false">
-                          <span class="govuk-visually-hidden">Choose date</span>
-                          <svg width="32" height="24" focusable="false" class="moj-datepicker-icon" aria-hidden="true" role="img" viewBox="0 0 22 22">
-                            <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M16.1333 2.93333H5.86668V4.4C5.86668 5.21002 5.21003 5.86667 4.40002 5.86667C3.59 5.86667 2.93335 5.21002 2.93335 4.4V2.93333H2C0.895431 2.93333 0 3.82877 0 4.93334V19.2667C0 20.3712 0.89543 21.2667 2 21.2667H20C21.1046 21.2667 22 20.3712 22 19.2667V4.93333C22 3.82876 21.1046 2.93333 20 2.93333H19.0667V4.4C19.0667 5.21002 18.41 5.86667 17.6 5.86667C16.79 5.86667 16.1333 5.21002 16.1333 4.4V2.93333ZM20.5333 8.06667H1.46665V18.8C1.46665 19.3523 1.91436 19.8 2.46665 19.8H19.5333C20.0856 19.8 20.5333 19.3523 20.5333 18.8V8.06667Z"></path>
-                            <rect x="3.66669" width="1.46667" height="5.13333" rx="0.733333" fill="currentColor"></rect>
-                            <rect x="16.8667" width="1.46667" height="5.13333" rx="0.733333" fill="currentColor"></rect>
-                          </svg>
-                        </button></div><div id="datepicker-submittedDateTo-input" class="moj-datepicker__dialog" role="dialog" aria-modal="true" aria-labelledby="datepicker-title-submittedDateTo-input" hidden=""><div class="moj-datepicker__dialog-header">
-                          <div class="moj-datepicker__dialog-navbuttons">
-                            <button type="button" class="moj-datepicker__button moj-js-datepicker-prev-year">
-                              <span class="govuk-visually-hidden">Previous year</span>
-                              <svg width="44" height="40" viewBox="0 0 44 40" fill="none" focusable="false" aria-hidden="true" role="img">
-                                <path fill-rule="evenodd" clip-rule="evenodd" d="M23.1643 20L28.9572 14.2071L27.5429 12.7929L20.3358 20L27.5429 27.2071L28.9572 25.7929L23.1643 20Z" fill="currentColor"></path>
-                                <path fill-rule="evenodd" clip-rule="evenodd" d="M17.1643 20L22.9572 14.2071L21.5429 12.7929L14.3358 20L21.5429 27.2071L22.9572 25.7929L17.1643 20Z" fill="currentColor"></path>
-                              </svg>
-                            </button>
+                </form>
 
-                            <button type="button" class="moj-datepicker__button moj-js-datepicker-prev-month">
-                              <span class="govuk-visually-hidden">Previous month</span>
-                              <svg width="44" height="40" viewBox="0 0 44 40" fill="none" focusable="false" aria-hidden="true" role="img">
-                                <path fill-rule="evenodd" clip-rule="evenodd" d="M20.5729 20L25.7865 14.2071L24.5137 12.7929L18.0273 20L24.5137 27.2071L25.7865 25.7929L20.5729 20Z" fill="currentColor"></path>
-                              </svg>
-                            </button>
-                          </div>
-
-                          <h2 id="datepicker-title-submittedDateTo-input" class="moj-datepicker__dialog-title moj-js-datepicker-month-year" aria-live="polite">October 2025</h2>
-
-                          <div class="moj-datepicker__dialog-navbuttons">
-                            <button type="button" class="moj-datepicker__button moj-js-datepicker-next-month">
-                              <span class="govuk-visually-hidden">Next month</span>
-                              <svg width="44" height="40" viewBox="0 0 44 40" fill="none" focusable="false" aria-hidden="true" role="img">
-                                <path fill-rule="evenodd" clip-rule="evenodd" d="M23.4271 20L18.2135 14.2071L19.4863 12.7929L25.9727 20L19.4863 27.2071L18.2135 25.7929L23.4271 20Z" fill="currentColor"></path>
-                              </svg>
-                            </button>
-
-                            <button type="button" class="moj-datepicker__button moj-js-datepicker-next-year">
-                              <span class="govuk-visually-hidden">Next year</span>
-                              <svg width="44" height="40" viewBox="0 0 44 40" fill="none" focusable="false" aria-hidden="true" role="img">
-                                <path fill-rule="evenodd" clip-rule="evenodd" d="M20.8357 20L15.0428 14.2071L16.4571 12.7929L23.6642 20L16.4571 27.2071L15.0428 25.7929L20.8357 20Z" fill="currentColor"></path>
-                                <path fill-rule="evenodd" clip-rule="evenodd" d="M26.8357 20L21.0428 14.2071L22.4571 12.7929L29.6642 20L22.4571 27.2071L21.0428 25.7929L26.8357 20Z" fill="currentColor"></path>
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-
-                          <table class="moj-datepicker__calendar moj-js-datepicker-grid" role="application" aria-labelledby="datepicker-title-submittedDateTo-input">
-                            <thead>
-                            <tr><th scope="col"><span aria-hidden="true">Mon</span><span class="govuk-visually-hidden">Monday</span></th><th scope="col"><span aria-hidden="true">Tue</span><span class="govuk-visually-hidden">Tuesday</span></th><th scope="col"><span aria-hidden="true">Wed</span><span class="govuk-visually-hidden">Wednesday</span></th><th scope="col"><span aria-hidden="true">Thu</span><span class="govuk-visually-hidden">Thursday</span></th><th scope="col"><span aria-hidden="true">Fri</span><span class="govuk-visually-hidden">Friday</span></th><th scope="col"><span aria-hidden="true">Sat</span><span class="govuk-visually-hidden">Saturday</span></th><th scope="col"><span aria-hidden="true">Sun</span><span class="govuk-visually-hidden">Sunday</span></th></tr>
-                            </thead>
-
-                            <tbody><tr><td><button type="button" data-testid="29/9/2025" style="display: none;"><span class="govuk-visually-hidden">Monday 29 September 2025</span><span aria-hidden="true">29</span></button></td><td><button type="button" data-testid="30/9/2025" style="display: none;"><span class="govuk-visually-hidden">Tuesday 30 September 2025</span><span aria-hidden="true">30</span></button></td><td><button type="button" data-testid="1/10/2025" style="display: block;"><span class="govuk-visually-hidden">Wednesday 1 October 2025</span><span aria-hidden="true">1</span></button></td><td><button type="button" data-testid="2/10/2025" style="display: block;"><span class="govuk-visually-hidden">Thursday 2 October 2025</span><span aria-hidden="true">2</span></button></td><td><button type="button" data-testid="3/10/2025" style="display: block;"><span class="govuk-visually-hidden">Friday 3 October 2025</span><span aria-hidden="true">3</span></button></td><td><button type="button" data-testid="4/10/2025" style="display: block;"><span class="govuk-visually-hidden">Saturday 4 October 2025</span><span aria-hidden="true">4</span></button></td><td><button type="button" data-testid="5/10/2025" style="display: block;"><span class="govuk-visually-hidden">Sunday 5 October 2025</span><span aria-hidden="true">5</span></button></td></tr><tr><td><button type="button" data-testid="6/10/2025" style="display: block;"><span class="govuk-visually-hidden">Monday 6 October 2025</span><span aria-hidden="true">6</span></button></td><td><button type="button" data-testid="7/10/2025" style="display: block;"><span class="govuk-visually-hidden">Tuesday 7 October 2025</span><span aria-hidden="true">7</span></button></td><td><button type="button" data-testid="8/10/2025" style="display: block;"><span class="govuk-visually-hidden">Wednesday 8 October 2025</span><span aria-hidden="true">8</span></button></td><td><button type="button" data-testid="9/10/2025" style="display: block;"><span class="govuk-visually-hidden">Thursday 9 October 2025</span><span aria-hidden="true">9</span></button></td><td><button type="button" data-testid="10/10/2025" style="display: block;"><span class="govuk-visually-hidden">Friday 10 October 2025</span><span aria-hidden="true">10</span></button></td><td><button type="button" data-testid="11/10/2025" style="display: block;"><span class="govuk-visually-hidden">Saturday 11 October 2025</span><span aria-hidden="true">11</span></button></td><td><button type="button" data-testid="12/10/2025" style="display: block;"><span class="govuk-visually-hidden">Sunday 12 October 2025</span><span aria-hidden="true">12</span></button></td></tr><tr><td><button type="button" data-testid="13/10/2025" style="display: block;"><span class="govuk-visually-hidden">Monday 13 October 2025</span><span aria-hidden="true">13</span></button></td><td><button type="button" data-testid="14/10/2025" style="display: block;"><span class="govuk-visually-hidden">Tuesday 14 October 2025</span><span aria-hidden="true">14</span></button></td><td><button type="button" data-testid="15/10/2025" style="display: block;"><span class="govuk-visually-hidden">Wednesday 15 October 2025</span><span aria-hidden="true">15</span></button></td><td><button type="button" data-testid="16/10/2025" style="display: block;"><span class="govuk-visually-hidden">Thursday 16 October 2025</span><span aria-hidden="true">16</span></button></td><td><button type="button" data-testid="17/10/2025" style="display: block;"><span class="govuk-visually-hidden">Friday 17 October 2025</span><span aria-hidden="true">17</span></button></td><td><button type="button" data-testid="18/10/2025" style="display: block;"><span class="govuk-visually-hidden">Saturday 18 October 2025</span><span aria-hidden="true">18</span></button></td><td><button type="button" data-testid="19/10/2025" style="display: block;"><span class="govuk-visually-hidden">Sunday 19 October 2025</span><span aria-hidden="true">19</span></button></td></tr><tr><td><button type="button" data-testid="20/10/2025" style="display: block;"><span class="govuk-visually-hidden">Monday 20 October 2025</span><span aria-hidden="true">20</span></button></td><td><button type="button" data-testid="21/10/2025" style="display: block;"><span class="govuk-visually-hidden">Tuesday 21 October 2025</span><span aria-hidden="true">21</span></button></td><td><button type="button" data-testid="22/10/2025" style="display: block;"><span class="govuk-visually-hidden">Wednesday 22 October 2025</span><span aria-hidden="true">22</span></button></td><td><button type="button" data-testid="23/10/2025" style="display: block;"><span class="govuk-visually-hidden">Thursday 23 October 2025</span><span aria-hidden="true">23</span></button></td><td><button type="button" data-testid="24/10/2025" style="display: block;"><span class="govuk-visually-hidden">Friday 24 October 2025</span><span aria-hidden="true">24</span></button></td><td><button type="button" data-testid="25/10/2025" style="display: block;"><span class="govuk-visually-hidden">Saturday 25 October 2025</span><span aria-hidden="true">25</span></button></td><td><button type="button" data-testid="26/10/2025" style="display: block;"><span class="govuk-visually-hidden">Sunday 26 October 2025</span><span aria-hidden="true">26</span></button></td></tr><tr><td><button type="button" data-testid="27/10/2025" style="display: block;"><span class="govuk-visually-hidden">Monday 27 October 2025</span><span aria-hidden="true">27</span></button></td><td><button type="button" data-testid="28/10/2025" style="display: block;"><span class="govuk-visually-hidden">Tuesday 28 October 2025</span><span aria-hidden="true">28</span></button></td><td><button type="button" data-testid="29/10/2025" style="display: block;"><span class="govuk-visually-hidden">Wednesday 29 October 2025</span><span aria-hidden="true">29</span></button></td><td><button type="button" data-testid="30/10/2025" style="display: block;"><span class="govuk-visually-hidden">Thursday 30 October 2025</span><span aria-hidden="true">30</span></button></td><td><button type="button" aria-disabled="true" data-testid="31/10/2025" style="display: block;"><span class="govuk-visually-hidden">Excluded date, Friday 31 October 2025</span><span aria-hidden="true">31</span></button></td><td><button type="button" aria-disabled="true" data-testid="1/11/2025" style="display: none;"><span class="govuk-visually-hidden">Excluded date, Saturday 1 November 2025</span><span aria-hidden="true">1</span></button></td><td><button type="button" aria-disabled="true" data-testid="2/11/2025" style="display: none;"><span class="govuk-visually-hidden">Excluded date, Sunday 2 November 2025</span><span aria-hidden="true">2</span></button></td></tr><tr><td><button type="button" aria-disabled="true" data-testid="3/11/2025" style="display: none;"><span class="govuk-visually-hidden">Excluded date, Monday 3 November 2025</span><span aria-hidden="true">3</span></button></td><td><button type="button" aria-disabled="true" data-testid="4/11/2025" style="display: none;"><span class="govuk-visually-hidden">Excluded date, Tuesday 4 November 2025</span><span aria-hidden="true">4</span></button></td><td><button type="button" aria-disabled="true" data-testid="5/11/2025" style="display: none;"><span class="govuk-visually-hidden">Excluded date, Wednesday 5 November 2025</span><span aria-hidden="true">5</span></button></td><td><button type="button" aria-disabled="true" data-testid="6/11/2025" style="display: none;"><span class="govuk-visually-hidden">Excluded date, Thursday 6 November 2025</span><span aria-hidden="true">6</span></button></td><td><button type="button" aria-disabled="true" data-testid="7/11/2025" style="display: none;"><span class="govuk-visually-hidden">Excluded date, Friday 7 November 2025</span><span aria-hidden="true">7</span></button></td><td><button type="button" aria-disabled="true" data-testid="8/11/2025" style="display: none;"><span class="govuk-visually-hidden">Excluded date, Saturday 8 November 2025</span><span aria-hidden="true">8</span></button></td><td><button type="button" aria-disabled="true" data-testid="9/11/2025" style="display: none;"><span class="govuk-visually-hidden">Excluded date, Sunday 9 November 2025</span><span aria-hidden="true">9</span></button></td></tr></tbody>
-                          </table>
-
-                          <div class="govuk-button-group">
-                            <button type="button" class="govuk-button moj-js-datepicker-ok">Select</button>
-                            <button type="button" class="govuk-button govuk-button--secondary moj-js-datepicker-cancel">Close</button>
-                          </div></div></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </fieldset>
-
-            <p class="govuk-label govuk-label--s">Or</p>
-
-            <div class="govuk-form-group govuk-!-width-two-thirds govuk-!-margin-top-4" role="search">
-              <label class="govuk-label govuk-label--s" for="submissionId-input">Submission reference</label>
-
-              <input class="govuk-input" id="submissionId-input" type="search" aria-description="submission id search criteria" name="submissionId" value="">
             </div>
-
-            <div class="govuk-button-group">
-              <button type="submit" class="govuk-button" data-module="govuk-button" id="searchButton" data-govuk-button-init="">
-                Search
-              </button>
-              <a class="govuk-link" href="/submissions/search">Clear all</a>
-            </div>
-          </div>
-
-
-        </form>
-
-      </div>
+        </div>
     </div>
-  </div>
 </main>
