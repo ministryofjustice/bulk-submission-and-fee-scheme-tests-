@@ -15,9 +15,9 @@ Feature: Submission search page (SS)
       | aria-valid-attr-value |
 
   Scenario: SS2 accessibility checks
-    Given I determine a valid submission search date range for the past 1 days
+    Given I determine a valid submission search criteria
     And I am on the Search page
-    When I search using the valid date range
+    When I search using the valid search criteria
     Then the page should have no accessibility violations whilst ignoring the following rules
     # Both date pickers on the page use an invisible element which is referenced via a
     # `aria-controls` attribute. This shows as a false positive in this test so
