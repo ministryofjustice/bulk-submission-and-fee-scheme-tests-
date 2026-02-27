@@ -90,6 +90,28 @@ Then(
     }
 );
 
+Then(`I should be able to export the {string} submission`, async function (this: CustomWorld, areaOfLaw: string) {
+  const summaryPage = new SubmissionSummaryPage(this.page!);
+  this.submissionSummaryPage = summaryPage;
+  await summaryPage.exportButtonIsVisible();
+
+  let download = await summaryPage.clickExportButton();
+  let fileName = download.suggestedFilename();
+  console.log(`⬇️ Downloaded file: ${fileName}`);
+  let areaOfLawKebabCase = areaOfLaw.toLowerCase().replace(/ /g, '-');
+  let todayDate = new Date().toISOString().split('T')[0];
+  let expectedFileName = `submission-claims-${areaOfLawKebabCase}-${this.mostRecentSubmissionId}-${this.officeAccount}-${todayDate}.csv`;
+  expect(fileName.toLowerCase()).toMatch(expectedFileName.toLowerCase());
+})
+
+Then(`I should not be able to export the submission`, async function (this: CustomWorld) {
+  const summaryPage = new SubmissionSummaryPage(this.page!);
+  this.submissionSummaryPage = summaryPage;
+
+  await summaryPage.exportButtonIsNotVisible();
+})
+
+
 Then(`There should be {int} warnings`, async function (this: CustomWorld, warningCount: number) {
   const summaryPage = new SubmissionSummaryPage(this.page!);
   this.submissionSummaryPage = summaryPage;
