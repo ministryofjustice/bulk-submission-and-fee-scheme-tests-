@@ -1,4 +1,4 @@
-@stable
+@stable @export
 Feature: Export submission via UI
 
   Background:
