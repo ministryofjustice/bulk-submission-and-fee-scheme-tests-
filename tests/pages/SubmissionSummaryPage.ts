@@ -22,7 +22,7 @@ export class SubmissionSummaryPage extends BasePage {
     this.successBanner = page.locator('.govuk-notification-banner--success');
     this.failureBanner = page.locator('.moj-alert--error');
     this.warningBanner = page.locator('.moj-alert--warning');
-    this.exportButton = page.locator('.govuk-button', { hasText: 'Export' });
+    this.exportButton = page.locator('.govuk-button', { hasText: 'Download Claims' });
     this.statusTag = page.locator('.govuk-tag--green');
     this.summaryRows = page.locator('.govuk-summary-list__row');
     this.claimsTable = page.locator('table.govuk-table');
