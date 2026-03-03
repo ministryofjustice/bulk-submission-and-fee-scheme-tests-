@@ -23,6 +23,12 @@ import {
     GenerateLegalHelpImmigrationFilesForCalculations
 } from "../../../utils/scripts/dataGenartor/GenerateLegalHelpImmigrationFilesForCalculations";
 
+function formatDateToDDMMYYYY(date: Date): string {
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
 
 
 function escapeRegExp(value: string): string {
@@ -277,7 +283,6 @@ Given('I generate {string} {string} file with the following claims', async funct
         case "Crime lower":
             result = await GenerateCrimeFiles(1, claims.length, format as any, { claims });
             break;
-
         case "Crime":
             const fixed = await GenerateFixedCrimePoliceFile("crime_fixed");
             result = { filePaths: [fixed.filePath], office: fixed.office };
@@ -299,6 +304,63 @@ Given('I generate {string} {string} file with the following claims', async funct
 
     await this.attach(`📁 Generated file: ${this.fileName}`, "text/plain");
     await this.attach(`🏢 Office: ${this.officeAccount}`, "text/plain");
+});
+
+
+Given('I update case start date to be on {int} and {int} month before submission period', async function (this: CustomWorld, dateNumber: number, monthsAfter: number) {
+  const filePath = this.generatedFilePath || this.filePath;
+
+  if (!filePath) {
+    throw new Error('Generated file path is not set.');
+  }
+
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Generated file not found at ${filePath}`);
+  }
+  const content = fs.readFileSync(filePath, 'utf8');
+
+
+  const submissionPeriodPattern = new RegExp(`${escapeRegExp('submissionPeriod')}=([^,\\r\\n]*)`, 'g');
+  const match = submissionPeriodPattern.exec(content);
+  this.submissionPeriod = match?.[1];
+
+  // Parse submission period in format 'MMM-uuuu' (e.g., "Jan-2025")
+  // @ts-ignore
+  const [monthStr, yearStr] = this.submissionPeriod.split('-');
+  
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const normalizedMonth = monthStr.charAt(0).toUpperCase() + monthStr.slice(1).toLowerCase();
+  const monthIndex = monthNames.indexOf(normalizedMonth);
+
+  if (monthIndex === -1) {
+    throw new Error(`Invalid month in submission period: ${monthStr}`);
+  }
+
+  const year = parseInt(yearStr);
+  // Month index, + 1 (1-12), + 1 (month after)
+  const value = new Date(year, monthIndex - monthsAfter, dateNumber);
+  const formattedDate = formatDateToDDMMYYYY(value);
+
+
+  await this.attach(`📅 Submission period: ${this.submissionPeriod}`, "text/plain");
+  await this.attach(`📅 Work concluded date: ${formattedDate}`, "text/plain");
+
+  // Update the file
+  const pattern = new RegExp(`(${escapeRegExp('CASE_START_DATE')}=)([^,\\r\\n]*)`, 'g');
+  let replacements = 0;
+  const updated = content.replace(pattern, (_match, prefix: string) => {
+    replacements++;
+    return `${prefix}${formattedDate}`;
+  });
+
+  if (replacements === 0) {
+    throw new Error(`Field "CASE_START_DATE" not found in file ${filePath}`);
+  }
+
+  fs.writeFileSync(filePath, updated, 'utf8');
+  this.filePath = filePath;
+
+  await this.attach(`✏️ Overrode CASE_START_DATE = ${formattedDate} in ${path.basename(filePath)}`, 'text/plain');
 });
 
 
