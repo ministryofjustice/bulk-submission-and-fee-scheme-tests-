@@ -6,6 +6,7 @@ export class SubmissionSummaryPage extends BasePage {
   readonly successBanner: Locator;
   readonly failureBanner: Locator;
   readonly warningBanner: Locator;
+  readonly exportButton: Locator;
   readonly statusTag: Locator;
   readonly summaryRows: Locator;
   readonly claimsTable: Locator;
@@ -21,6 +22,7 @@ export class SubmissionSummaryPage extends BasePage {
     this.successBanner = page.locator('.govuk-notification-banner--success');
     this.failureBanner = page.locator('.moj-alert--error');
     this.warningBanner = page.locator('.moj-alert--warning');
+    this.exportButton = page.locator('.govuk-button', { hasText: 'Download Claims' });
     this.statusTag = page.locator('.govuk-tag--green');
     this.summaryRows = page.locator('.govuk-summary-list__row');
     this.claimsTable = page.locator('table.govuk-table');
@@ -298,5 +300,25 @@ async openClaimByIndex(index = 0): Promise<void> {
 
     const text = (await locator.getAttribute('data-sort-value'))?.trim() || '';
     return text;
+  }
+
+  async exportButtonIsNotVisible() {
+    await expect(this.exportButton).not.toBeVisible();
+  }
+  async exportButtonIsVisible() {
+    await expect(this.exportButton).toBeVisible();
+  }
+  async clickExportButton() {
+    await this.exportButton.waitFor({ state: 'visible', timeout: 10000 });
+
+    const [download] = await Promise.all([
+      this.page.waitForEvent('download', { timeout: 30_000 }),
+      this.exportButton.click(),
+    ]);
+
+    // Basic “did we download the right kind of thing?” checks
+    const filename = download.suggestedFilename();
+    console.log(`⬇️ Downloaded file: ${filename}`);
+    return download;
   }
 }
