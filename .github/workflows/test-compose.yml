@@ -34,7 +34,7 @@ jobs:
       - name: Checkout claims parent repository
         uses: actions/checkout@v4
         with:
-          repository: 'https://github.com/ministryofjustice/laa-data-claims-parent.git'
+          repository: 'ministryofjustice/laa-data-claims-parent'
           path: 'laa-data-claims-parent'
           submodules: recursive
           fetch-depth: 0
