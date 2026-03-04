@@ -44,17 +44,26 @@ jobs:
       - name: Build and start services
         working-directory: ./laa-data-claims-parent
         shell: bash
+        env:
+          DOCKER_BUILDKIT: 1
         run: |
-          # Create temporary secret files from GitHub secrets
           echo "${GITHUB_ACTOR}" > github_actor.txt
           echo "${GITHUB_TOKEN}" > github_token.txt
-      
-          # Build and start services with secrets for BuildKit
-          docker compose build \
-          --secret id=github_actor,src=github_actor.txt \
-          --secret id=github_token,src=github_token.txt
-          docker compose up -d claims-api event-service sabc-ui --build
-      
+
+          # Build images individually with secrets
+          docker build --secret id=github_actor,src=github_actor.txt \
+                       --secret id=github_token,src=github_token.txt \
+                       -t claims-api ./claims-api
+          docker build --secret id=github_actor,src=github_actor.txt \
+                       --secret id=github_token,src=github_token.txt \
+                       -t event-service ./event-service
+          docker build --secret id=github_actor,src=github_actor.txt \
+                       --secret id=github_token,src=github_token.txt \
+                       -t sabc-ui ./sabc-ui
+
+          # Start services via docker compose without rebuilding
+          docker compose up -d claims-api event-service sabc-ui
+          
           # Clean up temporary secret files
           rm github_actor.txt github_token.txt
 
