@@ -8,9 +8,6 @@ on:
   push:
     branches: [ feature/test-compose ]
 
-  pull_request:
-    branches: [ main ]
-
   workflow_dispatch:
     inputs:
       branch:
