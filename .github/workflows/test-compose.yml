@@ -50,16 +50,14 @@ jobs:
           echo "${GITHUB_ACTOR}" > github_actor.txt
           echo "${GITHUB_TOKEN}" > github_token.txt
 
-          # Build images individually with secrets
-          docker build --secret id=github_actor,src=github_actor.txt \
-                       --secret id=github_token,src=github_token.txt \
-                       -t claims-api ./claims-api
-          docker build --secret id=github_actor,src=github_actor.txt \
-                       --secret id=github_token,src=github_token.txt \
-                       -t event-service ./event-service
-          docker build --secret id=github_actor,src=github_actor.txt \
-                       --secret id=github_token,src=github_token.txt \
-                       -t sabc-ui ./sabc-ui
+          # Build and start each compose project
+          for dir in laa-data-claims-api laa-data-claims-event-service laa-submit-a-bulk-claim; do
+          docker compose -f $dir/docker-compose.yml build \
+          --secret id=github_actor,src=github_actor.txt \
+          --secret id=github_token,src=github_token.txt
+          
+          docker compose -f $dir/docker-compose.yml up -d
+          done
 
           # Start services via docker compose without rebuilding
           docker compose up -d claims-api event-service sabc-ui
