@@ -1,0 +1,56 @@
+name: Run E2E Tests via Docker Compose
+
+concurrency:
+  group: run-e2e-tests
+  cancel-in-progress: false
+
+on:
+  push:
+    branches: [ feature/test-compose ]
+
+  pull_request:
+    branches: [ feature/test-compose ]
+
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run tests against'
+        required: false
+        default: 'main'
+
+  schedule:
+    # 6pm UTC Mon–Fri
+    - cron: '0 18 * * 1-5'
+
+jobs:
+  ui-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch || github.ref }}
+
+      - name: Checkout claims parent repository
+        uses: actions/checkout@v4
+        with:
+          repository: 'https://github.com/ministryofjustice/laa-data-claims-parent.git'
+          path: 'laa-data-claims-parent'
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Start services
+        shell: bash
+        run: |
+          docker-compose up -d claims-api event-service sabc-ui claims-api --build;
+
+      - name: Wait for services
+        shell: bash
+        run: |
+          docker-compose -f docker-compose.yml ps
+
+      - name: Tear down
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          docker-compose down claims-api event-service sabc-ui -v;
