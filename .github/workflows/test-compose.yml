@@ -36,11 +36,27 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Start services
+      - name: Prepare GitHub secrets for Docker build
+        run: |
+          echo "${{ github.actor }}" > github_actor.txt
+          echo "${{ secrets.GITHUB_TOKEN }}" > github_token.txt
+
+      - name: Build and start services
         working-directory: ./laa-data-claims-parent
         shell: bash
         run: |
-          docker compose up -d claims-api event-service sabc-ui claims-api --build;
+          # Create temporary secret files from GitHub secrets
+          echo "${GITHUB_ACTOR}" > github_actor.txt
+          echo "${GITHUB_TOKEN}" > github_token.txt
+      
+          # Build and start services with secrets for BuildKit
+          docker compose build \
+          --secret id=github_actor,src=github_actor.txt \
+          --secret id=github_token,src=github_token.txt
+          docker compose up -d claims-api event-service sabc-ui --build
+      
+          # Clean up temporary secret files
+          rm github_actor.txt github_token.txt
 
       - name: Wait for services
         working-directory: ./laa-data-claims-parent
@@ -49,8 +65,8 @@ jobs:
           docker compose -f docker-compose.yml ps
 
       - name: Tear down
-        working-directory: ./laa-data-claims-parent
         if: ${{ always() }}
+        working-directory: ./laa-data-claims-parent
         shell: bash
         run: |
           docker compose down claims-api event-service sabc-ui -v;
