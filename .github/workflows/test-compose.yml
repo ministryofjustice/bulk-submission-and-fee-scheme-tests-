@@ -42,15 +42,15 @@ jobs:
       - name: Start services
         shell: bash
         run: |
-          docker-compose up -d claims-api event-service sabc-ui claims-api --build;
+          docker compose up -d claims-api event-service sabc-ui claims-api --build;
 
       - name: Wait for services
         shell: bash
         run: |
-          docker-compose -f docker-compose.yml ps
+          docker compose -f docker-compose.yml ps
 
       - name: Tear down
         if: ${{ always() }}
         shell: bash
         run: |
-          docker-compose down claims-api event-service sabc-ui -v;
+          docker compose down claims-api event-service sabc-ui -v;
