@@ -212,7 +212,6 @@ export async function getUniqueSubmissionPeriod(
 
   if (feeCode) {
     console.log(`🔎 Fetching fee details for ${feeCode}`);
-
     const feeDetailsResp = await fspClient.get(`/api/v1/fee-details/${feeCode}`);
     if (feeDetailsResp.status >= 400) {
       throw new Error(
@@ -266,6 +265,9 @@ export async function getUniqueSubmissionPeriod(
           categoryOfLawCode,
           isDisbursement
       );
+
+      console.log(`Checking contract for ${candidate} for ${cacheKey}`);
+      console.log(`${contract}`);
 
       if (!contract.valid) continue;
 

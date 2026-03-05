@@ -59,8 +59,8 @@ Feature: Display message checks
 
   Scenario: Legal Help: Should check display messages are shown for out of bound dates with concluded date after the 20th of the month following the submission period
     Given I generate "Legal help" "csv" file with the following claims
-      | caseStartDate |  workConcludedDate | transferDate | repOrderDate | clientDob  |
-      | 31/12/1994    |  later             | 31/12/1994   | 31/03/2016   | 05/01/1899 |
+      | caseStartDate | workConcludedDate | transferDate | repOrderDate | clientDob  |
+      | 31/12/1994    | later             | 31/12/1994   | 31/03/2016   | 05/01/1899 |
     And I upload the generated file
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "LEGAL HELP":
@@ -467,3 +467,21 @@ Feature: Display message checks
     And I should see the following submission error messages for "Legal Help":
       | Error Message                                                    |
       | disbursements vat amount has exceeded the maximum accepted value |
+
+  Scenario: Disbursement: Start date checks valid
+    Given I generate "Legal help" "csv" file with the following claims
+      | feeCode | office |
+      | ICISD   | 0P322F |
+    And I update case start date to be on 20 and 2 month before submission period
+    When I upload the generated file
+    Then I should see the submission summary for "Legal help"
+
+  Scenario: Disbursement: Start date checks invalid
+    Given I generate "Legal help" "csv" file with the following claims
+      | feeCode | office |
+      | ICISD   | 0P322F |
+    And I update case start date to be on 21 and 2 month before submission period
+    When I upload the generated file
+    Then I should see the following submission error messages for "Legal help":
+      | Error Message                                                                                  |
+      | Disbursement claims can only be submitted at least 3 calendar months after the Case Start Date |

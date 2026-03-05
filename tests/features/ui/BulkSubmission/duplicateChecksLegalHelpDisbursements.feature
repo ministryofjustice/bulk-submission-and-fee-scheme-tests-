@@ -5,7 +5,6 @@ Feature: Duplicate checks - Legal Help - Disbursements
     Given I start from a clean logged-in state
     Given I am on the bulk import page
 
-
   Scenario Outline: Should accept submission if more than <monthsDifference> months apart
     Given I generate two Legal help files in "<format>" format for office "<office>" that are "<monthsDifference>" months apart with the following claims
       | ucn   | feeCode1 | feeCode2 | ufn   |

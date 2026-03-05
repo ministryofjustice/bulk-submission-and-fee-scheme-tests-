@@ -144,9 +144,10 @@ async function generateFile(
     office: string,
     claims?: claimOptions[]
 ) {
-  const { period, scheduleStart, scheduleEnd } =
-      await getUniqueSubmissionPeriod(office, 'LEGAL HELP');
 
+  var feeCode = claims?.[0]?.feeCode ?? random(feeCodes);
+  const { period, scheduleStart, scheduleEnd } =
+      await getUniqueSubmissionPeriod(office, 'LEGAL HELP', feeCode);
   let out = `OFFICE,account=${office}\n`;
   out += `SCHEDULE,submissionPeriod=${period},areaOfLaw=LEGAL HELP,scheduleNum=${office}/CIVIL\n`;
 
