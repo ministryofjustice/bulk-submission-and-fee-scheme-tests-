@@ -63,7 +63,6 @@ jobs:
 
       - name: Tear down
         if: ${{ always() }}
-        working-directory: ./laa-data-claims-parent
         shell: bash
         run: |
           docker compose down -v;
