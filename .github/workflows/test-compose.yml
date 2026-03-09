@@ -28,63 +28,22 @@ jobs:
         with:
           ref: ${{ inputs.branch || github.ref }}
 
-      - name: Checkout claims parent repository
-        uses: actions/checkout@v4
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          repository: 'ministryofjustice/laa-data-claims-parent'
-          path: 'laa-data-claims-parent'
-          # temporary branch
-          ref: 'test-compose'
-          submodules: recursive
-          fetch-depth: 0
+          role-to-assume: ${{ secrets.ECR_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.ECR_REGION }}
 
-      - name: Build Services
-        working-directory: ./laa-data-claims-parent
-        shell: bash
-        run: |
-          (
-          cd laa-submit-a-bulk-claim
-          docker build \
-          --build-arg BUILD_SOURCE=internal \
-          --secret id=github_actor,env=GITHUB_ACTOR \
-          --secret id=github_token,env=GITHUB_TOKEN \
-          -t sabc-ui .
-          ) &
-          (
-          cd laa-data-claims-api
-          docker build \
-          --build-arg BUILD_SOURCE=internal \
-          --secret id=github_actor,env=GITHUB_ACTOR \
-          --secret id=github_token,env=GITHUB_TOKEN \
-          -t claims-api .
-          ) &
-          (
-          cd laa-data-claims-event-service
-          docker build \
-          --build-arg BUILD_SOURCE=internal \
-          --secret id=github_actor,env=GITHUB_ACTOR \
-          --secret id=github_token,env=GITHUB_TOKEN \
-          -t event-service .
-          ) &
-          (
-          cd laa-oidc-mock-server
-          docker build \
-          . -t laa-oidc-mock-server
-          ) &
-      
-          wait
-        env:
-          GITHUB_ACTOR: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        id: login-ecr
 
       - name: Run services
-        working-directory: ./laa-data-claims-parent
         shell: bash
         run: |
-          docker compose -f test-docker-compose.yml up -d sabc-ui event-service claims-api laa-mock-oidc-service
+          docker compose -f docker-compose.yml up -d
 
       - name: Wait for services
-        working-directory: ./laa-data-claims-parent
         shell: bash
         run: |
           docker compose -f docker-compose.yml ps
