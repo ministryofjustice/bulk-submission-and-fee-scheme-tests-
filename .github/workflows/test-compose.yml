@@ -49,24 +49,6 @@ jobs:
           -t sabc-ui .
           ) &
       
-          (
-          cd laa-data-claims-parent/laa-data-claims-api
-          docker build \
-          --build-arg BUILD_SOURCE=internal \
-          --secret id=github_actor,env=GITHUB_ACTOR \
-          --secret id=github_token,env=GITHUB_TOKEN \
-          -t claims-api .
-          ) &
-      
-          (
-          cd laa-data-claims-parent/laa-data-claims-event-service
-          docker build \
-          --build-arg BUILD_SOURCE=internal \
-          --secret id=github_actor,env=GITHUB_ACTOR \
-          --secret id=github_token,env=GITHUB_TOKEN \
-          -t event-service .
-          ) &
-      
           wait
 
       - name: Run services
