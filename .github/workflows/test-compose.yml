@@ -54,7 +54,7 @@ jobs:
             | sort -V \
             | tail -n1)
           
-          echo "LATEST_SABC=TAG=$LATEST_TAG" >> $GITHUB_ENV
+          echo "LATEST_SABC=$LATEST_TAG" >> $GITHUB_ENV
 
       - name: Print LATEST_SABC
         run: |
