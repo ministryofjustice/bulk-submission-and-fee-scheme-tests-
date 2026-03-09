@@ -47,6 +47,16 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
         id: login-ecr
 
+      - name: Get latest SaBC version
+        run: |
+          LATEST_TAG=$(aws ecr list-images \
+            --repository-name ${{ vars.ECR_REPOSITORY }} \
+            --query 'imageIds[*].imageTag' \
+            --region eu-west-2 \
+            --output text | tr ' ' '\n' | sort -V | tail -n1)
+          echo "LATEST_SABC=TAG=$LATEST_TAG" >> $GITHUB_ENV
+
+
       - name: Run services
         shell: bash
         run: |
@@ -55,6 +65,7 @@ jobs:
           ECR_ACCOUNT: ${{ secrets.ECR_ACCOUNT }}
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           ECR_REGION: ${{ vars.ECR_REGION }}
+          SABC_VERSION: ${{ env.LATEST_SABC }}
 
       - name: Wait for services
         shell: bash
