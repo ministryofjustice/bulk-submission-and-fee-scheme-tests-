@@ -66,4 +66,4 @@ jobs:
         working-directory: ./laa-data-claims-parent
         shell: bash
         run: |
-          docker compose down claims-api event-service sabc-ui -v;
+          docker compose down -v;

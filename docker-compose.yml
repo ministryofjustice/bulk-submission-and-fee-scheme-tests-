@@ -26,6 +26,7 @@ services:
       - "8181:8081"
     depends_on:
       - redis
+      - laa-mock-oidc-service
 
   redis:
     image: redis:8-alpine
@@ -36,6 +37,17 @@ services:
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
+
+  laa-mock-oidc-service:
+    image: ${ECR_ACCOUNT}.dkr.ecr.${ECR_REGION}.amazonaws.com/${ECR_REPOSITORY}:oidc-mock-d7a230d28758287cc5146af6dd1c71ddd9d68844
+    ports:
+      - "9000:9000"
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "9000" ] # Checks if the port is open
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 volumes:
   redis_data:
