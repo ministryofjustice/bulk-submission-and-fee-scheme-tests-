@@ -51,6 +51,10 @@ jobs:
         shell: bash
         run: |
           docker compose -f docker-compose.yml up -d
+        env:
+          ECR_ACCOUNT: ${{ secrets.ECR_ACCOUNT }}
+          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+          ECR_REGION: ${{ vars.ECR_REGION }}
 
       - name: Wait for services
         shell: bash
