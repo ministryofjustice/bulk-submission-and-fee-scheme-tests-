@@ -50,6 +50,9 @@ jobs:
           ) &
       
           wait
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run services
         working-directory: ./laa-data-claims-parent
