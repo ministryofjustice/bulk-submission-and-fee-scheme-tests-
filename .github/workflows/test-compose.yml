@@ -52,7 +52,7 @@ jobs:
           LATEST_VERSION=$(aws ecr describe-images \
             --repository-name ${{ vars.ECR_REPOSITORY }} \
             --query 'imageDetails[?imageTags[0]!=null && starts_with(imageTags[0], `oidc-mock`)] | sort_by(@, &imagePushedAt)[-1].imageTags[0]' \
-            --region $ {{ vars.ECR_REGION }}ß \
+            --region ${{ vars.ECR_REGION }} \
             --output text)
           echo "LATEST_MOCK_OIDC=$LATEST_TAG" >> $GITHUB_ENV
 
