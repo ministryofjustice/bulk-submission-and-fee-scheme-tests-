@@ -36,34 +36,21 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Prepare GitHub secrets for Docker build
-        run: |
-          echo "${{ github.actor }}" > github_actor.txt
-          echo "${{ secrets.GITHUB_TOKEN }}" > github_token.txt
-
-      - name: Build and start services
-        working-directory: ./laa-data-claims-parent
+      - name: Build SaBC
+        working-directory: ./laa-data-claims-parent/laa-submit-a-bulk-claim
         shell: bash
-        env:
-          DOCKER_BUILDKIT: 1
         run: |
-          echo "${GITHUB_ACTOR}" > github_actor.txt
-          echo "${GITHUB_TOKEN}" > github_token.txt
+          docker build \
+            -t sabc-ui \
+            --secret id=github_actor,env=GITHUB_ACTOR \
+            --secret id=github_token,env=GITHUB_TOKEN \
+            -t sabc-ui .
 
-          # Build and start each compose project
-          for dir in laa-data-claims-api laa-data-claims-event-service laa-submit-a-bulk-claim; do
-          docker compose -f $dir/docker-compose.yml build \
-          --secret id=github_actor,src=github_actor.txt \
-          --secret id=github_token,src=github_token.txt
-          
-          docker compose -f $dir/docker-compose.yml up -d
-          done
-
-          # Start services via docker compose without rebuilding
-          docker compose up -d claims-api event-service sabc-ui
-          
-          # Clean up temporary secret files
-          rm github_actor.txt github_token.txt
+      - name: Run services
+        working-directory: ./laa-data-claims-parent/laa-submit-a-bulk-claim
+        shell: bash
+        run: |
+          docker compose -f docker-compose.yml up -d sabc-ui
 
       - name: Wait for services
         working-directory: ./laa-data-claims-parent
