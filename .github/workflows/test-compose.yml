@@ -56,6 +56,9 @@ jobs:
             --output text | tr ' ' '\n' | sort -V | tail -n1)
           echo "LATEST_SABC=TAG=$LATEST_TAG" >> $GITHUB_ENV
 
+      - name: Print LATEST_SABC
+        run: |
+          echo "LATEST_SABC value: ${{ env.LATEST_SABC }}"
 
       - name: Run services
         shell: bash
