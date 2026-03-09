@@ -33,6 +33,8 @@ jobs:
         with:
           repository: 'ministryofjustice/laa-data-claims-parent'
           path: 'laa-data-claims-parent'
+          # temporary branch
+          ref: 'test-compose'
           submodules: recursive
           fetch-depth: 0
 
@@ -58,10 +60,7 @@ jobs:
         working-directory: ./laa-data-claims-parent
         shell: bash
         run: |
-          docker compose -f docker-compose.yml up -d sabc-ui event-service claims-api
-        env:
-          GITHUB_ACTOR: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          docker compose -f test-docker-compose.yml up -d sabc-ui event-service claims-api
 
       - name: Wait for services
         working-directory: ./laa-data-claims-parent
