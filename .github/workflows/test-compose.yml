@@ -47,6 +47,15 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
         id: login-ecr
 
+      - name: Get latest Mock OIDC version
+        run: |
+          LATEST_VERSION=$(aws ecr describe-images \
+            --repository-name ${{ vars.ECR_REPOSITORY }} \
+            --query 'imageDetails[?imageTags[0]!=null && starts_with(imageTags[0], `oidc-mock`)] | sort_by(@, &imagePushedAt)[-1].imageTags[0]' \
+            --region eu-west-2 \
+            --output text)
+          echo "LATEST_MOCK_OIDC=$LATEST_TAG" >> $GITHUB_ENV
+
       - name: Get latest SaBC version
         run: |
           LATEST_TAG=$(git ls-remote --tags https://github.com/ministryofjustice/laa-submit-a-bulk-claim \
@@ -56,8 +65,9 @@ jobs:
           
           echo "LATEST_SABC=$LATEST_TAG" >> $GITHUB_ENV
 
-      - name: Print LATEST_SABC
+      - name: Print latest versions
         run: |
+          echo "LATEST_MOCK_OIDC value: ${{ env.LATEST_MOCK_OIDC }}"
           echo "LATEST_SABC value: ${{ env.LATEST_SABC }}"
 
       - name: Run services
