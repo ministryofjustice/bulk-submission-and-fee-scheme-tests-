@@ -68,60 +68,37 @@ jobs:
           fi
 
       # Disable ecr step as tests dont have access to publish yet
-      # - name: Authenticate to ECR
-      #   if: steps.check-runner.outputs.deploy-runner == 'true'
-      #   id: ecr-auth
-      #   uses: ministryofjustice/laa-reusable-github-actions/.github/actions/ecr-auth@768f673017edbb793cf052fa159c272d6c1f9177
-      #   with:
-      #     ecr_region: ${{ vars.ECR_REGION }}
-      #     ecr_role: ${{ secrets.ECR_ROLE_TO_ASSUME }}
-      #     role-session-name: ${{ github.run_id }}-runner-deploy
+      - name: Authenticate to ECR
+        if: steps.check-runner.outputs.deploy-runner == 'true'
+        id: ecr-auth
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/ecr-auth@768f673017edbb793cf052fa159c272d6c1f9177
+        with:
+          ecr_region: ${{ vars.ECR_REGION }}
+          ecr_role: ${{ secrets.ECR_ROLE_TO_ASSUME }}
+          role-session-name: ${{ github.run_id }}-runner-deploy
 
-      # - name: Build and Push Runner Image
-      #   if: steps.check-runner.outputs.deploy-runner == 'true'
-      #   id: build
-      #   uses: docker/build-push-action@v6.18.0
-      #   with:
-      #     context: ./scripts
-      #     file: ./scripts/Dockerfile.e2e-runner
-      #     push: true
-      #     tags: |
-      #       ${{ steps.ecr-auth.outputs.image_registry }}/${{ vars.ECR_REPOSITORY }}:github-runner-${{ github.run_id }}
-
-      # - name: Deploy Runner
-      #   if: steps.check-runner.outputs.deploy-runner == 'true'
-      #   env:
-      #     REGISTRY: ${{ steps.ecr-auth.outputs.image_registry }}
-      #     REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-      #   run: |
-      #     echo "Deploying persistent GitHub runner..."
-      #     helm upgrade --install e2e-github-runner ./.helm/github-runner \
-      #       --namespace ${KUBE_NAMESPACE} \
-      #       --set image.repository=${REGISTRY}/${REPOSITORY} \
-      #       --set image.tag=github-runner-${{ github.run_id }} \
-      #       --wait \
-      #       --timeout 5m
-
-      #     echo "Checking runner logs for successful registration..."
-      #     for i in {1..30}; do
-      #       if kubectl logs -l app=e2e-github-runner -n ${KUBE_NAMESPACE} | grep -Eq "Registered|Listening for Jobs|Connected to GitHub"; then
-      #         echo "Runner logged successful registration."
-      #         break
-      #       fi
-      #       sleep 5
-      #     done
+      - name: Build and Push Runner Image
+        if: steps.check-runner.outputs.deploy-runner == 'true'
+        id: build
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: ./scripts
+          file: ./scripts/Dockerfile.e2e-runner
+          push: true
+          tags: |
+            ${{ steps.ecr-auth.outputs.image_registry }}/${{ vars.ECR_REPOSITORY }}:github-runner-${{ github.run_id }}
 
       - name: Deploy Runner
         if: steps.check-runner.outputs.deploy-runner == 'true'
         env:
-          REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          REGISTRY: ${{ steps.ecr-auth.outputs.image_registry }}
           REPOSITORY: ${{ vars.ECR_REPOSITORY }}
         run: |
           echo "Deploying persistent GitHub runner..."
           helm upgrade --install e2e-github-runner ./.helm/github-runner \
             --namespace ${KUBE_NAMESPACE} \
             --set image.repository=${REGISTRY}/${REPOSITORY} \
-            --set image.tag=github-runner-2ad4667 \
+            --set image.tag=github-runner-${{ github.run_id }} \
             --wait \
             --timeout 5m
 
@@ -133,6 +110,29 @@ jobs:
             fi
             sleep 5
           done
+
+      # - name: Deploy Runner
+      #   if: steps.check-runner.outputs.deploy-runner == 'true'
+      #   env:
+      #     REGISTRY: ${{ secrets.ECR_REGISTRY }}
+      #     REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+      #   run: |
+      #     echo "Deploying persistent GitHub runner..."
+      #     helm upgrade --install e2e-github-runner ./.helm/github-runner \
+      #       --namespace ${KUBE_NAMESPACE} \
+      #       --set image.repository=${REGISTRY}/${REPOSITORY} \
+      #       --set image.tag=github-runner-2ad4667 \
+      #       --wait \
+      #       --timeout 5m
+
+      #     echo "Checking runner logs for successful registration..."
+      #     for i in {1..30}; do
+      #       if kubectl logs -l app=e2e-github-runner -n ${KUBE_NAMESPACE} | grep -Eq "Registered|Listening for Jobs|Connected to GitHub"; then
+      #         echo "Runner logged successful registration."
+      #         break
+      #       fi
+      #       sleep 5
+      #     done
 
   api-tests:
     environment: uat
