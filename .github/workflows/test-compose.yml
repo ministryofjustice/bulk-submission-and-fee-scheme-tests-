@@ -39,11 +39,11 @@ jobs:
           fetch-depth: 0
 
       - name: Build Services
-        working-directory: ./laa-data-claims-parent/laa-submit-a-bulk-claim
+        working-directory: ./laa-data-claims-parent
         shell: bash
         run: |
           (
-          cd laa-data-claims-parent/laa-submit-a-bulk-claim
+          cd laa-submit-a-bulk-claim
           docker build \
           --build-arg BUILD_SOURCE=internal \
           --secret id=github_actor,env=GITHUB_ACTOR \
@@ -51,7 +51,7 @@ jobs:
           -t sabc-ui .
           ) &
           (
-          cd laa-data-claims-parent/laa-data-claims-api
+          cd laa-data-claims-api
           docker build \
           --build-arg BUILD_SOURCE=internal \
           --secret id=github_actor,env=GITHUB_ACTOR \
@@ -59,7 +59,7 @@ jobs:
           -t claims-api .
           ) &
           (
-          cd laa-data-claims-parent/laa-data-claims-event-service
+          cd laa-data-claims-event-service
           docker build \
           --build-arg BUILD_SOURCE=internal \
           --secret id=github_actor,env=GITHUB_ACTOR \
@@ -67,7 +67,7 @@ jobs:
           -t event-service .
           ) &
           (
-          cd laa-data-claims-parent/laa-oidc-mock-server
+          cd laa-oidc-mock-server
           docker build \
           . -t laa-oidc-mock-server
           ) &
