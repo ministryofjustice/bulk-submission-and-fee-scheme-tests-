@@ -36,21 +36,44 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Build SaBC
+      - name: Build Services
         working-directory: ./laa-data-claims-parent/laa-submit-a-bulk-claim
         shell: bash
         run: |
+          (
+          cd laa-data-claims-parent/laa-submit-a-bulk-claim
           docker build \
-            --build-arg BUILD_SOURCE=internal \
-            --secret id=github_actor,env=GITHUB_ACTOR \
-            --secret id=github_token,env=GITHUB_TOKEN \
-            -t sabc-ui .
+          --build-arg BUILD_SOURCE=internal \
+          --secret id=github_actor,env=GITHUB_ACTOR \
+          --secret id=github_token,env=GITHUB_TOKEN \
+          -t sabc-ui .
+          ) &
+      
+          (
+          cd laa-data-claims-parent/laa-data-claims-api
+          docker build \
+          --build-arg BUILD_SOURCE=internal \
+          --secret id=github_actor,env=GITHUB_ACTOR \
+          --secret id=github_token,env=GITHUB_TOKEN \
+          -t claims-api .
+          ) &
+      
+          (
+          cd laa-data-claims-parent/laa-data-claims-event-service
+          docker build \
+          --build-arg BUILD_SOURCE=internal \
+          --secret id=github_actor,env=GITHUB_ACTOR \
+          --secret id=github_token,env=GITHUB_TOKEN \
+          -t event-service .
+          ) &
+      
+          wait
 
       - name: Run services
-        working-directory: ./laa-data-claims-parent/laa-submit-a-bulk-claim
+        working-directory: ./laa-data-claims-parent
         shell: bash
         run: |
-          docker compose -f docker-compose.yml up -d sabc-ui
+          docker compose -f docker-compose.yml up -d sabc-ui event-service claims-api
 
       - name: Wait for services
         working-directory: ./laa-data-claims-parent
