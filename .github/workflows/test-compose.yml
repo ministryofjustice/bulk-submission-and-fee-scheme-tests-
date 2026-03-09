@@ -50,9 +50,7 @@ jobs:
       - name: Get latest SaBC version
         run: |
           LATEST_TAG=$(git ls-remote --tags https://github.com/ministryofjustice/laa-submit-a-bulk-claim \
-            | awk '{print $2}' \
-            | grep -v '\^\{\}' \
-            | sed 's|refs/tags/||' \
+            | awk '{if ($2 !~ /\^\{\}$/) {gsub("refs/tags/", "", $2); print $2}}' \
             | sort -V \
             | tail -n1)
           
