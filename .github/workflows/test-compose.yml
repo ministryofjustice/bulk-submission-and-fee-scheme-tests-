@@ -59,6 +59,9 @@ jobs:
         shell: bash
         run: |
           docker compose -f docker-compose.yml up -d sabc-ui event-service claims-api
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Wait for services
         working-directory: ./laa-data-claims-parent
