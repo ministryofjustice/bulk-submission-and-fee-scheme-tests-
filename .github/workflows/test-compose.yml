@@ -49,11 +49,13 @@ jobs:
 
       - name: Get latest SaBC version
         run: |
-          LATEST_TAG=$(aws ecr list-images \
-            --repository-name ${{ vars.ECR_REPOSITORY }} \
-            --query 'imageIds[*].imageTag' \
-            --region eu-west-2 \
-            --output text | tr ' ' '\n' | sort -V | tail -n1)
+          LATEST_TAG=$(git ls-remote --tags https://github.com/ministryofjustice/laa-submit-a-bulk-claim \
+            | awk '{print $2}' \
+            | grep -v '\^\{\}' \
+            | sed 's|refs/tags/||' \
+            | sort -V \
+            | tail -n1)
+          
           echo "LATEST_SABC=TAG=$LATEST_TAG" >> $GITHUB_ENV
 
       - name: Print LATEST_SABC
