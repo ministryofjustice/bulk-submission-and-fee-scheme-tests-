@@ -41,7 +41,7 @@ jobs:
         shell: bash
         run: |
           docker build \
-            -t sabc-ui \
+            --build-arg BUILD_SOURCE=internal \
             --secret id=github_actor,env=GITHUB_ACTOR \
             --secret id=github_token,env=GITHUB_TOKEN \
             -t sabc-ui .
