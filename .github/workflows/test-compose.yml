@@ -50,6 +50,27 @@ jobs:
           --secret id=github_token,env=GITHUB_TOKEN \
           -t sabc-ui .
           ) &
+          (
+          cd laa-data-claims-parent/laa-data-claims-api
+          docker build \
+          --build-arg BUILD_SOURCE=internal \
+          --secret id=github_actor,env=GITHUB_ACTOR \
+          --secret id=github_token,env=GITHUB_TOKEN \
+          -t claims-api .
+          ) &
+          (
+          cd laa-data-claims-parent/laa-data-claims-event-service
+          docker build \
+          --build-arg BUILD_SOURCE=internal \
+          --secret id=github_actor,env=GITHUB_ACTOR \
+          --secret id=github_token,env=GITHUB_TOKEN \
+          -t event-service .
+          ) &
+          (
+          cd laa-data-claims-parent/laa-oidc-mock-server
+          docker build \
+          . -t laa-oidc-mock-server
+          ) &
       
           wait
         env:
@@ -60,7 +81,7 @@ jobs:
         working-directory: ./laa-data-claims-parent
         shell: bash
         run: |
-          docker compose -f test-docker-compose.yml up -d sabc-ui event-service claims-api
+          docker compose -f test-docker-compose.yml up -d sabc-ui event-service claims-api laa-mock-oidc-service
 
       - name: Wait for services
         working-directory: ./laa-data-claims-parent
