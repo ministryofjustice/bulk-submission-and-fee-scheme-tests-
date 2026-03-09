@@ -3,7 +3,7 @@ name: "E2E Docker Compose"
 services:
   sabc-ui:
     container_name: submit-a-bulk-claim-app
-    image: ${ECR_ACCOUNT}.dkr.ecr.${ECR_REGION}.amazonaws.com/${ECR_REPOSITORY}/submit-a-bulk-claim-1.0.124:latest
+    image: ${ECR_ACCOUNT}.dkr.ecr.${ECR_REGION}.amazonaws.com/${ECR_REPOSITORY}:submit-a-bulk-claim-1.0.124
     environment:
       SERVER_MAX_FILE_SIZE: 50MB
       UPLOAD_MAX_FILE_SIZE: 10MB
