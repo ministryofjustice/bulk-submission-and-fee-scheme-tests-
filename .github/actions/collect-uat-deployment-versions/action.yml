@@ -1,0 +1,104 @@
+name: "Collect UAT deployment versions"
+
+outputs:
+  sabc_version:
+    description: "Current SaBC version in UAT"
+    value: ${{ steps.sabc.outputs.image_tag }}
+  claims_api_version:
+    description: "Current Data Claims Claims API version in UAT"
+    value: ${{ steps.claims_api.outputs.image_tag }}
+  event_service_version:
+    description: "Current Data Claims Event Service version in UAT"
+    value: ${{ steps.claims_events.outputs.image_tag }}
+  fsp_version:
+    description: "Current FSP API version in UAT"
+    value: ${{ steps.fsp_api.outputs.image_tag }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: v1.29.4
+
+    - name: Authenticate to the SaBC EKS cluster
+      uses: ./.github/actions/authenticate-to-eks-cluster
+      with:
+        kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+        kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+        kube_token: ${{ secrets.KUBE_TOKEN_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+        kube_cert: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+
+    - name: Collect SaBC version
+      id: sabc
+      uses: ./.github/actions/collect-deployment-version
+      with:
+        deployment: uat-submit-a-bulk-claim
+        namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+        friendly_name: Submit a Bulk Claim
+
+    - name: Authenticate to the Claims API EKS cluster
+      uses: ./.github/actions/authenticate-to-eks-cluster
+      with:
+        kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_DATA_CLAIMS_API_UAT }}
+        kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
+        kube_token: ${{ secrets.KUBE_TOKEN_LAA_DATA_CLAIMS_API_UAT }}
+        kube_cert: ${{ secrets.KUBE_CERT_LAA_DATA_CLAIMS_API_UAT }}
+
+    - name: Collect Claims API version
+      id: claims_api
+      uses: ./.github/actions/collect-deployment-version
+      with:
+        deployment: main-data-claims-api
+        namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
+        friendly_name: Data Claims API
+
+    - name: Authenticate to the FSP API EKS cluster
+      uses: ./.github/actions/authenticate-to-eks-cluster
+      with:
+        kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
+        kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+        kube_token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
+        kube_cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
+
+    - name: Collect FSP API version
+      id: fsp_api
+      uses: ./.github/actions/collect-deployment-version
+      with:
+        deployment: laa-fee-scheme-api-deployment
+        namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+        friendly_name: FSP API
+
+    - name: Authenticate to the Claims Event Service EKS cluster
+      uses: ./.github/actions/authenticate-to-eks-cluster
+      with:
+        kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+        kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+        kube_token: ${{ secrets.KUBE_TOKEN_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+        kube_cert: ${{ secrets.KUBE_CERT_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+
+    - name: Collect Claims Event Service version
+      id: claims_events
+      uses: ./.github/actions/collect-deployment-version
+      with:
+        deployment: uat-data-claims-events
+        namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+        friendly_name: Data Claims Events
+
+    - name: Publish UAT deployment summary
+      shell: bash
+      run: |
+        {
+          echo "## UAT deployment versions"
+          echo ""
+          echo "| Service | Context | Image tag | Release time | Status |"
+          echo "| --- | --- | --- | --- | --- |"
+          echo "| Submit a Bulk Claim | ${{ steps.sabc.outputs.context }} | ${{ steps.sabc.outputs.image_tag }} | ${{ steps.sabc.outputs.release_time }} | ${{ steps.sabc.outputs.status }} |"
+          echo "| Data Claims Events | ${{ steps.claims_events.outputs.context }} | ${{ steps.claims_events.outputs.image_tag }} | ${{ steps.claims_events.outputs.release_time }} | ${{ steps.claims_events.outputs.status }} |"
+          echo "| Data Claims API | ${{ steps.claims_api.outputs.context }} | ${{ steps.claims_api.outputs.image_tag }} | ${{ steps.claims_api.outputs.release_time }} | ${{ steps.claims_api.outputs.status }} |"
+          echo "| FSP API | ${{ steps.fsp_api.outputs.context }} | ${{ steps.fsp_api.outputs.image_tag }} | ${{ steps.fsp_api.outputs.release_time }} | ${{ steps.fsp_api.outputs.status }} |"
+        } >> "$GITHUB_STEP_SUMMARY"

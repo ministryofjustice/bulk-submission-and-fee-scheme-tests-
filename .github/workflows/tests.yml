@@ -6,7 +6,7 @@ concurrency:
 
 on:
   push:
-    branches: [ feature/test-compose ]
+    branches: [ main ]
 
   #pull_request:
   #  branches: [ main ]
