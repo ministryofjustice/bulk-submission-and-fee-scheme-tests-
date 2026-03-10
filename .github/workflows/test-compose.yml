@@ -146,7 +146,7 @@ jobs:
           ECR_ACCOUNT: ${{ secrets.ECR_ACCOUNT }}
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           ECR_REGION: ${{ vars.ECR_REGION }}
-          SABC_VERSION: ${{ steps.sabc.outputs.image_tag }}
+          SABC_TAG: ${{ steps.sabc.outputs.image_tag }}
 
       - name: Wait for services
         shell: bash
