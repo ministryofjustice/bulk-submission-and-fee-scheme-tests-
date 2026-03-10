@@ -28,6 +28,79 @@ services:
       - redis
       - laa-mock-oidc-service
 
+  claims-api:
+    container_name: data-claims-api-app
+    profiles:
+      - application
+    image: ${ECR_ACCOUNT}.dkr.ecr.${ECR_REGION}.amazonaws.com/${ECR_CLAIMS_API_REPOSITORY}:${CLAIMS_API_TAG}
+    ports:
+      - "8080:8080"
+      - "8183:8081"
+    environment:
+      - AWS_REGION=us-east-1
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/laa_data_claims_api_dev
+      - AWS_ACCESS_KEY_ID=dummy-access-key
+      - AWS_SECRET_ACCESS_KEY=dummy-access-key
+      - AWS_ENDPOINT_URL=http://host.docker.internal:4566
+      - AWS_SQS_ENDPOINT=http://host.docker.internal:4566
+    depends_on:
+      - postgres
+      - localstack
+
+  event-service:
+    container_name: data-claims-event-service-app
+    image: ${ECR_ACCOUNT}.dkr.ecr.${ECR_REGION}.amazonaws.com/${ECR_EVENT_SERVICE_REPOSITORY}:${EVENT_SERVICE_TAG}
+    profiles:
+      - application
+    ports:
+      - "8182:8081"
+    environment:
+      - CLAIMS_API_HOSTNAME=http://host.docker.internal:8080
+      - CLAIMS_API_ACCESS_TOKEN=f67f968e-b479-4e61-b66e-f57984931e56
+      - BULK_CLAIM_QUEUE_NAME=claims-api-queue
+      - PROVIDER_DETAILS_API_HOSTNAME=${PROVIDER_DETAILS_API_HOSTNAME}
+      - PROVIDER_DETAILS_API_ACCESS_TOKEN=${PROVIDER_DETAILS_API_ACCESS_TOKEN}
+      - FEE_SCHEME_PLATFORM_API_URL=${FEE_SCHEME_PLATFORM_API_URL}
+      - FEE_SCHEME_PLATFORM_API_ACCESS_TOKEN=${FEE_SCHEME_PLATFORM_API_ACCESS_TOKEN}
+      - SUBMISSION_VALIDATION_MINIMUM_PERIOD=JAN-1600
+      - SPRING_CLOUD_AWS_REGION_STATIC=us-east-1
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=dummy-access-key
+      - AWS_SECRET_ACCESS_KEY=dummy-access-key
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      - SPRING_CLOUD_AWS_SQS_ENDPOINT=http://localstack:4566
+      - SPRING_CLOUD_AWS_CREDENTIALS_ACCESS-KEY=dummy-access-key
+      - SPRING_CLOUD_AWS_CREDENTIALS_SECRET-KEY=dummy-access-key
+    depends_on:
+      - localstack
+
+  postgres:
+    image: postgres:17
+    container_name: local-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: laa_data_claims_api_dev
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  localstack:
+    container_name: event-service-localstack
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=sqs
+      - DEBUG=1
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      - "./docker-scripts/init-localstack.sh:/etc/localstack/init/ready.d/init-localstack.sh"
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
   redis:
     image: redis:8-alpine
     container_name: redis
