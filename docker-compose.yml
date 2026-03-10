@@ -39,7 +39,7 @@ services:
       - redis_data:/data
 
   laa-mock-oidc-service:
-    image: ${ECR_ACCOUNT}.dkr.ecr.${ECR_REGION}.amazonaws.com/${ECR_REPOSITORY}:oidc-mock-d7a230d28758287cc5146af6dd1c71ddd9d68844
+    image: laa-oidc-mock-server:latest
     ports:
       - "9000:9000"
     healthcheck:
