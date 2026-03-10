@@ -1,0 +1,22 @@
+name: build-mock-oidc
+author: jamie.briggs
+description: build-mock-oidc
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout claims parent repository
+      uses: actions/checkout@v4
+      with:
+        repository: 'ministryofjustice/laa-oidc-mock-server'
+        path: 'laa-oidc-mock-server'
+
+    - name: Build and run the mock OIDC server
+      working-directory: 'laa-oidc-mock-server'
+      shell: bash
+      run: |
+        {
+          # Build the mock OIDC JAR
+          ./gradlew assemble
+          # Build mock OIDC docker image
+          docker build . -t laa-oidc-mock-server:latest
+        }
