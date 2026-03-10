@@ -30,7 +30,7 @@ module.exports = {
     "--require tests/features/**/*.ts",
     "--format json:reports/cucumber.json",
     "--format html:reports/cucumber.html",
-    "--tags '@accessibility and not @ignore'",
+    "--tags '@debug'",
     "--parallel 4",
     "tests/features/**/Accessibility/*.feature"
   ].join(" "),

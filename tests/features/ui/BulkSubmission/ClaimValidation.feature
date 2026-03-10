@@ -43,6 +43,7 @@ Feature: Display message checks
       | Schedule Reference is required for Legal Help claims          |
       | Net Profit Costs Amount is required for Legal Help claims     |
 
+    @de
   Scenario: Legal Help: Should check display messages are shown for out of bound dates with concluded date before 01/04/2013
     Given I generate "Legal help" "csv" file with the following claims
       | caseStartDate | workConcludedDate | transferDate | repOrderDate | clientDob  |

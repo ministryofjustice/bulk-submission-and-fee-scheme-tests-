@@ -60,8 +60,14 @@ if (fspToken) {
   fspHeaders['Authorization'] = fspToken;
 }
 
+const FSP_API_BASE_URL = process.env.FSP_API_BASE_URL;
+
+if (!FSP_API_BASE_URL) {
+  throw new Error('FSP_API_BASE_URL is not set');
+}
+
 const fspClient = axios.create({
-  baseURL: process.env.FSP_API_BASE_URL,
+  baseURL: FSP_API_BASE_URL,
   timeout: 10000,
   headers: fspHeaders,
   validateStatus: () => true,
@@ -134,6 +140,12 @@ export async function hasValidContract(
       .toISOString().split('T')[0];
 
   try {
+
+    console.log('PROVIDER_API_BASE_URL:', PROVIDER_API_BASE_URL);
+    console.log('office:', office);
+    console.log('effectiveDate:', effectiveDate);
+    console.log('providerAreaOfLaw:', providerAreaOfLaw);
+
     const res = await axios.get(
         `${PROVIDER_API_BASE_URL}/${office}/schedules?effectiveDate=${effectiveDate}&areaOfLaw=${encodeURIComponent(providerAreaOfLaw)}`,
         {
@@ -212,17 +224,55 @@ export async function getUniqueSubmissionPeriod(
 
   if (feeCode) {
     console.log(`🔎 Fetching fee details for ${feeCode}`);
-    const feeDetailsResp = await fspClient.get(`/api/v1/fee-details/${feeCode}`);
-    if (feeDetailsResp.status >= 400) {
-      throw new Error(
-          `Unable to resolve feeDetails for ${feeCode}: HTTP ${feeDetailsResp.status}`
-      );
-    }
+    console.log('FSP_API_BASE_URL:', process.env.FSP_API_BASE_URL);
+    console.log('feeCode:', feeCode);
 
-    const fee = feeDetailsResp.data;
-    categoryOfLawCode = fee.categoryOfLawCode;
-    isDisbursement = fee.feeType === 'DISB_ONLY';
-    console.log(`➡ categoryOfLaw=${categoryOfLawCode}, disbOnly=${isDisbursement}`);
+    try {
+      const feeDetailsResp = await fspClient.get(`/api/v1/fee-details/${feeCode}`);
+
+      if (feeDetailsResp.status >= 400) {
+        throw new Error(
+            `Unable to resolve feeDetails for ${feeCode}: HTTP ${feeDetailsResp.status}`
+        );
+      }
+
+      const fee = feeDetailsResp.data;
+      categoryOfLawCode = fee.categoryOfLawCode;
+      isDisbursement = fee.feeType === 'DISB_ONLY';
+
+      console.log(`➡ categoryOfLaw=${categoryOfLawCode}, disbOnly=${isDisbursement}`);
+    } catch (error: any) {
+      console.error('❌ FSP fee-details API call failed');
+      console.error('Base URL:', FSP_API_BASE_URL);
+      console.error('Endpoint:', `/api/v1/fee-details/${feeCode}`);
+      console.error('Message:', error?.message);
+      console.error('Code:', error?.code);
+
+      if (error?.cause) {
+        console.error('Cause:', error.cause);
+      }
+
+      if (error?.errors) {
+        console.error(
+            'Inner errors:',
+            error.errors.map((e: any) => ({
+              message: e?.message,
+              code: e?.code,
+              errno: e?.errno,
+              syscall: e?.syscall,
+              address: e?.address,
+              port: e?.port,
+            }))
+        );
+      }
+
+      if (error?.response) {
+        console.error('HTTP Status:', error.response.status);
+        console.error('Response body:', error.response.data);
+      }
+
+      throw error;
+    }
   }
 
   // 🎯 **NEW** — cacheKey now includes categoryOfLawCode
@@ -256,6 +306,7 @@ export async function getUniqueSubmissionPeriod(
           if (rows?.length > 0) continue;
         } catch (e) {}
       }
+
 
       // Provider contract + schedule line validation
       const contract = await hasValidContract(
