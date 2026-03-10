@@ -145,6 +145,9 @@ jobs:
         env:
           ECR_ACCOUNT: ${{ secrets.ECR_ACCOUNT }}
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+          ECR_CLAIMS_API_REPOSITORY: ${{ vars.ECR_CLAIMS_API_REPOSITORY }}
+          ECR_EVENT_SERVICE_REPOSITORY: ${{ vars.ECR_EVENT_SERVICE_REPOSITORY }}
+          ECR_FEE_SCHEME_API_REPOSITORY: ${{ vars.ECR_FEE_SCHEME_API_REPOSITORY }}
           ECR_REGION: ${{ vars.ECR_REGION }}
           SABC_TAG: ${{ steps.sabc.outputs.image_tag }}
           EVENT_SERVICE_TAG: ${{ steps.claims_events.outputs.image_tag }}
