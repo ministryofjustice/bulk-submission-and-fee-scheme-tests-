@@ -56,19 +56,50 @@ jobs:
             --output text)
           echo "LATEST_MOCK_OIDC=$LATEST_TAG" >> $GITHUB_ENV
 
-      - name: Get latest SaBC version
-        run: |
-          LATEST_TAG=$(git ls-remote --tags https://github.com/ministryofjustice/laa-submit-a-bulk-claim \
-            | awk '{if ($2 !~ /\^\{\}$/) {gsub("refs/tags/", "", $2); print $2}}' \
-            | sort -V \
-            | tail -n1)
-          
-          echo "LATEST_SABC=$LATEST_TAG" >> $GITHUB_ENV
+      - name: Collect SaBC version
+        id: sabc
+        uses: ./.github/actions/collect-deployment-version
+        with:
+          deployment: uat-submit-a-bulk-claim
+          namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          friendly_name: Submit a Bulk Claim
 
-      - name: Print latest versions
+      - name: Collect Claims API version
+        id: claims_api
+        uses: ./.github/actions/collect-deployment-version
+        with:
+          deployment: main-data-claims-api
+          namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
+          friendly_name: Data Claims API
+
+      - name: Collect FSP API version
+        id: fsp_api
+        uses: ./.github/actions/collect-deployment-version
+        with:
+          deployment: laa-fee-scheme-api-deployment
+          namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          friendly_name: FSP API
+
+      - name: Collect Claims Event Service version
+        id: claims_events
+        uses: ./.github/actions/collect-deployment-version
+        with:
+          deployment: uat-data-claims-events
+          namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+          friendly_name: Data Claims Events
+
+      - name: Publish UAT deployment summary
         run: |
-          echo "LATEST_MOCK_OIDC value: ${{ env.LATEST_MOCK_OIDC }}"
-          echo "LATEST_SABC value: ${{ env.LATEST_SABC }}"
+          {
+            echo "## UAT deployment versions"
+            echo ""
+            echo "| Service | Context | Image tag | Release time | Status |"
+            echo "| --- | --- | --- | --- | --- |"
+            echo "| Submit a Bulk Claim | ${{ steps.sabc.outputs.context }} | ${{ steps.sabc.outputs.image_tag }} | ${{ steps.sabc.outputs.release_time }} | ${{ steps.sabc.outputs.status }} |"
+            echo "| Data Claims Events | ${{ steps.claims_events.outputs.context }} | ${{ steps.claims_events.outputs.image_tag }} | ${{ steps.claims_events.outputs.release_time }} | ${{ steps.claims_events.outputs.status }} |"
+            echo "| Data Claims API | ${{ steps.claims_api.outputs.context }} | ${{ steps.claims_api.outputs.image_tag }} | ${{ steps.claims_api.outputs.release_time }} | ${{ steps.claims_api.outputs.status }} |"
+            echo "| FSP API | ${{ steps.fsp_api.outputs.context }} | ${{ steps.fsp_api.outputs.image_tag }} | ${{ steps.fsp_api.outputs.release_time }} | ${{ steps.fsp_api.outputs.status }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Run services
         shell: bash
@@ -78,7 +109,7 @@ jobs:
           ECR_ACCOUNT: ${{ secrets.ECR_ACCOUNT }}
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           ECR_REGION: ${{ vars.ECR_REGION }}
-          SABC_VERSION: ${{ env.LATEST_SABC }}
+          SABC_VERSION: ${{ steps.sabc.outputs.image_tag }}
 
       - name: Wait for services
         shell: bash
