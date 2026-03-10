@@ -74,6 +74,25 @@ services:
     depends_on:
       - localstack
 
+  fee-scheme-api:
+    container_name: fee-scheme-api-app
+    profiles:
+      - application
+    image: ${ECR_ACCOUNT}.dkr.ecr.${ECR_REGION}.amazonaws.com/${ECR_FEE_SCHEME_API_REPOSITORY}:${FEE_SCHEME_API_TAG}
+    ports:
+      - "8085:8085"
+      - "8185:8185"
+    environment:
+      - AWS_REGION=us-east-1
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/laa_data_claims_api_dev
+      - AWS_ACCESS_KEY_ID=dummy-access-key
+      - AWS_SECRET_ACCESS_KEY=dummy-access-key
+      - AWS_ENDPOINT_URL=http://host.docker.internal:4566
+      - AWS_SQS_ENDPOINT=http://host.docker.internal:4566
+    depends_on:
+      - postgres
+      - localstack
+
   postgres:
     image: postgres:17
     container_name: local-postgres
