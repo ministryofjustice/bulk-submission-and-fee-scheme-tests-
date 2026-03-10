@@ -1,9 +1,5 @@
 name: Run E2E Tests via Docker Compose
 
-concurrency:
-  group: run-e2e-tests
-  cancel-in-progress: false
-
 on:
   push:
     branches: [ feature/test-compose ]
