@@ -129,14 +129,14 @@ jobs:
             echo "| FSP API | ${{ steps.fsp_api.outputs.context }} | ${{ steps.fsp_api.outputs.image_tag }} | ${{ steps.fsp_api.outputs.release_time }} | ${{ steps.fsp_api.outputs.status }} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Pull docker image SABC
-        run: |
-          docker pull ${{ secrets.ECR_ACCOUNT }}.dkr.ecr.${{ vars.ECR_REGION }}.amazonaws.com/${{ vars.ECR_REPOSITORY }}:${{ steps.sabc.outputs.image_tag }}
 
       - name: Pull docker image Event Service
         run: |
           docker pull ${{ secrets.ECR_ACCOUNT }}.dkr.ecr.${{ vars.ECR_REGION }}.amazonaws.com/${{ vars.ECR_EVENT_SERVICE_REPOSITORY }}:${{ steps.claims_events.outputs.image_tag }}
-      
+
+      - name: Pull docker image SABC
+        run: |
+          docker pull ${{ secrets.ECR_ACCOUNT }}.dkr.ecr.${{ vars.ECR_REGION }}.amazonaws.com/${{ vars.ECR_REPOSITORY }}:${{ steps.sabc.outputs.image_tag }}
       
 
       - name: Build Mock OIDC Server
