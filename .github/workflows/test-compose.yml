@@ -135,7 +135,7 @@ jobs:
 
       - name: Pull docker image Event Service
         run: |
-          docker pull ${{ secrets.ECR_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/laa-data-stewardship-payments-team/laa-data-claims-event-service-prod-ecr
+          docker pull ${{ secrets.ECR_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/laa-data-stewardship-payments-team/laa-data-claims-event-service-prod-ecr:${{ steps.claims_events.outputs.image_tag }}
       
       
 
