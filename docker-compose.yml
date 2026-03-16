@@ -22,6 +22,12 @@ services:
       REST_CLIENT_CONNECT_TIMEOUT: ${REST_CLIENT_CONNECT_TIMEOUT:-5000}
       REST_CLIENT_READ_TIMEOUT: ${REST_CLIENT_READ_TIMEOUT:-40000}
       REDIS_HOST: redis://redis:6379
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --spider --quiet http://localhost:8181/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     ports:
       - "8082:8082"
       - "8181:8081"
@@ -29,24 +35,24 @@ services:
       - redis
       - laa-mock-oidc-service
 
-#  claims-api:
-#    container_name: data-claims-api-app
-#    profiles:
-#      - application
-#    image: ${ECR_ACCOUNT}.dkr.ecr.${ECR_REGION}.amazonaws.com/${ECR_CLAIMS_API_REPOSITORY}:${CLAIMS_API_TAG}
-#    ports:
-#      - "8080:8080"
-#      - "8183:8081"
-#    environment:
-#      - AWS_REGION=us-east-1
-#      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/laa_data_claims_api_dev
-#      - AWS_ACCESS_KEY_ID=dummy-access-key
-#      - AWS_SECRET_ACCESS_KEY=dummy-access-key
-#      - AWS_ENDPOINT_URL=http://host.docker.internal:4566
-#      - AWS_SQS_ENDPOINT=http://host.docker.internal:4566
-#    depends_on:
-#      - postgres
-#      - localstack
+  #  claims-api:
+  #    container_name: data-claims-api-app
+  #    profiles:
+  #      - application
+  #    image: ${ECR_ACCOUNT}.dkr.ecr.${ECR_REGION}.amazonaws.com/${ECR_CLAIMS_API_REPOSITORY}:${CLAIMS_API_TAG}
+  #    ports:
+  #      - "8080:8080"
+  #      - "8183:8081"
+  #    environment:
+  #      - AWS_REGION=us-east-1
+  #      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/laa_data_claims_api_dev
+  #      - AWS_ACCESS_KEY_ID=dummy-access-key
+  #      - AWS_SECRET_ACCESS_KEY=dummy-access-key
+  #      - AWS_ENDPOINT_URL=http://host.docker.internal:4566
+  #      - AWS_SQS_ENDPOINT=http://host.docker.internal:4566
+  #    depends_on:
+  #      - postgres
+  #      - localstack
 
   event-service:
     container_name: data-claims-event-service-app

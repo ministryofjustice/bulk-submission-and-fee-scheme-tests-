@@ -235,6 +235,11 @@ jobs:
         run: |
           docker compose -f docker-compose.yml ps
 
+      - name: Health check (To remove)
+        shell: bash
+        run: | 
+          curl http://localhost:8181/actuator/health
+
       - name: Login
         shell: bash
         run: |
