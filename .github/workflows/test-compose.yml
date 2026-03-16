@@ -146,42 +146,24 @@ jobs:
       - name: Install dependencies
         run: npm ci; npx playwright install
 
-      - name: Configure aws credentials - SaBC
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Pull SABC image
+        uses: ./.github/actions/pull-ecr-image
         with:
           role-to-assume: ${{ secrets.LAA_SUBMIT_A_BULK_CLAIM_ECR_ROLE_TO_ASSUME }}
           aws-region: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
+          registry-account: ${{ secrets.ECR_ACCOUNT }}
+          repository: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}
+          #image-tag: ${{ needs.get-app-versions.outputs.sabc_image_tag }}
+          image-tag: submit-a-bulk-claim-1.0.128-SNAPSHOT-9497014
 
-      # Required to download from ECRs
-      - name: Docker login to ECR - SaBC
-        id: login-ecr-sabc
-        uses: aws-actions/amazon-ecr-login@v2
-        with:
-          mask-password: 'true'
-
-      # These three steps are not required, but being used for testing
-      - name: Pull docker image SABC
-        # Will need to switch to the latest tag once it is available
-        run: |
-          docker pull ${{ secrets.ECR_ACCOUNT }}.dkr.ecr.${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}.amazonaws.com/${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}:submit-a-bulk-claim-1.0.128-SNAPSHOT-9497014
-
-      - name: Configure aws credentials - Event Service
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Pull Event Service image
+        uses: ./.github/actions/pull-ecr-image
         with:
           role-to-assume: ${{ secrets.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_ROLE_TO_ASSUME }}
-          aws-region: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE__ECR_REGION }}
-
-
-      # Required to download from ECRs
-      - name: Docker login to ECR - Event Service
-        id: login-ecr-event-service
-        uses: aws-actions/amazon-ecr-login@v2
-        with:
-          mask-password: 'true'
-
-      - name: Pull docker image Event Service
-        run: |
-          docker pull ${{ secrets.ECR_ACCOUNT }}.dkr.ecr.${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REGION }}.amazonaws.com/${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY }}:${{ needs.get-app-versions.outputs.claims_events_image_tag }}
+          aws-region: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REGION }}
+          registry-account: ${{ secrets.ECR_ACCOUNT }}
+          repository: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY }}
+          image-tag: ${{ needs.get-app-versions.outputs.claims_events_image_tag }}
 
       - name: Build Mock OIDC Server
         uses: ./.github/actions/build-mock-oidc
