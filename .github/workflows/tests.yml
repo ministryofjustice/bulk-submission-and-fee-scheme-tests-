@@ -357,10 +357,11 @@ jobs:
       - name: Authenticate to Kubernetes Cluster
         uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
         with:
-          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
-          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
-          kube_token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
-          kube_cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
+          kube-cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
+          kube-token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          kube-sa: deploy-user
 
       - name: Port forward to FPS-API pod
         uses: ./.github/actions/port-forward
