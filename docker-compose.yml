@@ -5,7 +5,6 @@ services:
     container_name: submit-a-bulk-claim-app
     image: ${ECR_ACCOUNT}.dkr.ecr.${LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION}.amazonaws.com/${LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY}:${SABC_TAG}
     environment:
-      UI_BASE_URL: http://127:0:0:1:8082
       SERVER_MAX_FILE_SIZE: 50MB
       UPLOAD_MAX_FILE_SIZE: 10MB
       AUTH_CLIENT_ID: ${AUTH_CLIENT_ID}
