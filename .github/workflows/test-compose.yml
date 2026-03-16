@@ -224,7 +224,8 @@ jobs:
           LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY }}
           LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
           LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REGION: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REGION }}
-          SABC_TAG: ${{ needs.get-app-versions.outputs.sabc_image_tag }}
+          SABC_TAG: submit-a-bulk-claim-1.0.128-SNAPSHOT-00c3bd9
+          #SABC_TAG: ${{ needs.get-app-versions.outputs.sabc_image_tag }}
           EVENT_SERVICE_TAG: ${{ needs.get-app-versions.outputs.claims_events_image_tag }}
           CLAIMS_API_TAG: ${{ needs.get-app-versions.outputs.claims_api_image_tag }}
 
