@@ -41,12 +41,13 @@ jobs:
           version: v1.29.4
 
       - name: Authenticate to the SaBC EKS cluster
-        uses: ./.github/actions/authenticate-to-eks-cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
         with:
-          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
-          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
-          kube_token: ${{ secrets.KUBE_TOKEN_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
-          kube_cert: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-token: ${{ secrets.KUBE_TOKEN_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-cert: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-sa: laa-submit-a-bulk-claim-e2e-test-uat-service-account-role
 
       - name: Collect SaBC version
         id: sabc
@@ -57,12 +58,13 @@ jobs:
           friendly_name: Submit a Bulk Claim
 
       - name: Authenticate to the Claims API EKS cluster
-        uses: ./.github/actions/authenticate-to-eks-cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
         with:
-          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_DATA_CLAIMS_API_UAT }}
-          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
-          kube_token: ${{ secrets.KUBE_TOKEN_LAA_DATA_CLAIMS_API_UAT }}
-          kube_cert: ${{ secrets.KUBE_CERT_LAA_DATA_CLAIMS_API_UAT }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_DATA_CLAIMS_API_UAT }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
+          kube-token: ${{ secrets.KUBE_TOKEN_LAA_DATA_CLAIMS_API_UAT }}
+          kube-cert: ${{ secrets.KUBE_CERT_LAA_DATA_CLAIMS_API_UAT }}
+          kube-sa: laa-submit-a-bulk-claim-e2e-test-uat-service-account-role
 
       - name: Collect Claims API version
         id: claims_api
@@ -73,12 +75,13 @@ jobs:
           friendly_name: Data Claims API
 
       - name: Authenticate to the FSP API EKS cluster
-        uses: ./.github/actions/authenticate-to-eks-cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
         with:
-          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
-          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
-          kube_token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
-          kube_cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          kube-token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
+          kube-cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
+          kube-sa: laa-submit-a-bulk-claim-e2e-test-uat-service-account-role
 
       - name: Collect FSP API version
         id: fsp_api
@@ -89,12 +92,13 @@ jobs:
           friendly_name: FSP API
 
       - name: Authenticate to the Claims Event Service EKS cluster
-        uses: ./.github/actions/authenticate-to-eks-cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
         with:
-          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
-          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
-          kube_token: ${{ secrets.KUBE_TOKEN_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
-          kube_cert: ${{ secrets.KUBE_CERT_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+          kube-token: ${{ secrets.KUBE_TOKEN_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+          kube-cert: ${{ secrets.KUBE_CERT_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+          kube-sa: laa-submit-a-bulk-claim-e2e-test-uat-service-account-role
 
       - name: Collect Claims Event Service version
         id: claims_events
@@ -159,7 +163,6 @@ jobs:
             echo "deploy-runner=true" >> $GITHUB_OUTPUT
           fi
 
-      # Disable ecr step as tests dont have access to publish yet
       - name: Authenticate to ECR
         if: steps.check-runner.outputs.deploy-runner == 'true'
         id: ecr-auth
@@ -218,7 +221,7 @@ jobs:
         with:
           version: v1.29.4
 
-      - name: Authenticate to the EKS cluster
+      - name: Authenticate to Kubernetes Cluster
         uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
         with:
           kube-cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
@@ -266,7 +269,7 @@ jobs:
   # ui-accessibility-tests:
   #   needs: [ensure-runner-available, uat-version-summary]
   #   environment: uat
-  #   runs-on: [self-hosted, uat, k8s]
+  #   runs-on: [self-hosted,linux,uat,k8s]
   #   steps:
   #     - name: Checkout repository
   #       uses: actions/checkout@v4
@@ -336,7 +339,7 @@ jobs:
   # ui-tests:
   #   needs: [ensure-runner-available, uat-version-summary]
   #   environment: uat
-  #   runs-on: [self-hosted, phil]
+  #   runs-on: [self-hosted,linux,uat,k8s]
   #   steps:
   #     - name: Checkout repository
   #       uses: actions/checkout@v4
@@ -351,8 +354,8 @@ jobs:
   #     - name: Install dependencies
   #       run: npm ci
 
-  #     - name: Authenticate to the FSP EKS cluster
-  #       uses: ./.github/actions/authenticate-to-eks-cluster
+  #     - name: Authenticate to Kubernetes Cluster
+  #       uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
   #       with:
   #         kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
   #         kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
