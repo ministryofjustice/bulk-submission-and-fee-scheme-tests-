@@ -128,6 +128,8 @@ jobs:
       KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
       KUBE_TOKEN: ${{ secrets.KUBE_TOKEN_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
       KUBE_CERT: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+      ECR_REGION: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
+      ECR_ROLE: ${{ secrets.LAA_SUBMIT_A_BULK_CLAIM_ECR_ROLE_TO_ASSUME }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -163,8 +165,8 @@ jobs:
         id: ecr-auth
         uses: ministryofjustice/laa-reusable-github-actions/.github/actions/ecr-auth@768f673017edbb793cf052fa159c272d6c1f9177
         with:
-          ecr_region: ${{ vars.ECR_REGION }}
-          ecr_role: ${{ secrets.ECR_ROLE_TO_ASSUME }}
+          ecr_region: ${{ env.ECR_REGION }}
+          ecr_role: ${{ env.ECR_ROLE }}
           role-session-name: ${{ github.run_id }}-runner-deploy
 
       - name: Build and Push Runner Image
