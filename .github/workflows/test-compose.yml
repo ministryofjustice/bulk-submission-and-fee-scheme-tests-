@@ -156,8 +156,9 @@ jobs:
 
       # These three steps are not required, but being used for testing
       - name: Pull docker image SABC
+        # Will need to switch to the latest tag once it is available
         run: |
-          docker pull ${{ secrets.ECR_ACCOUNT }}.dkr.ecr.${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}.amazonaws.com/${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}:${{ needs.get-app-versions.outputs.sabc_image_tag }}
+          docker pull ${{ secrets.ECR_ACCOUNT }}.dkr.ecr.${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}.amazonaws.com/${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}:submit-a-bulk-claim-1.0.128-SNAPSHOT-00c3bd9
 
       - name: Configure aws credentials - Event Service
         uses: aws-actions/configure-aws-credentials@v4
