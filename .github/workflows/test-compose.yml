@@ -219,6 +219,11 @@ jobs:
         run: |
           docker compose -f docker-compose.yml ps
 
+      - name: Login
+        shell: bash
+        run: |
+          npm run login:mock
+
       - name: Tear down
         if: ${{ always() }}
         shell: bash
