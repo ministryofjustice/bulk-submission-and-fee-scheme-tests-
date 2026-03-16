@@ -16,14 +16,14 @@ on:
     - cron: '0 18 * * 1-5'
 
 jobs:
-  ui-tests:
+  get-app-versions:
     runs-on: ubuntu-latest
     # TODO: Switch environment to UAT after copying the secrets to the UAT environment
     environment: uat
     permissions:
-     id-token: write
-     contents: read
-     packages: read
+      id-token: write
+      contents: read
+      packages: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -111,13 +111,21 @@ jobs:
             echo "| Data Claims API | ${{ steps.claims_api.outputs.context }} | ${{ steps.claims_api.outputs.image_tag }} | ${{ steps.claims_api.outputs.release_time }} | ${{ steps.claims_api.outputs.status }} |"
             echo "| FSP API | ${{ steps.fsp_api.outputs.context }} | ${{ steps.fsp_api.outputs.image_tag }} | ${{ steps.fsp_api.outputs.release_time }} | ${{ steps.fsp_api.outputs.status }} |"
           } >> "$GITHUB_STEP_SUMMARY"
+  
 
+  build-docker-environment:
+    runs-on: ubuntu-latest
+    environment: uat
+    permissions:
+      id-token: write
+      contents: read
+      packages: read
+    steps:
       - name: Configure aws credentials - SaBC
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.LAA_SUBMIT_A_BULK_CLAIM_ECR_ROLE_TO_ASSUME }}
           aws-region: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
-
 
       # Required to download from ECRs
       - name: Docker login to ECR - SaBC
@@ -211,3 +219,4 @@ jobs:
         shell: bash
         run: |
           docker compose down -v;
+
