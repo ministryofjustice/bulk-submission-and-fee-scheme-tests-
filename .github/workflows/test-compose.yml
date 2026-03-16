@@ -244,7 +244,7 @@ jobs:
             fi
             
             # Print logs to help with debugging
-            docker logs sabc-ui
+            docker logs submit-a-bulk-claim-app
             sleep 5
           done
           
