@@ -242,7 +242,9 @@ jobs:
               echo "sabc-ui is healthy"
               exit 0
             fi
-          
+            
+            # Print logs to help with debugging
+            docker logs sabc-ui
             sleep 5
           done
           
