@@ -18,6 +18,11 @@ on:
 jobs:
   get-app-versions:
     runs-on: ubuntu-latest
+    outputs:
+      sabc_image_tag: ${{ steps.sabc.outputs.image_tag }}
+      claims_events_image_tag: ${{ steps.claims_events.outputs.image_tag }}
+      claims_api_image_tag: ${{ steps.claims_api.outputs.image_tag }}
+      fsp_api_image_tag: ${{ steps.fsp_api.outputs.image_tag }}
     # TODO: Switch environment to UAT after copying the secrets to the UAT environment
     environment: uat
     permissions:
@@ -115,6 +120,7 @@ jobs:
 
   build-docker-environment:
     runs-on: ubuntu-latest
+    needs: get-app-versions
     environment: uat
     permissions:
       id-token: write
@@ -137,7 +143,7 @@ jobs:
       # These three steps are not required, but being used for testing
       - name: Pull docker image SABC
         run: |
-          docker pull ${{ secrets.ECR_ACCOUNT }}.dkr.ecr.${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}.amazonaws.com/${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}:${{ steps.sabc.outputs.image_tag }}
+          docker pull ${{ secrets.ECR_ACCOUNT }}.dkr.ecr.${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}.amazonaws.com/${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}:${{ needs.get-app-versions.outputs.sabc_image_tag }}
 
       - name: Configure aws credentials - Event Service
         uses: aws-actions/configure-aws-credentials@v4
@@ -155,7 +161,7 @@ jobs:
 
       - name: Pull docker image Event Service
         run: |
-          docker pull ${{ secrets.ECR_ACCOUNT }}.dkr.ecr.${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REGION }}.amazonaws.com/${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY }}:${{ steps.claims_events.outputs.image_tag }}
+          docker pull ${{ secrets.ECR_ACCOUNT }}.dkr.ecr.${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REGION }}.amazonaws.com/${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY }}:${{ needs.get-app-versions.outputs.claims_events_image_tag }}
 
       - name: Build Mock OIDC Server
         uses: ./.github/actions/build-mock-oidc
@@ -204,10 +210,9 @@ jobs:
           LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY }}
           LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
           LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REGION: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REGION }}
-          SABC_TAG: ${{ steps.sabc.outputs.image_tag }}
-          EVENT_SERVICE_TAG: ${{ steps.claims_events.outputs.image_tag }}
-          CLAIMS_API_TAG: ${{ steps.claims_api.outputs.image_tag }}
-          FEE_SCHEME_API_TAG: ${{ steps.fsp_api.outputs.image_tag }}
+          SABC_TAG: ${{ needs.get-app-versions.outputs.sabc_image_tag }}
+          EVENT_SERVICE_TAG: ${{ needs.get-app-versions.outputs.claims_events_image_tag }}
+          CLAIMS_API_TAG: ${{ needs.get-app-versions.outputs.claims_api_image_tag }}
 
       - name: Wait for services
         shell: bash
