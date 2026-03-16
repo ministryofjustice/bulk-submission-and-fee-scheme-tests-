@@ -256,7 +256,6 @@ jobs:
       - name: Login
         shell: bash
         run: |
-          curl http://localhost:8181/actuator/health
           curl http://localhost:8082
           npm run login:mock
 
