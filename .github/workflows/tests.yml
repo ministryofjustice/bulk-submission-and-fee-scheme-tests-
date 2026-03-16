@@ -242,6 +242,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Playwright browser binaries
+        run: npx playwright install chromium
+
       - name: Port forward to FPS-API pod
         uses: ./.github/actions/port-forward
         with:
@@ -353,6 +356,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Install Playwright browser binaries
+        run: npx playwright install chromium
 
       - name: Authenticate to Kubernetes Cluster
         uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
