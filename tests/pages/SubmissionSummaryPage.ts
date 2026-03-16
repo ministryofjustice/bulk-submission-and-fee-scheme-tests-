@@ -241,7 +241,7 @@ export class SubmissionSummaryPage extends BasePage {
     return errors;
   }
 
-async openClaimByIndex(index = 0): Promise<void> {
+  async openClaimByIndex(index = 0): Promise<void> {
     const tableScope = this.page.locator('table[data-moj-sortable-table-init] tbody tr');
     await tableScope.first().waitFor({ state: 'visible', timeout: 10000 });
 
@@ -265,6 +265,15 @@ async openClaimByIndex(index = 0): Promise<void> {
       this.page.waitForLoadState('domcontentloaded').catch(() => {}),
       targetLink.click(),
     ]);
+  }
+
+  async expectVoidedTagForClaim(index = 0): Promise<void> {
+    const row = this.page.locator('table[data-moj-sortable-table-init] tbody tr').nth(index);
+    await row.waitFor({ state: 'visible', timeout: 10000 });
+
+    const badge = row.locator('td:first-child .moj-badge.moj-badge--red', { hasText: 'VOIDED' });
+    await expect(badge).toBeVisible({ timeout: 10000 });
+    await expect(badge).toHaveText('VOIDED');
   }
 
   async getPaginatedSubmissionErrors(pageSize: number): Promise<Set<string>> {
