@@ -230,15 +230,26 @@ jobs:
           EVENT_SERVICE_TAG: ${{ needs.get-app-versions.outputs.claims_events_image_tag }}
           CLAIMS_API_TAG: ${{ needs.get-app-versions.outputs.claims_api_image_tag }}
 
-      - name: Wait for services
+      - name: Wait for sabc-ui health
         shell: bash
         run: |
+          set -euo pipefail
+          
+          for i in {1..36}; do
+            echo "Checking sabc-ui health... attempt $i/36"
+          
+            if curl -fsS http://localhost:8181/actuator/health | grep -q '"status":"UP"'; then
+              echo "sabc-ui is healthy"
+              exit 0
+            fi
+          
+            sleep 5
+          done
+          
+          echo "sabc-ui did not become healthy in time"
           docker compose -f docker-compose.yml ps
-
-      - name: Health check (To remove)
-        shell: bash
-        run: | 
-          curl http://localhost:8181/actuator/health
+          docker compose -f docker-compose.yml logs sabc-ui
+          exit 1
 
       - name: Login
         shell: bash
