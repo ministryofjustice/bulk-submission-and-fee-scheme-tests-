@@ -1,0 +1,21 @@
+# GitHub Self-Hosted Runner
+enabled: true
+replicas: 2
+
+githubTokenSecretName: bulk-submission-and-fee-scheme-tests-github-token
+githubTokenSecretKey: token
+githubRepository: ministryofjustice/bulk-submission-and-fee-scheme-tests-
+runnerLabels: self-hosted,linux,uat,k8s
+
+image:
+  repository: ""
+  tag: "latest"
+  pullPolicy: Always
+
+resources:
+  requests:
+    memory: "1Gi"
+    cpu: "500m"
+  limits:
+    memory: "2Gi"
+    cpu: "1000m"
