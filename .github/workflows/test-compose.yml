@@ -132,6 +132,15 @@ jobs:
         with:
           ref: ${{ inputs.branch || github.ref }}
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Configure aws credentials - SaBC
         uses: aws-actions/configure-aws-credentials@v4
         with:
