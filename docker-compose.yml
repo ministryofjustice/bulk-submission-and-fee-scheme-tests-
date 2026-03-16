@@ -74,20 +74,6 @@ services:
     depends_on:
       - localstack
 
-#  fee-scheme-api:
-#    container_name: fee-scheme-api-app
-#    profiles:
-#      - application
-#    image: ${ECR_ACCOUNT}.dkr.ecr.${ECR_REGION}.amazonaws.com/${ECR_FEE_SCHEME_API_REPOSITORY}:${FEE_SCHEME_API_TAG}
-#    ports:
-#      - "8085:8085"
-#      - "8185:8185"
-#    environment:
-#      - AWS_REGION=us-east-1
-#      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/fee_scheme_api_dev
-#    depends_on:
-#      - postgres
-
   postgres:
     image: postgres:17
     container_name: local-postgres
