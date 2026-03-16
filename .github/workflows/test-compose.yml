@@ -253,12 +253,17 @@ jobs:
           docker compose -f docker-compose.yml logs sabc-ui
           exit 1
 
+      - name: Curl check localhost
+        shell: bash
+        run: curl -L -v http://localhost:8082
+
+      - name: Curl check 127.0.0.1
+        shell: bash
+        run: curl -L -v http://127.0.0.1:8082
+
       - name: Login
         shell: bash
-        run: |
-          curl http://127.0.0.1:8082
-          curl http://localhost:8082
-          npm run login:mock
+        run: npm run login:mock
 
       - name: Tear down
         if: ${{ always() }}
