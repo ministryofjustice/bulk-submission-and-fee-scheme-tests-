@@ -2,16 +2,25 @@
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
+    TZ=Etc/UTC \
     RUNNER_VERSION=2.331.0 \
     PLATFORM=X64 \
     NODE_VERSION=20.x \
     JAVA_HOME=/usr/lib/jvm/java-25-amazon-corretto \
     PATH=/usr/lib/jvm/java-25-amazon-corretto/bin:$PATH
 
-RUN apt-get update && apt-get install -y \
+USER root
+
+RUN ln -fs /usr/share/zoneinfo/${TZ} /etc/localtime \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
     curl wget git ca-certificates \
     gnupg software-properties-common \
-    jq unzip zip \
+    jq unzip zip tar sudo \
+    build-essential xz-utils \
+    postgresql-client \
+    jmeter tzdata \
+    && dpkg-reconfigure -f noninteractive tzdata \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION} | bash - \
@@ -29,23 +38,21 @@ RUN npm init -y \
 
 RUN npm install -g allure-commandline
 
+WORKDIR /home/runner
+
+RUN curl -o actions-runner-linux-${PLATFORM}-${RUNNER_VERSION}.tar.gz -L https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-${PLATFORM}-${RUNNER_VERSION}.tar.gz \
+    && tar xzf ./actions-runner-linux-${PLATFORM}-${RUNNER_VERSION}.tar.gz \
+    && rm actions-runner-linux-${PLATFORM}-${RUNNER_VERSION}.tar.gz \
+    && ./bin/installdependencies.sh
+
 RUN useradd -m -u 1001 runner \
     && chown -R runner:runner /home/runner \
     && echo "runner ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-USER runner
-WORKDIR /home/runner
-
-RUN mkdir actions-runner && cd actions-runner \
-    && curl -o actions-runner-linux-${PLATFORM}-${RUNNER_VERSION}.tar.gz -L https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-${PLATFORM}-${RUNNER_VERSION}.tar.gz \
-    && tar xzf ./actions-runner-linux-${PLATFORM}-${RUNNER_VERSION}.tar.gz \
-    && rm actions-runner-linux-${PLATFORM}-${RUNNER_VERSION}.tar.gz
-
-WORKDIR /home/runner/actions-runner
-
 COPY runner_script.sh /runner_script.sh
-USER root
 RUN chmod +x /runner_script.sh
 
 USER runner
+WORKDIR /home/runner
+ENV RUNNER_ALLOW_RUNASROOT=0
 ENTRYPOINT ["/runner_script.sh"]
