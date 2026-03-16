@@ -163,7 +163,7 @@ jobs:
       - name: Pull docker image SABC
         # Will need to switch to the latest tag once it is available
         run: |
-          docker pull ${{ secrets.ECR_ACCOUNT }}.dkr.ecr.${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}.amazonaws.com/${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}:submit-a-bulk-claim-1.0.128-SNAPSHOT-00c3bd9
+          docker pull ${{ secrets.ECR_ACCOUNT }}.dkr.ecr.${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}.amazonaws.com/${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}:submit-a-bulk-claim-1.0.128-SNAPSHOT-9497014
 
       - name: Configure aws credentials - Event Service
         uses: aws-actions/configure-aws-credentials@v4
@@ -214,6 +214,13 @@ jobs:
           AUTH_SCOPE=openid, profile
           EOF
 
+      # This step is required to allow E2E to use http://oidc:9000, just like the containers would. This keeps
+      # the host name the same, generating a valid JWT for SaBC.
+      - name: Map OIDC to localhost
+        shell: bash
+        run: |
+          echo "127.0.0.1 oidc" | sudo tee -a /etc/hosts
+
       - name: Run services
         shell: bash
         run: |
@@ -225,7 +232,7 @@ jobs:
           LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY }}
           LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
           LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REGION: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REGION }}
-          SABC_TAG: submit-a-bulk-claim-1.0.128-SNAPSHOT-00c3bd9
+          SABC_TAG: submit-a-bulk-claim-1.0.128-SNAPSHOT-9497014
           #SABC_TAG: ${{ needs.get-app-versions.outputs.sabc_image_tag }}
           EVENT_SERVICE_TAG: ${{ needs.get-app-versions.outputs.claims_events_image_tag }}
           CLAIMS_API_TAG: ${{ needs.get-app-versions.outputs.claims_api_image_tag }}
