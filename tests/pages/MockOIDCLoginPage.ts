@@ -26,6 +26,7 @@ class MockOIDCLoginPage extends BasePage {
 
     async navigateTo() {
         const targetUrl = process.env.UI_BASE_URL || '/';
+        console.log(`[DEBUG] Navigating to: ${targetUrl}`);
         await this.page.goto(targetUrl, {
             waitUntil: 'domcontentloaded',
             timeout: 120_000,

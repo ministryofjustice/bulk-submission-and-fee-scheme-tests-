@@ -186,6 +186,7 @@ jobs:
         shell: bash
         run: |
           cat <<EOF > .env
+          UI_BASE_URL=http://localhost:8082
           FSP_API_BASE_URL=${{ secrets.FSP_API_BASE_URL }}
           FSP_API_TOKEN=${{ secrets.FSP_API_TOKEN }}
           PDA_API_BASE_URL=${{ secrets.PDA_API_BASE_URL }}
@@ -203,15 +204,10 @@ jobs:
           DB_NAME=laa_data_claims_api_dev
           DB_SSL=${{ secrets.DB_SSL }}
           HEADLESS=true
-          # ALL DEVELEOPER VALUES, NOT SECRETS
-          SILAS_CLIENT_ID=bulk-claim-client
-          SILAS_CLIENT_SECRET=secret
-          SILAS_SCOPE=openid, profile
           AUTH_CLIENT_ID=${{ secrets.AUTH_CLIENT_ID }}
           AUTH_CLIENT_SECRET=${{ secrets.AUTH_CLIENT_SECRET }}
           AUTH_TENANT_ID=${{ secrets.AUTH_TENANT_ID }}
           AUTH_SCOPE=openid, profile
-          SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_SILAS-IDENTITY_ISSUER-URI=http://localhost:9000
           EOF
 
       - name: Run services
