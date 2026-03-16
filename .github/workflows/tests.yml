@@ -207,7 +207,6 @@ jobs:
           done
 
   api-tests:
-    needs: uat-version-summary
     environment: uat
     runs-on: ubuntu-latest
     container:
@@ -270,7 +269,7 @@ jobs:
           if-no-files-found: warn
 
   ui-accessibility-tests:
-    needs: [ensure-runner-available, uat-version-summary]
+    needs: [ensure-runner-available]
     environment: uat
     runs-on: [self-hosted,linux,uat,k8s]
     steps:
@@ -358,7 +357,7 @@ jobs:
           if-no-files-found: warn
 
   ui-tests:
-    needs: [ensure-runner-available, uat-version-summary]
+    needs: [ensure-runner-available]
     environment: uat
     runs-on: [self-hosted,linux,uat,k8s]
     steps:
