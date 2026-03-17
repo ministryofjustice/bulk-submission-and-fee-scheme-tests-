@@ -35,7 +35,7 @@ services:
       container_name: data-claims-api-app
       profiles:
         - application
-      image: ${ECR_ACCOUNT}.dkr.ecr.${ECR_REGION}.amazonaws.com/${ECR_CLAIMS_API_REPOSITORY}:${CLAIMS_API_TAG}
+      image: ${ECR_ACCOUNT}.dkr.ecr.${LAA_DATA_CLAIMS_API_ECR_REGION}.amazonaws.com/${LAA_DATA_CLAIMS_API_ECR_REPOSITORY}:${CLAIMS_API_TAG}
       ports:
         - "8080:8080"
         - "8183:8081"
