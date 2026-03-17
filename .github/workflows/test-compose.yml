@@ -178,6 +178,15 @@ jobs:
         uses: ./.github/actions/build-mock-oidc
         id: build-mock-oidc
 
+      - name: Port forward to FPS-API pod
+        uses: ./.github/actions/port-forward
+        with:
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          pod_selector: app.kubernetes.io/name=laa-fee-scheme-api
+          local_port: "8085"
+          pid_env_var: PORT_FORWARD_PID
+          wait_label: fsp-api
+
       - name: Create .env file
         shell: bash
         run: |
@@ -187,6 +196,8 @@ jobs:
           FSP_API_TOKEN=${{ secrets.FSP_API_TOKEN }}
           PDA_API_BASE_URL=${{ secrets.PDA_API_BASE_URL }}
           PDA_API_TOKEN=${{ secrets.PDA_API_TOKEN }}
+          PROVIDER_API=${{ secrets.PDA_API_BASE_URL }}
+          PROVIDER_API_KEY=${{ secrets.PDA_API_TOKEN }}
           DSTEW_API_BASE_URL=localhost:8080
           DSTEW_API_TOKEN=f67f968e-b479-4e61-b66e-f57984931e56
           MFA_SECRET=${{ secrets.MFA_SECRET }}
