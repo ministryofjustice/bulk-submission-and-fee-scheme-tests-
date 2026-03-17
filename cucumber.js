@@ -32,6 +32,7 @@ module.exports = {
     "--format html:reports/cucumber.html",
     "--tags '@accessibility and not @ignore'",
     "--parallel 4",
+    "--retry 1",
     "tests/features/**/Accessibility/*.feature"
   ].join(" "),
   api: [

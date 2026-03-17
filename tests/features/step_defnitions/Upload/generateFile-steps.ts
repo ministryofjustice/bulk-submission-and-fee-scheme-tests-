@@ -13,15 +13,15 @@ import {getSubmissionPeriod} from "../../../utils/scripts/dataGenartor/submissio
 import { GenerateFixedCrimePoliceFile } from '../../../utils/scripts/dataGenartor/generateFixedCrimeFiles';
 import {GenerateMediationFilesOverride} from "../../../utils/scripts/dataGenartor/genarateMediationFilesWithOverides";
 import {GenerateCivilFilesOverride} from "../../../utils/scripts/dataGenartor/generateCivilFilesWithOverides";
-import {
-    GenerateTwoLegalHelpFiles
-} from "../../../utils/scripts/dataGenartor/GenerateTwoCivilFilesForPeriods";
 import {GenerateSingleLegalHelpFile} from "../../../utils/scripts/dataGenartor/generateSingleLegalHelpFile";
 import {SubmissionSummaryPage} from "../../../pages/SubmissionSummaryPage";
 import {GenerateCrimeFilesForCalculations} from "../../../utils/scripts/dataGenartor/generateCrimeFilesForCalculations";
 import {
     GenerateLegalHelpImmigrationFilesForCalculations
 } from "../../../utils/scripts/dataGenartor/GenerateLegalHelpImmigrationFilesForCalculations";
+import {
+    GenerateTwoLegalHelpDuplicateFiles
+} from "../../../utils/scripts/dataGenartor/generateTwoLegalHelpDuplicateFiles";
 
 function formatDateToDDMMYYYY(date: Date): string {
   const day = String(date.getDate()).padStart(2, '0');
@@ -939,7 +939,6 @@ When('I duplicate the last record in the generated file', async function (this: 
 Given(
     'I generate two Legal help files in {string} format for office {string} that are {string} months apart with the following claims',
     async function (format, office, monthsDiff, dataTable) {
-
         const diff = Number(monthsDiff);
         const row = dataTable.hashes()[0];
 
@@ -955,24 +954,34 @@ Given(
             feeCode: row.feeCode2
         }];
 
-        const { firstFile, secondFile, period1, period2 } =
-            await GenerateTwoLegalHelpFiles(
-                format as any,
-                claimsFile1,
-                claimsFile2,
-                office,
-                diff
-            );
+        const {
+            firstFile,
+            secondFile,
+            officeUsed,
+            period1,
+            period2,
+            cutoffDate,
+            firstCcd,
+            secondCcd
+        } = await GenerateTwoLegalHelpDuplicateFiles(
+            format as "csv" | "xml" | "txt",
+            claimsFile1,
+            claimsFile2,
+            office,
+            diff
+        );
 
         this.firstFile = firstFile;
         this.secondFile = secondFile;
 
+        await this.attach(`Office used: ${officeUsed}`, "text/plain");
         await this.attach(`First period: ${period1}`, "text/plain");
         await this.attach(`Second period: ${period2}`, "text/plain");
+        await this.attach(`Cutoff date: ${cutoffDate}`, "text/plain");
+        await this.attach(`First CCD: ${firstCcd}`, "text/plain");
+        await this.attach(`Second CCD: ${secondCcd}`, "text/plain");
     }
 );
-
-
 
 Given(
     'I generate single "Legal help" {string} file with the following claims',
