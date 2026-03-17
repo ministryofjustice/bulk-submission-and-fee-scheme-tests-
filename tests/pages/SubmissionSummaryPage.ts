@@ -267,6 +267,33 @@ export class SubmissionSummaryPage extends BasePage {
     ]);
   }
 
+  async getClaimIdByIndex(index = 0): Promise<string> {
+    const viewLinks = this.page.locator(
+      'table[data-moj-sortable-table-init] tbody tr td:first-child a.govuk-link',
+      { hasText: 'View' }
+    );
+
+    await viewLinks.first().waitFor({ state: 'visible', timeout: 10000 });
+    const totalLinks = await viewLinks.count();
+    if (totalLinks === 0) {
+      throw new Error('No claim rows with a View link were found on the submission details page.');
+    }
+
+    const targetIndex = Math.min(Math.max(index, 0), totalLinks - 1);
+    const href = await viewLinks.nth(targetIndex).getAttribute('href');
+
+    if (!href) {
+      throw new Error(`Could not read href for claim row index ${targetIndex}.`);
+    }
+
+    const uuidMatches = href.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi);
+    if (!uuidMatches || uuidMatches.length === 0) {
+      throw new Error(`Could not extract claim UUID from href: ${href}`);
+    }
+
+    return uuidMatches[uuidMatches.length - 1];
+  }
+
   async expectVoidedTagForClaim(index = 0): Promise<void> {
     const row = this.page.locator('table[data-moj-sortable-table-init] tbody tr').nth(index);
     await row.waitFor({ state: 'visible', timeout: 10000 });

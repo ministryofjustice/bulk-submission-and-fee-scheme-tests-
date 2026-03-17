@@ -56,6 +56,19 @@ export async function cleanSubmissionData(
           )
     `
         );
+        
+        await runDelete(
+            'claims.assessment',
+            `
+      DELETE FROM claims.assessment
+      WHERE claim_summary_fee_id IN (
+          SELECT id FROM claims.claim_summary_fee
+          WHERE claim_id IN (
+              SELECT id FROM claims.claim WHERE submission_id = ANY($1)
+          )
+      )
+    `
+        );
 
         await runDelete(
             'claims.claim_summary_fee',
