@@ -209,12 +209,10 @@ jobs:
   
   
 
-  build-docker-environment:
+  run-accessibility-tests:
     needs: get-app-versions
     runs-on: ubuntu-latest
     environment: uat
-    container:
-      image: mcr.microsoft.com/playwright:v1.54.2-jammy
     permissions:
       id-token: write
       contents: read
