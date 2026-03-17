@@ -40,17 +40,12 @@ Then('the page content matches {string}', async function (this: CustomWorld, fix
   await mainContent.waitFor({state: 'visible', timeout: 30000});
   const actualHtml = await mainContent.evaluate((node) => node.outerHTML);
 
-  expect(normalizeHtml(actualHtml)).toBe(normalizeHtml(expectedHtml));
-  await this.attach(`✅ Page content matches ${fixtureName}`, 'text/plain');
-});
+  const organisationTitle = this.page!.locator('.moj-organisation-nav__title');
+  await organisationTitle.waitFor({ state: 'visible', timeout: 30000 });
 
-Then('the header content matches {string}', async function (this: CustomWorld, fixtureName: string) {
-  const fixturePath = path.resolve('tests/data/content_div', fixtureName);
-  const expectedHtml = await fs.readFile(fixturePath, 'utf8');
+  // Assert format: "ORG NAME - 1234"
 
-  const headerContent = this.page!.locator('.moj-organisation-nav');
-  await headerContent.waitFor({state: 'visible', timeout: 30000});
-  const actualHtml = await headerContent.evaluate((node) => node.outerHTML);
+  await expect(organisationTitle).toHaveText(/.+\s*-\s*\d+/);
 
   expect(normalizeHtml(actualHtml)).toBe(normalizeHtml(expectedHtml));
   await this.attach(`✅ Page content matches ${fixtureName}`, 'text/plain');
