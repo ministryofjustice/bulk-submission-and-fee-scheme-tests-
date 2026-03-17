@@ -286,6 +286,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Playwright browser binaries
+        run: npx playwright install chromium
+
       # We always need the PF to FSP as we need to generate data
       - name: Authenticate to Kubernetes Cluster
         uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
