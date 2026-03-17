@@ -121,12 +121,100 @@ jobs:
             echo "| Data Claims API | ${{ steps.claims_api.outputs.context }} | ${{ steps.claims_api.outputs.image_tag }} | ${{ steps.claims_api.outputs.release_time }} | ${{ steps.claims_api.outputs.status }} |"
             echo "| FSP API | ${{ steps.fsp_api.outputs.context }} | ${{ steps.fsp_api.outputs.image_tag }} | ${{ steps.fsp_api.outputs.release_time }} | ${{ steps.fsp_api.outputs.status }} |"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  ensure-runner-available:
+    name: Ensure GitHub Runner Available
+    environment: uat
+    runs-on: ubuntu-latest
+    outputs:
+      deploy-runner: ${{ steps.check-runner.outputs.deploy-runner }}
+    env:
+      KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+      KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+      KUBE_TOKEN: ${{ secrets.KUBE_TOKEN_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+      KUBE_CERT: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+      ECR_REGION: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
+      ECR_ROLE: ${{ secrets.LAA_SUBMIT_A_BULK_CLAIM_ECR_ROLE_TO_ASSUME }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Kubernetes Cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
+        with:
+          kube-cert: ${{ env.KUBE_CERT }}
+          kube-token: ${{ env.KUBE_TOKEN }}
+          kube-cluster: ${{ env.KUBE_CLUSTER }}
+          kube-namespace: ${{ env.KUBE_NAMESPACE }}
+          kube-sa: laa-submit-a-bulk-claim-e2e-test-uat-service-account-role
+
+      - name: Check Runner Pod/Release
+        id: check-runner
+        run: |
+          set +e
+          echo "Checking if e2e-github-runner Helm release is deployed and pod is running..."
+          helm status e2e-github-runner --namespace ${KUBE_NAMESPACE} > /dev/null 2>&1
+          HELM_STATUS=$?
+          POD_STATUS=$(kubectl get pods -n ${KUBE_NAMESPACE} -l app=e2e-github-runner -o jsonpath='{.items[0].status.phase}' 2>/dev/null)
+          if [ "$HELM_STATUS" -eq 0 ] && [ "$POD_STATUS" = "Running" ]; then
+            echo "Runner release and pod are present and running."
+            echo "deploy-runner=false" >> $GITHUB_OUTPUT
+          else
+            echo "Runner not present or not running, will deploy."
+            echo "deploy-runner=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Authenticate to ECR
+        if: steps.check-runner.outputs.deploy-runner == 'true'
+        id: ecr-auth
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/ecr-auth@768f673017edbb793cf052fa159c272d6c1f9177
+        with:
+          ecr_region: ${{ env.ECR_REGION }}
+          ecr_role: ${{ env.ECR_ROLE }}
+          role-session-name: ${{ github.run_id }}-runner-deploy
+
+      - name: Build and Push Runner Image
+        if: steps.check-runner.outputs.deploy-runner == 'true'
+        id: build
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: ./scripts
+          file: ./scripts/Dockerfile.e2e-runner
+          push: true
+          tags: |
+            ${{ steps.ecr-auth.outputs.image_registry }}/${{ vars.ECR_REPOSITORY }}:github-runner-${{ github.run_id }}
+
+      - name: Deploy Runner
+        if: steps.check-runner.outputs.deploy-runner == 'true'
+        env:
+          REGISTRY: ${{ steps.ecr-auth.outputs.image_registry }}
+          REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+        run: |
+          echo "Deploying persistent GitHub runner..."
+          helm upgrade --install e2e-github-runner ./.helm/github-runner \
+            --namespace ${KUBE_NAMESPACE} \
+            --set image.repository=${REGISTRY}/${REPOSITORY} \
+            --set image.tag=github-runner-${{ github.run_id }} \
+            --wait \
+            --timeout 5m
+          
+          echo "Checking runner logs for successful registration..."
+          for i in {1..30}; do
+            if kubectl logs -l app=e2e-github-runner -n ${KUBE_NAMESPACE} | grep -Eq "Registered|Listening for Jobs|Connected to GitHub"; then
+              echo "Runner logged successful registration."
+              break
+            fi
+            sleep 5
+          done
+  
   
 
   build-docker-environment:
-    runs-on: ubuntu-latest
     needs: get-app-versions
+    runs-on: ubuntu-latest
     environment: uat
+    container:
+      image: mcr.microsoft.com/playwright:v1.54.2-jammy
     permissions:
       id-token: write
       contents: read
@@ -177,6 +265,16 @@ jobs:
       - name: Build Mock OIDC Server
         uses: ./.github/actions/build-mock-oidc
         id: build-mock-oidc
+
+      - name: Authenticate to Kubernetes Cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
+        with:
+          kube-cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
+          kube-token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          kube-sa: deploy-user
+
 
       - name: Port forward to FPS-API pod
         uses: ./.github/actions/port-forward
@@ -253,7 +351,7 @@ jobs:
               echo "sabc-ui is healthy"
               exit 0
             fi
-            
+          
             # Print logs to help with debugging
             docker logs submit-a-bulk-claim-app
             sleep 5
