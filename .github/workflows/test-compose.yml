@@ -215,7 +215,7 @@ jobs:
       - name: Run services
         shell: bash
         run: |
-          docker compose -f docker-compose.yml up sabc-ui  event-service -d
+          docker compose -f docker-compose.yml up sabc-ui  event-service claims-api -d
         env:
           ECR_ACCOUNT: ${{ secrets.ECR_ACCOUNT }}
           ECR_CLAIMS_API_REPOSITORY: ${{ vars.ECR_CLAIMS_API_REPOSITORY }}
