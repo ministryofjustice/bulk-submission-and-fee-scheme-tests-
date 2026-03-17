@@ -1,4 +1,4 @@
-@content @gaby
+@content
 Feature: Content check for the UI matching UX designs
 
   Background:
