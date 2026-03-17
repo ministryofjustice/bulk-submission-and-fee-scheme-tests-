@@ -1,4 +1,4 @@
-@void
+@void @stable
 Feature: Void a claim
 
   Background:
