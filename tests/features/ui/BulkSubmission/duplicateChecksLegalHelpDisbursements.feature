@@ -112,11 +112,10 @@ Feature: Duplicate checks - Legal Help - Disbursements
 
 
   @duplicateChecks
-  Scenario Outline: Period rule – should reject second submission when less than <monthsDifference> months apart
+  Scenario Outline: Duplicate rule – should reject second submission for matching claims generated <monthsDifference> months apart
     Given I generate two Legal help files in "<format>" format for office "<office>" that are "<monthsDifference>" months apart with the following claims
       | ucn   | feeCode1  | feeCode2  | ufn   |
       | <ucn> | <feeCode> | <feeCode> | <ufn> |
-
     When I upload the first file
     And click import
     When I upload the second file

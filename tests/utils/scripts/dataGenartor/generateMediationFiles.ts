@@ -27,6 +27,34 @@ const clean = (s: string) => s.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
 const generateUFN = (d: Date, caseNum: number) =>
     `${pad(d.getDate())}${pad(d.getMonth() + 1)}${String(d.getFullYear()).slice(-2)}/${pad(caseNum, 3)}`;
 
+const parseDate = (value?: string): Date | undefined => {
+  if (!value) return undefined;
+
+  const trimmed = value.trim();
+
+  const ddmmyyyy = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+  const ddmmyyyyMatch = trimmed.match(ddmmyyyy);
+  if (ddmmyyyyMatch) {
+    const [, dd, mm, yyyy] = ddmmyyyyMatch;
+    const date = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+    return Number.isNaN(date.getTime()) ? undefined : date;
+  }
+
+  const isoDate = new Date(trimmed);
+  return Number.isNaN(isoDate.getTime()) ? undefined : isoDate;
+};
+
+const ensureOrderedDates = (a: Date, b: Date): { from: Date; to: Date } => {
+  return a.getTime() <= b.getTime()
+      ? { from: a, to: b }
+      : { from: b, to: a };
+};
+
+const safeBetween = (fromInput: Date, toInput: Date): Date => {
+  const { from, to } = ensureOrderedDates(fromInput, toInput);
+  return faker.date.between({ from, to });
+};
+
 // ------------------------------
 // 2️⃣ Outcome Generator
 // ------------------------------
@@ -43,30 +71,48 @@ const generateOutcome = async (
   const client2First = faker.person.firstName();
   const client2Last = faker.person.lastName();
 
-  const dob1 = faker.date.between({ from: new Date('1950-01-01'), to: new Date('2000-12-31') });
-  const dob2 = faker.date.between({ from: new Date('1950-01-01'), to: new Date('2000-12-31') });
+  const dob1 = faker.date.between({
+    from: new Date('1950-01-01'),
+    to: new Date('2000-12-31'),
+  });
+
+  const dob2 = faker.date.between({
+    from: new Date('1950-01-01'),
+    to: new Date('2000-12-31'),
+  });
 
   const start = scheduleStart ? new Date(scheduleStart) : new Date('2015-05-01');
   let end = scheduleEnd ? new Date(scheduleEnd) : new Date('2025-10-31');
-  // Convert period to Date (MMM-uuuu). Set end to last day of the month before the period month, to ensure generated dates are always within the period
+
+  // Set end to the last day of the month before the submission period month
   if (period) {
     const [monthStr, yearStr] = period.split('-');
     const month = new Date(`${monthStr} 1, ${yearStr}`).getMonth();
     const year = parseInt(yearStr, 10);
-    end = new Date(year, month, 0); // Last day of the month
-    // Go one month previous
-    end = 
-        new Date(end.getFullYear(), end.getMonth() - 1, end.getDate());
+    end = new Date(year, month, 0);
   }
 
-  const caseStartDate = faker.date.between({ from: start, to: end });
-  const medConcluded = faker.date.between({ from: caseStartDate, to: end });
-  const workConcluded =  faker.date.between({ from: caseStartDate, to: medConcluded });
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    throw new Error(
+        `Invalid schedule dates in generateOutcome: scheduleStart=${scheduleStart}, scheduleEnd=${scheduleEnd}, period=${period}, office=${office}`
+    );
+  }
+
+  const caseStartOverrideDate = parseDate(claimOverride?.caseStartDate);
+  const medConcludedOverrideDate = parseDate(claimOverride?.medConcludedDate);
+  const workConcludedOverrideDate = parseDate(claimOverride?.workConcludedDate);
+
+  const caseStartDate = caseStartOverrideDate ?? safeBetween(start, end);
+  const medConcluded = medConcludedOverrideDate ?? safeBetween(caseStartDate, end);
+  const workConcluded = workConcludedOverrideDate ?? safeBetween(caseStartDate, medConcluded);
 
   const ufn = claimOverride?.ufn ?? generateUFN(caseStartDate, caseNum);
 
-  const ucn1 = claimOverride?.ucn ?? `${pad(dob1.getDate())}${pad(dob1.getMonth() + 1)}${dob1.getFullYear()}/${client1Last[0].toUpperCase()}/${clean(client1Last).slice(0, 4)}`;
-  const ucn2 =  `${pad(dob2.getDate())}${pad(dob2.getMonth() + 1)}${dob2.getFullYear()}/${client2Last[0].toUpperCase()}/${clean(client2Last).slice(0, 4)}`;
+  const ucn1 =
+      claimOverride?.ucn ??
+      `${pad(dob1.getDate())}${pad(dob1.getMonth() + 1)}${dob1.getFullYear()}/${client1Last[0].toUpperCase()}/${clean(client1Last).slice(0, 4)}`;
+
+  const ucn2 = `${pad(dob2.getDate())}${pad(dob2.getMonth() + 1)}${dob2.getFullYear()}/${client2Last[0].toUpperCase()}/${clean(client2Last).slice(0, 4)}`;
 
   return {
     case_ref_number: faker.number.int({ min: 1000, max: 9999 }),
@@ -97,8 +143,12 @@ const generateOutcome = async (
     number_of_sessions: claimOverride?.sessions ?? faker.number.int({ min: 1, max: 5 }),
     mediation_time: faker.number.int({ min: 60, max: 240 }),
     fee_code: claimOverride?.feeCode ?? randomFrom(feeCodes),
-    disbursements_amount: claimOverride?.disbursementAmount ?? faker.number.float({ min: 0, max: 200, fractionDigits: 2 }),
-    disbursements_vat:  claimOverride?.disbursementVat ?? faker.number.float({ min: 0, max: 50, fractionDigits: 2 }),
+    disbursements_amount:
+        claimOverride?.disbursementAmount ??
+        faker.number.float({ min: 0, max: 200, fractionDigits: 2 }),
+    disbursements_vat:
+        claimOverride?.disbursementVat ??
+        faker.number.float({ min: 0, max: 50, fractionDigits: 2 }),
     vat_indicator: claimOverride?.vatApplicable ?? randomFrom(['Y', 'N']),
     unique_case_id: `${ufn}`,
     outreach: faker.helpers.arrayElement(['000', '001', '002']),
@@ -119,7 +169,7 @@ const generateOutcome = async (
 };
 
 // ------------------------------
-// 3️⃣ File Generator (★ now supports overrides properly)
+// 3️⃣ File Generator
 // ------------------------------
 const generateFile = async (
     fileName: string,
@@ -144,8 +194,6 @@ const generateFile = async (
   for (let i = 0; i < outcomesCount; i++) {
     const override = options.claims?.[i];
     const o = await generateOutcome(office, i, scheduleStart, scheduleEnd, override, period);
-
-
 
     content +=
         `OUTCOME,` +
@@ -187,19 +235,22 @@ const generateFile = async (
         `POSTAL_APPL_ACCP=${o.client1_postalApplAccp},` +
         `CLIENT2_POSTAL_APPL_ACCP=${o.client2_postalApplAccp},` +
         `SCHEDULE_REF=${scheduleNum},` +
-        `NATIONAL_REF_MECHANISM_ADVICE=${o.nrm_advice}, ` +
-        `LEGACY_CASE=${o.legacy_case}, `+
-        `LONDON_NONLONDON_RATE=${o.london_nonlondon_rate}, ` +
-        `ADDITIONAL_TRAVEL_PAYMENT=${o.additional_travel_payment}, `+
-        `ELIGIBLE_CLIENT_INDICATOR=${o.eligible_client_indicator}, ` +
-        `IRC_SURGERY=${o.irc_surgery}, `+
-        `SUBSTANTIVE_HEARING=${o.substantive_hearing}, `+
-        `TOLERANCE_INDICATOR=${o.tolerance_indicator}, ` +
-        `DUTY_SOLICITOR=${o.duty_solicitor}, ` +
+        `NATIONAL_REF_MECHANISM_ADVICE=${o.nrm_advice},` +
+        `LEGACY_CASE=${o.legacy_case},` +
+        `LONDON_NONLONDON_RATE=${o.london_nonlondon_rate},` +
+        `ADDITIONAL_TRAVEL_PAYMENT=${o.additional_travel_payment},` +
+        `ELIGIBLE_CLIENT_INDICATOR=${o.eligible_client_indicator},` +
+        `IRC_SURGERY=${o.irc_surgery},` +
+        `SUBSTANTIVE_HEARING=${o.substantive_hearing},` +
+        `TOLERANCE_INDICATOR=${o.tolerance_indicator},` +
+        `DUTY_SOLICITOR=${o.duty_solicitor},` +
         `YOUTH_COURT=${o.youth_court}\n`;
   }
 
-  if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);
+  if (!fs.existsSync(OUTPUT_DIR)) {
+    fs.mkdirSync(OUTPUT_DIR);
+  }
+
   fs.writeFileSync(path.join(OUTPUT_DIR, `${fileName}.${fileType}`), content, 'utf-8');
 };
 

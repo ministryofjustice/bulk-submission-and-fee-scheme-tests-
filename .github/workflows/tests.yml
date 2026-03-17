@@ -22,6 +22,10 @@ on:
     # 6pm UTC Mon–Fri
     - cron: '0 18 * * 1-5'
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   uat-version-summary:
     name: UAT deployment summary
@@ -37,12 +41,13 @@ jobs:
           version: v1.29.4
 
       - name: Authenticate to the SaBC EKS cluster
-        uses: ./.github/actions/authenticate-to-eks-cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
         with:
-          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
-          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
-          kube_token: ${{ secrets.KUBE_TOKEN_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
-          kube_cert: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-token: ${{ secrets.KUBE_TOKEN_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-cert: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-sa: laa-submit-a-bulk-claim-e2e-test-uat-service-account-role
 
       - name: Collect SaBC version
         id: sabc
@@ -53,12 +58,13 @@ jobs:
           friendly_name: Submit a Bulk Claim
 
       - name: Authenticate to the Claims API EKS cluster
-        uses: ./.github/actions/authenticate-to-eks-cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
         with:
-          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_DATA_CLAIMS_API_UAT }}
-          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
-          kube_token: ${{ secrets.KUBE_TOKEN_LAA_DATA_CLAIMS_API_UAT }}
-          kube_cert: ${{ secrets.KUBE_CERT_LAA_DATA_CLAIMS_API_UAT }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_DATA_CLAIMS_API_UAT }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
+          kube-token: ${{ secrets.KUBE_TOKEN_LAA_DATA_CLAIMS_API_UAT }}
+          kube-cert: ${{ secrets.KUBE_CERT_LAA_DATA_CLAIMS_API_UAT }}
+          kube-sa: laa-submit-a-bulk-claim-e2e-test-uat-service-account-role
 
       - name: Collect Claims API version
         id: claims_api
@@ -69,12 +75,13 @@ jobs:
           friendly_name: Data Claims API
 
       - name: Authenticate to the FSP API EKS cluster
-        uses: ./.github/actions/authenticate-to-eks-cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
         with:
-          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
-          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
-          kube_token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
-          kube_cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          kube-token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
+          kube-cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
+          kube-sa: laa-submit-a-bulk-claim-e2e-test-uat-service-account-role
 
       - name: Collect FSP API version
         id: fsp_api
@@ -85,12 +92,13 @@ jobs:
           friendly_name: FSP API
 
       - name: Authenticate to the Claims Event Service EKS cluster
-        uses: ./.github/actions/authenticate-to-eks-cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
         with:
-          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
-          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
-          kube_token: ${{ secrets.KUBE_TOKEN_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
-          kube_cert: ${{ secrets.KUBE_CERT_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+          kube-token: ${{ secrets.KUBE_TOKEN_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+          kube-cert: ${{ secrets.KUBE_CERT_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+          kube-sa: laa-submit-a-bulk-claim-e2e-test-uat-service-account-role
 
       - name: Collect Claims Event Service version
         id: claims_events
@@ -113,8 +121,92 @@ jobs:
             echo "| FSP API | ${{ steps.fsp_api.outputs.context }} | ${{ steps.fsp_api.outputs.image_tag }} | ${{ steps.fsp_api.outputs.release_time }} | ${{ steps.fsp_api.outputs.status }} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
+  ensure-runner-available:
+    name: Ensure GitHub Runner Available
+    environment: uat
+    runs-on: ubuntu-latest
+    outputs:
+      deploy-runner: ${{ steps.check-runner.outputs.deploy-runner }}
+    env:
+      KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+      KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+      KUBE_TOKEN: ${{ secrets.KUBE_TOKEN_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+      KUBE_CERT: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+      ECR_REGION: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
+      ECR_ROLE: ${{ secrets.LAA_SUBMIT_A_BULK_CLAIM_ECR_ROLE_TO_ASSUME }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Kubernetes Cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
+        with:
+          kube-cert: ${{ env.KUBE_CERT }}
+          kube-token: ${{ env.KUBE_TOKEN }}
+          kube-cluster: ${{ env.KUBE_CLUSTER }}
+          kube-namespace: ${{ env.KUBE_NAMESPACE }}
+          kube-sa: laa-submit-a-bulk-claim-e2e-test-uat-service-account-role
+
+      - name: Check Runner Pod/Release
+        id: check-runner
+        run: |
+          set +e
+          echo "Checking if e2e-github-runner Helm release is deployed and pod is running..."
+          helm status e2e-github-runner --namespace ${KUBE_NAMESPACE} > /dev/null 2>&1
+          HELM_STATUS=$?
+          POD_STATUS=$(kubectl get pods -n ${KUBE_NAMESPACE} -l app=e2e-github-runner -o jsonpath='{.items[0].status.phase}' 2>/dev/null)
+          if [ "$HELM_STATUS" -eq 0 ] && [ "$POD_STATUS" = "Running" ]; then
+            echo "Runner release and pod are present and running."
+            echo "deploy-runner=false" >> $GITHUB_OUTPUT
+          else
+            echo "Runner not present or not running, will deploy."
+            echo "deploy-runner=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Authenticate to ECR
+        if: steps.check-runner.outputs.deploy-runner == 'true'
+        id: ecr-auth
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/ecr-auth@768f673017edbb793cf052fa159c272d6c1f9177
+        with:
+          ecr_region: ${{ env.ECR_REGION }}
+          ecr_role: ${{ env.ECR_ROLE }}
+          role-session-name: ${{ github.run_id }}-runner-deploy
+
+      - name: Build and Push Runner Image
+        if: steps.check-runner.outputs.deploy-runner == 'true'
+        id: build
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: ./scripts
+          file: ./scripts/Dockerfile.e2e-runner
+          push: true
+          tags: |
+            ${{ steps.ecr-auth.outputs.image_registry }}/${{ vars.ECR_REPOSITORY }}:github-runner-${{ github.run_id }}
+
+      - name: Deploy Runner
+        if: steps.check-runner.outputs.deploy-runner == 'true'
+        env:
+          REGISTRY: ${{ steps.ecr-auth.outputs.image_registry }}
+          REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+        run: |
+          echo "Deploying persistent GitHub runner..."
+          helm upgrade --install e2e-github-runner ./.helm/github-runner \
+            --namespace ${KUBE_NAMESPACE} \
+            --set image.repository=${REGISTRY}/${REPOSITORY} \
+            --set image.tag=github-runner-${{ github.run_id }} \
+            --wait \
+            --timeout 5m
+
+          echo "Checking runner logs for successful registration..."
+          for i in {1..30}; do
+            if kubectl logs -l app=e2e-github-runner -n ${KUBE_NAMESPACE} | grep -Eq "Registered|Listening for Jobs|Connected to GitHub"; then
+              echo "Runner logged successful registration."
+              break
+            fi
+            sleep 5
+          done
+
   api-tests:
-    needs: uat-version-summary
     environment: uat
     runs-on: ubuntu-latest
     container:
@@ -128,25 +220,29 @@ jobs:
         with:
           version: v1.29.4
 
-      - name: Authenticate to the EKS cluster
-        uses: ./.github/actions/authenticate-to-eks-cluster
+      - name: Authenticate to Kubernetes Cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
         with:
-          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
-          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
-          kube_token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
-          kube_cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
+          kube-cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
+          kube-token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          kube-sa: deploy-user
 
       - name: Create .env file
         shell: bash
         run: |
-          cat <<EOF > .env
+          cat <<EOF_ENV > .env
           FSP_API_BASE_URL=${{ secrets.FSP_API_BASE_URL }}
           FSP_API_TOKEN=${{ secrets.FSP_API_TOKEN }}
           HEADLESS=true
-          EOF
+          EOF_ENV
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Install Playwright browser binaries
+        run: npx playwright install chromium
 
       - name: Port forward to FPS-API pod
         uses: ./.github/actions/port-forward
@@ -158,8 +254,7 @@ jobs:
           wait_label: fsp-api
 
       - name: Run API Tests
-        run: |
-          npm run test:api
+        run: npm run test:api
 
       - name: Publish Cucumber summary
         if: always()
@@ -174,9 +269,9 @@ jobs:
           if-no-files-found: warn
 
   ui-accessibility-tests:
-    needs: uat-version-summary
+    needs: [ensure-runner-available]
     environment: uat
-    runs-on: [self-hosted, uat, k8s]
+    runs-on: [self-hosted,linux,uat,k8s]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -190,6 +285,27 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Install Playwright browser binaries
+        run: npx playwright install chromium
+
+      # We always need the PF to FSP as we need to generate data
+      - name: Authenticate to Kubernetes Cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
+        with:
+          kube-cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
+          kube-token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          kube-sa: deploy-user
+      - name: Port forward to FPS-API pod
+        uses: ./.github/actions/port-forward
+        with:
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          pod_selector: app.kubernetes.io/name=laa-fee-scheme-api
+          local_port: "8085"
+          pid_env_var: PORT_FORWARD_PID
+          wait_label: fsp-api
 
       - name: Create .env file
         shell: bash
@@ -244,9 +360,9 @@ jobs:
           if-no-files-found: warn
 
   ui-tests:
-    needs: uat-version-summary
+    needs: [ensure-runner-available]
     environment: uat
-    runs-on: [self-hosted, uat, k8s]
+    runs-on: [self-hosted,linux,uat,k8s]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -261,14 +377,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Authenticate to the FSP EKS cluster
-        uses: ./.github/actions/authenticate-to-eks-cluster
-        with:
-          kube_cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
-          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
-          kube_token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
-          kube_cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
+      - name: Install Playwright browser binaries
+        run: npx playwright install chromium
 
+      # We always need the PF to FSP as we need to generate data
+      - name: Authenticate to Kubernetes Cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
+        with:
+          kube-cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
+          kube-token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          kube-sa: deploy-user
       - name: Port forward to FPS-API pod
         uses: ./.github/actions/port-forward
         with:
