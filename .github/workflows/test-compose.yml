@@ -165,6 +165,15 @@ jobs:
           repository: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY }}
           image-tag: ${{ needs.get-app-versions.outputs.claims_events_image_tag }}
 
+      - name: Pull Claims API image
+        uses: ./.github/actions/pull-ecr-image
+        with:
+          role-to-assume: ${{ secrets.LAA_DATA_CLAIMS_API_ECR_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.LAA_DATA_CLAIMS_API_ECR_REGION }}
+          registry-account: ${{ secrets.ECR_ACCOUNT }}
+          repository: ${{ vars.LAA_DATA_CLAIMS_API_ECR_REPOSITORY }}
+          image-tag: ${{ needs.get-app-versions.outputs.claims_api_image_tag }}
+
       - name: Build Mock OIDC Server
         uses: ./.github/actions/build-mock-oidc
         id: build-mock-oidc
@@ -240,6 +249,29 @@ jobs:
           echo "sabc-ui did not become healthy in time"
           docker compose -f docker-compose.yml ps
           docker compose -f docker-compose.yml logs sabc-ui
+          exit 1
+
+      - name: Wait for claims-api health
+        shell: bash
+        run: |
+          set -euo pipefail
+          
+          for i in {1..36}; do
+            echo "Checking claims-api health... attempt $i/36"
+          
+            if curl -fsS http://localhost:8183/actuator/health | grep -q '"status":"UP"'; then
+              echo "claims-api is healthy"
+              exit 0
+            fi
+          
+            # Print logs to help with debugging
+            docker logs data-claims-api-app
+            sleep 5
+          done
+          
+          echo "claims-api did not become healthy in time"
+          docker compose -f docker-compose.yml ps
+          docker compose -f docker-compose.yml logs data-claims-api-app
           exit 1
 
       - name: Login
