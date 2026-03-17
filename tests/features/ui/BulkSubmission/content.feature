@@ -8,6 +8,10 @@ Feature: Content check for the UI matching UX designs
     Given I am on the bulk submission landing page
     Then the page content matches "landing_page.html"
 
+  Scenario: Header content matches design
+    Given I am on the bulk submission landing page
+    Then the header content matches "header.html"
+
   Scenario: Upload page content matches design
     Given I am on the bulk import page
     Then the page content matches "upload.html"
