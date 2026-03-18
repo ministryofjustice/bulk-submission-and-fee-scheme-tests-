@@ -334,7 +334,7 @@ jobs:
       - name: Run services
         shell: bash
         run: |
-          docker compose p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml up sabc-ui  event-service claims-api -d
+          docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml up sabc-ui  event-service claims-api -d
         env:
           ECR_ACCOUNT: ${{ secrets.ECR_ACCOUNT }}
           LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}
@@ -407,7 +407,7 @@ jobs:
         if: always()
         run: |
           npm run teardown
-          docker compose p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml down -v;
+          docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml down -v;
 
       - name: Publish Cucumber summary
         if: always()
