@@ -4,11 +4,13 @@ description: build-mock-oidc
 runs:
   using: "composite"
   steps:
-    - name: Checkout claims parent repository
+    - name: Checkout OIDC mock server
       uses: actions/checkout@v4
       with:
         repository: 'ministryofjustice/laa-oidc-mock-server'
         path: 'laa-oidc-mock-server'
+        ref: 'update-gradlew-940'
+
 
     - name: Build and run the mock OIDC server
       working-directory: 'laa-oidc-mock-server'
