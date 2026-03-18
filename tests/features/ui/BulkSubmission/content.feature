@@ -87,6 +87,7 @@ Feature: Content check for the UI matching UX designs
       | Substantive Hearing              |
       | VAT                              |
 
+    @gaby
   Scenario: Search page content matches design
     Given I am on the Search page
-    Then the page content matches "search.html"
+    Then the search page content matches "search.html"
