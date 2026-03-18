@@ -169,8 +169,8 @@ jobs:
         id: ecr-auth
         uses: ministryofjustice/laa-reusable-github-actions/.github/actions/ecr-auth@768f673017edbb793cf052fa159c272d6c1f9177
         with:
-          ecr_region: ${{ env.ECR_REGION }}
-          ecr_role: ${{ env.ECR_ROLE }}
+          ecr_region: ${{ env.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
+          ecr_role: ${{ env.LAA_SUBMIT_A_BULK_CLAIM_ECR_ROLE }}
           role-session-name: ${{ github.run_id }}-runner-deploy
 
       - name: Build and Push Runner Image
@@ -182,7 +182,7 @@ jobs:
           file: ./scripts/Dockerfile.e2e-runner
           push: true
           tags: |
-            ${{ steps.ecr-auth.outputs.image_registry }}/${{ vars.ECR_REPOSITORY }}:github-runner-${{ github.run_id }}
+            ${{ steps.ecr-auth.outputs.image_registry }}/${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}:github-runner-${{ github.run_id }}
 
       - name: Deploy Runner
         if: steps.check-runner.outputs.deploy-runner == 'true'
@@ -325,7 +325,6 @@ jobs:
           docker compose -f docker-compose.yml up sabc-ui  event-service claims-api -d
         env:
           ECR_ACCOUNT: ${{ secrets.ECR_ACCOUNT }}
-          ECR_CLAIMS_API_REPOSITORY: ${{ vars.ECR_CLAIMS_API_REPOSITORY }}
           LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}
           LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY }}
           LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
