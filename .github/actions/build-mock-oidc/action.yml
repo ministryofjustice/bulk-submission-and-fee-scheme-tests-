@@ -9,7 +9,6 @@ runs:
       with:
         repository: 'ministryofjustice/laa-oidc-mock-server'
         path: 'laa-oidc-mock-server'
-        ref: 'update-gradlew-940'
 
 
     - name: Build and run the mock OIDC server
