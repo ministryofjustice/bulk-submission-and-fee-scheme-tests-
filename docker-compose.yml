@@ -100,7 +100,7 @@ services:
       - DEBUG=1
       - AWS_DEFAULT_REGION=us-east-1
     volumes:
-      - "./scripts/init-localstack.sh:/etc/localstack/init/ready.d/init-localstack.sh"
+      - "./init-localstack.sh:/etc/localstack/init/ready.d/init-localstack.sh"
       - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
 
