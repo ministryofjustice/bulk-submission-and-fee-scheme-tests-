@@ -237,3 +237,30 @@ Feature: Bulk claim submission
 - All environment variables are configurable via `.env` or CI/CD pipeline secrets.
 
 ---
+
+## 🏃Self Hosted GitHub Runner
+
+Some of this repositories GitHub Actions spin up a self-hosted runner to run the tests.
+The runner is configured to run on a self built Docker image found in 
+`scripts/docker/Dockerfile.e2e-runner` along with the associated `runner_script.sh`.
+
+To test build this image locally, run the following:
+```shell
+cd scripts
+# Platform must be linux/amd64 for Docker to build when running on Apple Silicon
+docker build --platform linux/amd64 -f Dockerfile.e2e-runner -t local-e2e-runner:dev .
+```
+
+Then you can run this GitHub runner locally using the following command
+```shell
+docker run --platform linux/amd64 --user root --rm -it \
+  -e GITHUB_TOKEN="<YOUR_PAT_TOKEN>" \
+  -e GITHUB_REPOSITORY="ministryofjustice/bulk-submission-and-fee-scheme-tests-" \
+  -e RUNNER_NAME="local-test-runner" \
+  -e RUNNER_LABELS="local-testing" \ 
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  local-e2e-runner:dev
+```
+
+If you make sure your GitHub step uses `runs-on: [self-hosted,linux,X64,local-testing]`,
+then it will run on this local runner when you push your commit.
