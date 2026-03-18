@@ -432,8 +432,7 @@ jobs:
         run: |
           npm run login
           npm run teardown
-          # npm run test:e2e:browserstack
-          npm run test -- --tags "@void" --retry 1
+          npm run test:e2e:browserstack
 
       - name: Teardown (global cleanup)
         if: always()
