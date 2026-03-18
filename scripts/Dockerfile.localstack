@@ -1,0 +1,5 @@
+# scripts/Dockerfile.localstack
+FROM localstack/localstack:latest
+
+COPY scripts/init-localstack.sh /etc/localstack/init/ready.d/init-localstack.sh
+RUN chmod +x /etc/localstack/init/ready.d/init-localstack.sh

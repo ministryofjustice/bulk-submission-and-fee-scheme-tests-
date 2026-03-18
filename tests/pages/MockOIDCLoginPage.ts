@@ -2,6 +2,8 @@ import {Page, Locator, expect} from '@playwright/test';
 import {BasePage} from './BasePage';
 import {authenticator} from 'otplib';
 import dotenv from 'dotenv';
+import {exec} from 'child_process';
+import {promisify} from 'util';
 
 dotenv.config(); // loads .env
 
