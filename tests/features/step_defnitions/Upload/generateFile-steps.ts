@@ -22,6 +22,7 @@ import {
 import {
     GenerateTwoLegalHelpDuplicateFiles
 } from "../../../utils/scripts/dataGenartor/generateTwoLegalHelpDuplicateFiles";
+import {GenerateTwoLegalHelpAcceptedFiles} from "../../../utils/scripts/dataGenartor/generateTwoLegalHelpAcceptedFiles";
 
 function formatDateToDDMMYYYY(date: Date): string {
   const day = String(date.getDate()).padStart(2, '0');
@@ -1171,3 +1172,46 @@ Given(
         await this.attach(`🏢 Office: ${this.officeAccount}`, 'text/plain');
     }
 );
+
+Given(
+    'I generate two Legal help files outside the duplicate cutoff in {string} format for office {string} with the following claims',
+    async function (format, office, dataTable) {
+
+        const row = dataTable.hashes()[0];
+
+        const claimsFile1 = [{
+            ucn: row.ucn,
+            ufn: row.ufn,
+            feeCode: row.feeCode1
+        }];
+
+        const claimsFile2 = [{
+            ucn: row.ucn,
+            ufn: row.ufn,
+            feeCode: row.feeCode2
+        }];
+
+        const {
+            firstFile,
+            secondFile,
+            period1,
+            period2,
+            cutoffDate,
+            firstCcd,
+            secondCcd
+        } = await GenerateTwoLegalHelpAcceptedFiles(
+            format,
+            claimsFile1,
+            claimsFile2,
+            office
+        );
+
+        this.firstFile = firstFile;
+        this.secondFile = secondFile;
+
+        await this.attach(`First period: ${period1}`, "text/plain");
+        await this.attach(`Second period: ${period2}`, "text/plain");
+        await this.attach(`Cutoff date: ${cutoffDate}`, "text/plain");
+        await this.attach(`First CCD: ${firstCcd}`, "text/plain");
+        await this.attach(`Second CCD: ${secondCcd}`, "text/plain");
+    });
