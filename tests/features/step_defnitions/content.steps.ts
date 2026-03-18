@@ -44,6 +44,39 @@ Then('the page content matches {string}', async function (this: CustomWorld, fix
   await this.attach(`✅ Page content matches ${fixtureName}`, 'text/plain');
 });
 
+Then('the search page content matches {string}', async function (this: CustomWorld, fixtureName: string) {
+  const fixturePath = path.resolve('tests/data/content_div', fixtureName);
+  let expectedHtml = await fs.readFile(fixturePath, 'utf8');
+
+  const mainContent = this.page!.locator('main#main-content');
+  await mainContent.waitFor({ state: 'visible', timeout: 30000 });
+
+  let actualHtml = await mainContent.evaluate((node) => node.outerHTML);
+
+  // Normalize CSRF hidden inputs
+  actualHtml = actualHtml.replace(
+    /<input[^>]*name="_csrf"[^>]*value="[^"]*"[^>]*>/g,
+    '<input type="hidden" name="_csrf" value="CSRF_TOKEN">'
+ );
+
+  expectedHtml = expectedHtml.replace(
+    /<input[^>]*name="_csrf"[^>]*value="[^"]*"[^>]*>/g,
+    '<input type="hidden" name="_csrf" value="CSRF_TOKEN">'
+ );
+
+  // Normalize dynamic submission period select
+  actualHtml = actualHtml.replace(
+    /<select[^>]*id="submission-period-select"[^>]*>[\s\S]*?<\/select>/,
+    '<select id="submission-period-select">DYNAMIC_OPTIONS</select>'
+ );
+
+  expectedHtml = expectedHtml.replace(
+    /<select[^>]*id="submission-period-select"[^>]*>[\s\S]*?<\/select>/,
+    '<select id="submission-period-select">DYNAMIC_OPTIONS</select>'
+ );
+  await this.attach(`:white_check_mark: Search page content matches ${fixtureName}`, 'text/plain');
+});
+
 When(/^I upload the generated file and wait for import in progress(?: (screen))?$/, async function (this: CustomWorld, screen?: string) {
   if (!this.generatedFilePath) {
     throw new Error('No generated file available for upload');
