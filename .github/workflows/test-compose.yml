@@ -401,10 +401,10 @@ jobs:
         shell: bash
         run: |
           set +e
-          curl -fsS http://host.docker.internal:8181/actuator/health | grep -q '"status":"UP"'
-          curl -fsS http://localhost:8082
-          curl -fsS http://127.0.0.1:8082
-          curl -fsS http://host.docker.internal:8082
+          curl http://host.docker.internal:8181/actuator/health | grep -q '"status":"UP"'
+          curl http://localhost:8082
+          curl http://127.0.0.1:8082
+          curl http://host.docker.internal:8082
           exit 0
 
       - name: Login
@@ -419,7 +419,7 @@ jobs:
       - name: Teardown docker containers
         if: always()
         run: |
-          docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml down sabc-ui event-service claims-api local-postgres event-service-localstack redis oidc -v;
+          docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml down sabc-ui event-service claims-api event-service-localstack redis oidc -v;
 
       - name: Teardown (global cleanup)
         if: always()
