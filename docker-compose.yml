@@ -102,7 +102,7 @@ services:
       - DEBUG=1
       - AWS_DEFAULT_REGION=us-east-1
     volumes:
-      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
+      - "localstack-data:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
 
   redis:
@@ -130,5 +130,6 @@ services:
       LAA_ACCOUNTS: 1,123,0P322F,2Q779P,2Q286D,2Q263D,2Q271M,0E525U,2Q286D,2N199K,1T102C,2P746R
 
 volumes:
+  localstack-data:
   redis_data:
   postgres-data:
