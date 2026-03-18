@@ -235,9 +235,6 @@ jobs:
       - name: List all docker containers
         run: docker ps -a
 
-      - name: Remove every docker resource (REMOVE LATER)
-        run: docker rm -f $(docker ps -aq) && docker volume rm $(docker volume ls -q)
-
 #      - name: Setup Node.js
 #        uses: actions/setup-node@v4
 #        with:
