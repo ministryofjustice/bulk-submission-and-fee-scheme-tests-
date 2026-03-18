@@ -232,6 +232,9 @@ jobs:
         with:
           version: v1.29.4
 
+      - name: List all docker containers
+        run: docker ps -a
+
       - name: Remove every docker resource (REMOVE LATER)
         run: docker rm -f $(docker ps -aq) && docker volume rm $(docker volume ls -q)
 
