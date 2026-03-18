@@ -122,6 +122,7 @@ jobs:
             echo "| FSP API | ${{ steps.fsp_api.outputs.context }} | ${{ steps.fsp_api.outputs.image_tag }} | ${{ steps.fsp_api.outputs.release_time }} | ${{ steps.fsp_api.outputs.status }} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
+
   ensure-runner-available:
     name: Ensure GitHub Runner Available
     environment: uat
@@ -169,8 +170,8 @@ jobs:
         id: ecr-auth
         uses: ministryofjustice/laa-reusable-github-actions/.github/actions/ecr-auth@768f673017edbb793cf052fa159c272d6c1f9177
         with:
-          ecr_region: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
-          ecr_role: ${{ secrets.LAA_SUBMIT_A_BULK_CLAIM_ECR_ROLE }}
+          ecr_region: ${{ env.ECR_REGION }}
+          ecr_role: ${{ env.ECR_ROLE }}
           role-session-name: ${{ github.run_id }}-runner-deploy
 
       - name: Build and Push Runner Image
@@ -182,7 +183,7 @@ jobs:
           file: ./scripts/Dockerfile.e2e-runner
           push: true
           tags: |
-            ${{ steps.ecr-auth.outputs.image_registry }}/${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}:github-runner-${{ github.run_id }}
+            ${{ steps.ecr-auth.outputs.image_registry }}/${{ vars.ECR_REPOSITORY }}:github-runner-${{ github.run_id }}
 
       - name: Deploy Runner
         if: steps.check-runner.outputs.deploy-runner == 'true'
@@ -197,7 +198,7 @@ jobs:
             --set image.tag=github-runner-${{ github.run_id }} \
             --wait \
             --timeout 5m
-          
+
           echo "Checking runner logs for successful registration..."
           for i in {1..30}; do
             if kubectl logs -l app=e2e-github-runner -n ${KUBE_NAMESPACE} | grep -Eq "Registered|Listening for Jobs|Connected to GitHub"; then
@@ -206,8 +207,6 @@ jobs:
             fi
             sleep 5
           done
-  
-  
 
   run-accessibility-tests:
     needs: [ensure-runner-available, get-app-versions]
