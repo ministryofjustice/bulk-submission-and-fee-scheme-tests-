@@ -15,6 +15,14 @@ on:
     # 6pm UTC Mon–Fri
     - cron: '0 18 * * 1-5'
 
+concurrency:
+  group: run-docker-e2e-tests
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   get-app-versions:
     runs-on: ubuntu-latest
@@ -122,6 +130,7 @@ jobs:
             echo "| FSP API | ${{ steps.fsp_api.outputs.context }} | ${{ steps.fsp_api.outputs.image_tag }} | ${{ steps.fsp_api.outputs.release_time }} | ${{ steps.fsp_api.outputs.status }} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
+
   ensure-runner-available:
     name: Ensure GitHub Runner Available
     environment: uat
@@ -153,7 +162,7 @@ jobs:
         run: |
           set +e
           echo "Checking if e2e-github-runner Helm release is deployed and pod is running..."
-          helm status e2e-github-runner --namespace ${KUBE_NAMESPACE} > /dev/null 2>&1
+          helm status e2e-github-runner-jamie --namespace ${KUBE_NAMESPACE} > /dev/null 2>&1
           HELM_STATUS=$?
           POD_STATUS=$(kubectl get pods -n ${KUBE_NAMESPACE} -l app=e2e-github-runner -o jsonpath='{.items[0].status.phase}' 2>/dev/null)
           if [ "$HELM_STATUS" -eq 0 ] && [ "$POD_STATUS" = "Running" ]; then
@@ -191,13 +200,13 @@ jobs:
           REPOSITORY: ${{ vars.ECR_REPOSITORY }}
         run: |
           echo "Deploying persistent GitHub runner..."
-          helm upgrade --install e2e-github-runner ./.helm/github-runner \
+          helm upgrade --install e2e-github-runner-jamie ./.helm/github-runner \
             --namespace ${KUBE_NAMESPACE} \
             --set image.repository=${REGISTRY}/${REPOSITORY} \
             --set image.tag=github-runner-${{ github.run_id }} \
             --wait \
             --timeout 5m
-          
+
           echo "Checking runner logs for successful registration..."
           for i in {1..30}; do
             if kubectl logs -l app=e2e-github-runner -n ${KUBE_NAMESPACE} | grep -Eq "Registered|Listening for Jobs|Connected to GitHub"; then
@@ -206,13 +215,12 @@ jobs:
             fi
             sleep 5
           done
-  
-  
 
   run-accessibility-tests:
-    needs: [ensure-runner-available, get-app-versions]
+    needs: [ ensure-runner-available, get-app-versions ]
     environment: uat
-    runs-on: [self-hosted,linux,uat,k8s]
+    runs-on: [ jamie ]
+    #runs-on: [self-hosted,linux,uat,k8s]
     permissions:
       id-token: write
       contents: read
@@ -223,11 +231,19 @@ jobs:
         with:
           ref: ${{ inputs.branch || github.ref }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
         with:
-          node-version: 24
-          cache: npm
+          version: v1.29.4
+
+      - name: List all docker containers
+        run: docker ps -a
+
+      #      - name: Setup Node.js
+      #        uses: actions/setup-node@v4
+      #        with:
+      #          node-version: 24
+      #          cache: npm
 
       - name: Install dependencies
         run: npm ci; npx playwright install
@@ -240,7 +256,7 @@ jobs:
           registry-account: ${{ secrets.ECR_ACCOUNT }}
           repository: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}
           #image-tag: ${{ needs.get-app-versions.outputs.sabc_image_tag }}
-          image-tag: submit-a-bulk-claim-1.0.128-SNAPSHOT-9497014
+          image-tag: submit-a-bulk-claim-1.0.135-SNAPSHOT-3874ab5
 
       - name: Pull Event Service image
         uses: ./.github/actions/pull-ecr-image
@@ -287,19 +303,19 @@ jobs:
         shell: bash
         run: |
           cat <<EOF > .env
-          UI_BASE_URL=http://127.0.0.1:8082
+          UI_BASE_URL=http://host.docker.internal:8082
           FSP_API_BASE_URL=${{ secrets.FSP_API_BASE_URL }}
           FSP_API_TOKEN=${{ secrets.FSP_API_TOKEN }}
           PDA_API_BASE_URL=${{ secrets.PDA_API_BASE_URL }}
           PDA_API_TOKEN=${{ secrets.PDA_API_TOKEN }}
           PROVIDER_API=${{ secrets.PDA_API_BASE_URL }}
           PROVIDER_API_KEY=${{ secrets.PDA_API_TOKEN }}
-          DSTEW_API_BASE_URL=localhost:8080
+          DSTEW_API_BASE_URL=host.docker.internal:8080
           DSTEW_API_TOKEN=f67f968e-b479-4e61-b66e-f57984931e56
           MFA_SECRET=${{ secrets.MFA_SECRET }}
           PASSWORD=${{ secrets.PASSWORD }}
           USERNAME=${{ secrets.USERNAME }}
-          DB_HOST=jdbc:postgresql://localhost
+          DB_HOST=jdbc:postgresql://host.docker.internal
           DB_PORT=5432
           DB_USER=user
           DB_PASS=dev
@@ -310,29 +326,40 @@ jobs:
           AUTH_CLIENT_SECRET=${{ secrets.AUTH_CLIENT_SECRET }}
           AUTH_TENANT_ID=${{ secrets.AUTH_TENANT_ID }}
           AUTH_SCOPE=openid, profile
+          REDIRECT_BASE_URI=host.docker.internal:8082
           EOF
 
       # This step is required to allow E2E to use http://oidc:9000, just like the containers would. This keeps
-      # the host name the same, generating a valid JWT for SaBC.
-      - name: Map OIDC to localhost
+      # the host name the same, generating a valid JWT for SaBC. On the github runner, this should resolve to
+      # the IP address of the host.docker.internal container. Otherwise, should resolve to 127.0.0.1.
+      - name: Map OIDC to host.docker.internal
         shell: bash
         run: |
-          echo "127.0.0.1 oidc" | sudo tee -a /etc/hosts
+          set -euo pipefail
+
+          OIDC_IP="$(getent ahostsv4 host.docker.internal | awk 'NR==1 {print $1}')"
+          echo "Resolved IPv4 host.docker.internal to: ${OIDC_IP}"
+
+          if ! grep -qE '(^|[[:space:]])oidc([[:space:]]|$)' /etc/hosts; then
+            echo "${OIDC_IP} oidc" | sudo tee -a /etc/hosts >/dev/null
+          else
+            echo "oidc already present in /etc/hosts, skipping"
+          fi
 
       - name: Run services
         shell: bash
         run: |
-          docker compose -f docker-compose.yml up sabc-ui  event-service claims-api -d
+          docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml up sabc-ui  event-service claims-api -d
+          set -euo pipefail
         env:
           ECR_ACCOUNT: ${{ secrets.ECR_ACCOUNT }}
-          ECR_CLAIMS_API_REPOSITORY: ${{ vars.ECR_CLAIMS_API_REPOSITORY }}
           LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}
           LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY }}
           LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
           LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REGION: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REGION }}
           LAA_DATA_CLAIMS_API_ECR_REGION: ${{ vars.LAA_DATA_CLAIMS_API_ECR_REGION }}
           LAA_DATA_CLAIMS_API_ECR_REPOSITORY: ${{ vars.LAA_DATA_CLAIMS_API_ECR_REPOSITORY }}
-          SABC_TAG: submit-a-bulk-claim-1.0.128-SNAPSHOT-9497014
+          SABC_TAG: submit-a-bulk-claim-1.0.135-SNAPSHOT-3874ab5
           #SABC_TAG: ${{ needs.get-app-versions.outputs.sabc_image_tag }}
           EVENT_SERVICE_TAG: ${{ needs.get-app-versions.outputs.claims_events_image_tag }}
           CLAIMS_API_TAG: ${{ needs.get-app-versions.outputs.claims_api_image_tag }}
@@ -343,22 +370,15 @@ jobs:
           set -euo pipefail
           
           for i in {1..36}; do
-            echo "Checking sabc-ui health... attempt $i/36"
-          
-            if curl -fsS http://localhost:8181/actuator/health | grep -q '"status":"UP"'; then
-              echo "sabc-ui is healthy"
-              exit 0
-            fi
-          
-            # Print logs to help with debugging
-            docker logs submit-a-bulk-claim-app
+          if curl -fsS http://host.docker.internal:8181/actuator/health | grep -q '"status":"UP"'; then
+            echo "Healthy"
+            exit 0
+          fi
             sleep 5
           done
           
-          echo "sabc-ui did not become healthy in time"
-          docker compose -f docker-compose.yml ps
-          docker compose -f docker-compose.yml logs sabc-ui
-          exit 1
+          docker logs --tail 200 submit-a-bulk-claim-app
+          exit 
 
       - name: Wait for claims-api health
         shell: bash
@@ -366,22 +386,32 @@ jobs:
           set -euo pipefail
           
           for i in {1..36}; do
-            echo "Checking claims-api health... attempt $i/36"
-          
-            if curl -fsS http://localhost:8183/actuator/health | grep -q '"status":"UP"'; then
-              echo "claims-api is healthy"
-              exit 0
-            fi
-          
-            # Print logs to help with debugging
-            docker logs data-claims-api-app
+          if curl -fsS http://host.docker.internal:8183/actuator/health | grep -q '"status":"UP"'; then
+            echo "Healthy"
+            exit 0
+          fi
             sleep 5
           done
           
-          echo "claims-api did not become healthy in time"
-          docker compose -f docker-compose.yml ps
-          docker compose -f docker-compose.yml logs data-claims-api-app
-          exit 1
+          docker logs --tail 200 data-claims-api-app
+          exit 
+
+      - name: Curl multiple endpoints (DEBUGGING)
+        shell: bash
+        run: |
+          set +e
+          echo "=== sabc-ui health ==="
+          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://host.docker.internal:8181/actuator/health
+      
+          echo "=== UI ==="
+          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://host.docker.internal:8082
+      
+          echo "=== OIDC ==="
+          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://host.docker.internal:9000
+          
+          echo "=== OIDC (host) ==="
+          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://oidc:9000
+          exit 0
 
       - name: Login
         shell: bash
@@ -392,11 +422,15 @@ jobs:
         #run: npm run test:accessibility:browserstack
         run: npm run test -- --tags "@accessibility"  --parallel 4 --retry 1
 
+      - name: Teardown docker containers
+        if: always()
+        run: |
+          docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml down sabc-ui event-service claims-api postgres localstack redis laa-mock-oidc-service -v;
+
       - name: Teardown (global cleanup)
         if: always()
         run: |
           npm run teardown
-          docker compose down -v;
 
       - name: Publish Cucumber summary
         if: always()
