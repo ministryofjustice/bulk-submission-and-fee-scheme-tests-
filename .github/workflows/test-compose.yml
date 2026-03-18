@@ -15,6 +15,10 @@ on:
     # 6pm UTC Mon–Fri
     - cron: '0 18 * * 1-5'
 
+concurrency:
+  group: run-docker-e2e-tests
+  cancel-in-progress: false
+
 permissions:
   id-token: write
   contents: read
@@ -299,7 +303,7 @@ jobs:
         shell: bash
         run: |
           cat <<EOF > .env
-          UI_BASE_URL=http://127.0.0.1:8082
+          UI_BASE_URL=http://host.docker.internal:8082
           FSP_API_BASE_URL=${{ secrets.FSP_API_BASE_URL }}
           FSP_API_TOKEN=${{ secrets.FSP_API_TOKEN }}
           PDA_API_BASE_URL=${{ secrets.PDA_API_BASE_URL }}
@@ -329,7 +333,7 @@ jobs:
       - name: Map OIDC to host.docker.internal
         shell: bash
         run: |
-          echo "127.0.0.1 oidc" | sudo tee -a /etc/hosts
+          echo "host.docker.internal oidc" | sudo tee -a /etc/hosts
 
       - name: Run services
         shell: bash
@@ -405,7 +409,7 @@ jobs:
       - name: Teardown docker containers
         if: always()
         run: |
-          docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml down -v;
+          docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml down sabc-ui event-service claims-api -v;
 
       - name: Teardown (global cleanup)
         if: always()
