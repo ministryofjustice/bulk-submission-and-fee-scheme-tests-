@@ -15,6 +15,10 @@ on:
     # 6pm UTC Mon–Fri
     - cron: '0 18 * * 1-5'
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   get-app-versions:
     runs-on: ubuntu-latest
