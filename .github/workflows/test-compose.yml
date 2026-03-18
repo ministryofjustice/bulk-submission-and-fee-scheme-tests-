@@ -170,7 +170,7 @@ jobs:
         uses: ministryofjustice/laa-reusable-github-actions/.github/actions/ecr-auth@768f673017edbb793cf052fa159c272d6c1f9177
         with:
           ecr_region: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
-          ecr_role: ${{ secret.LAA_SUBMIT_A_BULK_CLAIM_ECR_ROLE }}
+          ecr_role: ${{ secrets.LAA_SUBMIT_A_BULK_CLAIM_ECR_ROLE }}
           role-session-name: ${{ github.run_id }}-runner-deploy
 
       - name: Build and Push Runner Image
