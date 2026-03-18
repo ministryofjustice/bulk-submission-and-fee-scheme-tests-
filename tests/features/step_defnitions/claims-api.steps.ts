@@ -28,8 +28,8 @@ When(
       this.submissionSummaryPage = new SubmissionSummaryPage(this.page!);
     }
 
-    const dstewbaseUrl = process.env.DSTEW_API_BASE_URL;
-    const dstewToken = process.env.DSTEW_API_TOKEN;
+    const dstewbaseUrl = (process.env.DSTEW_API_BASE_URL || '').trim();
+    const dstewToken = (process.env.DSTEW_API_TOKEN || '').trim();
 
     if (!dstewbaseUrl || !dstewToken) {
       throw new Error('DSTEW_API_BASE_URL or DSTEW_API_TOKEN is missing.');
@@ -65,13 +65,63 @@ When(
       assessment_reason: 'String',
     };
 
-    const resp = await this.client.post(voidEndpoint, payload, {
-      headers: {
-        accept: 'application/json',
-        'Content-Type': 'application/json',
-        Authorization: dstewToken,
-      },
-    });
+    let resp;
+    try {
+      resp = await this.client.post(voidEndpoint, payload, {
+        headers: {
+          accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: dstewToken,
+        },
+      });
+    } catch (error: any) {
+      console.error('❌ DSTEW void-claim API call failed');
+      console.error('Base URL:', dstewbaseUrl);
+      console.error('Endpoint:', `/api/v1/claims/${claimId}/void`);
+      console.error('Message:', error?.message);
+      console.error('Code:', error?.code);
+
+      if (error?.cause) {
+        console.error('Cause:', error.cause);
+      }
+
+      const innerErrors =
+        error?.errors ||
+        error?.cause?.errors ||
+        error?.cause?.cause?.errors;
+
+      if (innerErrors) {
+        console.error(
+          'Inner errors:',
+          innerErrors.map((e: any) => ({
+            message: e?.message,
+            code: e?.code,
+            errno: e?.errno,
+            syscall: e?.syscall,
+            address: e?.address,
+            port: e?.port,
+          }))
+        );
+      }
+
+      if (error?.response) {
+        console.error('HTTP Status:', error.response.status);
+        console.error('Response body:', error.response.data);
+      }
+
+      await this.attach(
+        `❌ Void endpoint network/API failure. base=${dstewbaseUrl} endpoint=/api/v1/claims/${claimId}/void message=${error?.message} code=${error?.code}`,
+        'text/plain'
+      );
+
+      throw error;
+    }
+
+    await this.attach(
+      `📡 Void response status: ${resp.status} ${resp.statusText || ''}`.trim(),
+      'text/plain'
+    );
+    console.log(`📡 Void response status: ${resp.status} ${resp.statusText || ''}`.trim());
 
     if (!(resp.status >= 200 && resp.status < 300)) {
       throw new Error(`Failed to void claim ${claimId}. POST ${voidEndpoint} (${resp.status}).`);
