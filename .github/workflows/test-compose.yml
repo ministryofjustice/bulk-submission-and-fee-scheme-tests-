@@ -306,12 +306,12 @@ jobs:
           PDA_API_TOKEN=${{ secrets.PDA_API_TOKEN }}
           PROVIDER_API=${{ secrets.PDA_API_BASE_URL }}
           PROVIDER_API_KEY=${{ secrets.PDA_API_TOKEN }}
-          DSTEW_API_BASE_URL=localhost:8080
+          DSTEW_API_BASE_URL=host.docker.internal:8080
           DSTEW_API_TOKEN=f67f968e-b479-4e61-b66e-f57984931e56
           MFA_SECRET=${{ secrets.MFA_SECRET }}
           PASSWORD=${{ secrets.PASSWORD }}
           USERNAME=${{ secrets.USERNAME }}
-          DB_HOST=jdbc:postgresql://localhost
+          DB_HOST=jdbc:postgresql://host.docker.internal
           DB_PORT=5432
           DB_USER=user
           DB_PASS=dev
@@ -326,7 +326,7 @@ jobs:
 
       # This step is required to allow E2E to use http://oidc:9000, just like the containers would. This keeps
       # the host name the same, generating a valid JWT for SaBC.
-      - name: Map OIDC to localhost
+      - name: Map OIDC to host.docker.internal
         shell: bash
         run: |
           echo "127.0.0.1 oidc" | sudo tee -a /etc/hosts
@@ -355,7 +355,7 @@ jobs:
           
           for i in {1..36}; do
             echo "Checking sabc-ui health... attempt $i/36"
-            if curl -fsS http://localhost:8181/actuator/health | grep -q '"status":"UP"'; then
+            if curl -fsS http://host.docker.internal:8181/actuator/health | grep -q '"status":"UP"'; then
               echo "sabc-ui is healthy"
               exit 0
             fi
@@ -378,7 +378,7 @@ jobs:
           for i in {1..36}; do
             echo "Checking claims-api health... attempt $i/36"
           
-            if curl -fsS http://localhost:8183/actuator/health | grep -q '"status":"UP"'; then
+            if curl -fsS http://host.docker.internal:8183/actuator/health | grep -q '"status":"UP"'; then
               echo "claims-api is healthy"
               exit 0
             fi
