@@ -217,9 +217,9 @@ jobs:
           done
 
   run-accessibility-tests:
-    needs: [ensure-runner-available, get-app-versions]
+    needs: [ ensure-runner-available, get-app-versions ]
     environment: uat
-    runs-on: [self-hosted,linux,X64,local-testing]
+    runs-on: [ self-hosted,linux,X64,local-testing ]
     #runs-on: [self-hosted,linux,uat,k8s]
     permissions:
       id-token: write
@@ -239,11 +239,11 @@ jobs:
       - name: List all docker containers
         run: docker ps -a
 
-#      - name: Setup Node.js
-#        uses: actions/setup-node@v4
-#        with:
-#          node-version: 24
-#          cache: npm
+      #      - name: Setup Node.js
+      #        uses: actions/setup-node@v4
+      #        with:
+      #          node-version: 24
+      #          cache: npm
 
       - name: Install dependencies
         run: npm ci; npx playwright install
@@ -335,16 +335,6 @@ jobs:
         run: |
           echo "host.docker.internal oidc" | sudo tee -a /etc/hosts
 
-      - name: Curl multiple endpoints
-        shell: bash
-        run: |
-          set +e
-          curl -fsS http://host.docker.internal:8181/actuator/health | grep -q '"status":"UP"'
-          curl -fsS http://localhost:8082
-          curl -fsS http://127.0.0.1:8082
-          curl -fsS http://host.docker.internal:8082
-          exit 0
-
       - name: Run services
         shell: bash
         run: |
@@ -407,6 +397,16 @@ jobs:
           docker compose -f docker-compose.yml logs data-claims-api-app
           exit 1
 
+      - name: Curl multiple endpoints
+        shell: bash
+        run: |
+          set +e
+          curl -fsS http://host.docker.internal:8181/actuator/health | grep -q '"status":"UP"'
+          curl -fsS http://localhost:8082
+          curl -fsS http://127.0.0.1:8082
+          curl -fsS http://host.docker.internal:8082
+          exit 0
+
       - name: Login
         shell: bash
         run: npm run login:mock
@@ -419,7 +419,7 @@ jobs:
       - name: Teardown docker containers
         if: always()
         run: |
-          docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml down sabc-ui event-service claims-api -v;
+          docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml down sabc-ui event-service claims-api local-postgres event-service-localstack redis oidc -v;
 
       - name: Teardown (global cleanup)
         if: always()
