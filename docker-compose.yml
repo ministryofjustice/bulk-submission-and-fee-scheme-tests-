@@ -92,7 +92,9 @@ services:
 
   localstack:
     container_name: event-service-localstack
-    image: localstack/localstack:latest
+    build:
+      context: .
+      dockerfile: scripts/Dockerfile.localstack
     ports:
       - "4566:4566"
     environment:
@@ -100,7 +102,6 @@ services:
       - DEBUG=1
       - AWS_DEFAULT_REGION=us-east-1
     volumes:
-      - "/init-localstack.sh:/etc/localstack/init/ready.d/init-localstack.sh"
       - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
 

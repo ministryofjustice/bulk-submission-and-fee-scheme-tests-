@@ -403,11 +403,15 @@ jobs:
         #run: npm run test:accessibility:browserstack
         run: npm run test -- --tags "@accessibility"  --parallel 4 --retry 1
 
+      - name: Teardown docker containers
+        if: always()
+        run: |
+          docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml down -v;
+
       - name: Teardown (global cleanup)
         if: always()
         run: |
           npm run teardown
-          docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml down -v;
 
       - name: Publish Cucumber summary
         if: always()
