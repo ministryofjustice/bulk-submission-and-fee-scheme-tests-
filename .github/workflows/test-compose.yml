@@ -355,8 +355,6 @@ jobs:
           
           for i in {1..36}; do
             echo "Checking sabc-ui health... attempt $i/36"
-            curl -fsS http://localhost:8181/actuator/health
-            curl -fsS http://localhost:8082
             if curl -fsS http://localhost:8181/actuator/health | grep -q '"status":"UP"'; then
               echo "sabc-ui is healthy"
               exit 0
