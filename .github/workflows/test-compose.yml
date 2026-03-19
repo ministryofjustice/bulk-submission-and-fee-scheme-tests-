@@ -334,14 +334,16 @@ jobs:
       - name: Map OIDC to host.docker.internal
         shell: bash
         run: |
-          echo "127.0.0.1 oidc" | sudo tee -a /etc/hosts
           set -euo pipefail
 
           OIDC_IP="$(getent ahostsv4 host.docker.internal | awk 'NR==1 {print $1}')"
           echo "Resolved IPv4 host.docker.internal to: ${OIDC_IP}"
-          
-          sudo sed -i.bak '/[[:space:]]oidc$/d' /etc/hosts
-          echo "${OIDC_IP} oidc" | sudo tee -a /etc/hosts >/dev/null
+
+          if ! grep -qE '(^|[[:space:]])oidc([[:space:]]|$)' /etc/hosts; then
+            echo "${OIDC_IP} oidc" | sudo tee -a /etc/hosts >/dev/null
+          else
+            echo "oidc already present in /etc/hosts, skipping"
+          fi
 
       - name: Run services
         shell: bash
