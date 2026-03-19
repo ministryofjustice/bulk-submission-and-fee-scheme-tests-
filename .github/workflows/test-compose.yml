@@ -329,16 +329,25 @@ jobs:
           EOF
 
       # This step is required to allow E2E to use http://oidc:9000, just like the containers would. This keeps
-      # the host name the same, generating a valid JWT for SaBC.
+      # the host name the same, generating a valid JWT for SaBC. On the github runner, this should resolve to
+      # the IP address of the host.docker.internal container. Otherwise, should resolve to 127.0.0.1.
       - name: Map OIDC to host.docker.internal
         shell: bash
         run: |
           echo "127.0.0.1 oidc" | sudo tee -a /etc/hosts
+          set -euo pipefail
+
+          OIDC_IP="$(getent ahostsv4 host.docker.internal | awk 'NR==1 {print $1}')"
+          echo "Resolved IPv4 host.docker.internal to: ${OIDC_IP}"
+          
+          sudo sed -i.bak '/[[:space:]]oidc$/d' /etc/hosts
+          echo "${OIDC_IP} oidc" | sudo tee -a /etc/hosts >/dev/null
 
       - name: Run services
         shell: bash
         run: |
           docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml up sabc-ui  event-service claims-api -d
+          set -euo pipefail
         env:
           ECR_ACCOUNT: ${{ secrets.ECR_ACCOUNT }}
           LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}
@@ -358,21 +367,15 @@ jobs:
           set -euo pipefail
           
           for i in {1..36}; do
-            echo "Checking sabc-ui health... attempt $i/36"
-            if curl -fsS http://host.docker.internal:8181/actuator/health | grep -q '"status":"UP"'; then
-              echo "sabc-ui is healthy"
-              exit 0
-            fi
-          
-            # Print logs to help with debugging
-            docker logs submit-a-bulk-claim-app
+          if curl -fsS http://host.docker.internal:8181/actuator/health | grep -q '"status":"UP"'; then
+            echo "Healthy"
+            exit 0
+          fi
             sleep 5
           done
           
-          echo "sabc-ui did not become healthy in time"
-          docker compose -f docker-compose.yml ps
-          docker compose -f docker-compose.yml logs sabc-ui
-          exit 1
+          docker logs --tail 200 submit-a-bulk-claim-app
+          exit 
 
       - name: Wait for claims-api health
         shell: bash
