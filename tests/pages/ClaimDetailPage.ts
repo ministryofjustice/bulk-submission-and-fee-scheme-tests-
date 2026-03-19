@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test';
+import {expect, Page, Locator} from '@playwright/test';
 import { BasePage } from './BasePage';
 
 type FeeCalculationRow = {
@@ -65,6 +65,12 @@ class ClaimDetailPage extends BasePage {
     }
 
     return headings;
+  }
+
+  async expectVoidedBanner(): Promise<void> {
+    const banner = this.page.locator('.moj-alert--error', { hasText: 'This claim has been voided' });
+    await expect(banner).toBeVisible({ timeout: 10000 });
+    await expect(banner).toContainText('This claim has been voided');
   }
 }
 

@@ -1,4 +1,4 @@
-@duplicateChecks @stable
+@duplicateChecks @stable @fr
 Feature: Duplicate checks - Legal Help - Disbursements
 
   Background:
@@ -128,3 +128,26 @@ Feature: Duplicate checks - Legal Help - Disbursements
       | csv    | 2L849T | 03011998/S/CSVA | 010725/323 | ICISD   | 0                | Submission already exists for Office              |
       | csv    | 0P322F | 04011998/S/CSVA | 020825/423 | ICISD   | 1                | A duplicate claim was found in another submission |
       | csv    | 0P322F | 05011998/S/CSVA | 020825/523 | ICISD   | 2                | A duplicate claim was found in another submission |
+
+  @duplicateChecks
+  Scenario: Duplicate claim is accepted when earlier CCD is on or before the cutoff
+    Given I generate two Legal help files outside the duplicate cutoff in "csv" format for office "0P322F" with the following claims
+      | ucn             | feeCode1 | feeCode2 | ufn        |
+      | 06011998/S/CSVA | ICISD    | ICISD    | 020825/623 |
+    When I upload the first file
+    Then I should see the submission summary for "Legal help" with "1" claims
+    And click import
+    When I upload the second file
+    Then I should see the submission summary for "Legal help" with "1" claims
+
+  @duplicateChecks
+  Scenario: Voided claims allow duplicate resubmission 2 months apart
+    Given I generate two Legal help files in "csv" format for office "0P322F" that are "2" months apart with the following claims
+      | ucn             | feeCode1 | feeCode2 | ufn        |
+      | 05011998/S/CSVA | ICISD    | ICISD    | 020825/523 |
+    When I upload the first file
+    Then I should see the submission summary for "Legal help" with "1" claims
+    When I void claim 1 via the void endpoint
+    And click import
+    When I upload the second file
+    Then I should see the submission summary for "Legal help" with "1" claims
