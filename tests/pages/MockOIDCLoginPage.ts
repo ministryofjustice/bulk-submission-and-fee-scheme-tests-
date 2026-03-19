@@ -2,6 +2,8 @@ import {Page, Locator, expect} from '@playwright/test';
 import {BasePage} from './BasePage';
 import {authenticator} from 'otplib';
 import dotenv from 'dotenv';
+import {exec} from 'child_process';
+import {promisify} from 'util';
 
 dotenv.config(); // loads .env
 
@@ -27,6 +29,19 @@ class MockOIDCLoginPage extends BasePage {
     async navigateTo() {
         const targetUrl = process.env.UI_BASE_URL || '/';
         console.log(`[DEBUG] Navigating to: ${targetUrl}`);
+
+        try {
+            const execPromise = promisify(exec);
+            console.log(`[DEBUG] Performing curl request to: ${targetUrl}`);
+            const {stdout, stderr} = await execPromise(`curl -s -o /dev/null -w "%{http_code}" "${targetUrl}"`);
+            console.log(`[DEBUG] Curl response code: ${stdout.trim()}`);
+            if (stderr) {
+                console.log(`[DEBUG] Curl stderr: ${stderr}`);
+            }
+        } catch (error) {
+            console.log(`[DEBUG] Curl request failed: ${error}`);
+        }
+
         await this.page.goto(targetUrl, {
             waitUntil: 'domcontentloaded',
             timeout: 120_000,

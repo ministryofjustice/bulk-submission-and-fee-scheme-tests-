@@ -419,7 +419,7 @@ jobs:
       - name: Teardown docker containers
         if: always()
         run: |
-          docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml down sabc-ui event-service claims-api postgres localstack redis oidc -v;
+          docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml down sabc-ui event-service claims-api postgres localstack redis laa-mock-oidc-service -v;
 
       - name: Teardown (global cleanup)
         if: always()
