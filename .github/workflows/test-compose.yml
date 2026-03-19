@@ -219,8 +219,8 @@ jobs:
   run-accessibility-tests:
     needs: [ ensure-runner-available, get-app-versions ]
     environment: uat
-    runs-on: [ self-hosted,linux,X64,local-testing ]
-    #runs-on: [self-hosted,linux,uat,k8s]
+    #runs-on: [ self-hosted,linux,X64,local-testing ]
+    runs-on: [self-hosted,linux,uat,k8s]
     permissions:
       id-token: write
       contents: read
