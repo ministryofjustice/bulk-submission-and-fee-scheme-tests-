@@ -14,6 +14,9 @@ runs:
     - name: Build and run the mock OIDC server
       working-directory: 'laa-oidc-mock-server'
       shell: bash
+      env:
+        GITHUB_ACTOR: ${{ github.actor }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         {
           # Build the mock OIDC JAR
