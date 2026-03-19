@@ -401,9 +401,14 @@ jobs:
         shell: bash
         run: |
           set +e
-          curl http://host.docker.internal:8181/actuator/health | grep -q '"status":"UP"'
-          curl http://host.docker.internal:8082
-          curl http://host.docker.internal:9000
+          echo "=== sabc-ui health ==="
+          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://host.docker.internal:8181/actuator/health
+      
+          echo "=== UI ==="
+          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://host.docker.internal:8082
+      
+          echo "=== OIDC ==="
+          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://host.docker.internal:9000
           exit 0
 
       - name: Login
