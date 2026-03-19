@@ -17,7 +17,7 @@ services:
       REST_CLIENT_CONNECT_TIMEOUT: ${REST_CLIENT_CONNECT_TIMEOUT:-5000}
       REST_CLIENT_READ_TIMEOUT: ${REST_CLIENT_READ_TIMEOUT:-40000}
       REDIS_HOST: redis://redis:6379
-      SPRING_PROFILES_ACTIVE: docker-e2e
+      SPRING_PROFILES_ACTIVE: github-test-runner
     healthcheck:
       test: [ "CMD-SHELL", "wget --spider --quiet http://localhost:8181/actuator/health || exit 1" ]
       interval: 10s
