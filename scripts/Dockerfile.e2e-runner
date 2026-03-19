@@ -27,9 +27,10 @@ RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION} | bash - \
     && apt-get install -y nodejs \
     && npm install -g npm@latest
 
+# Mock OIDC requires JDK 21
 RUN wget -O- https://apt.corretto.aws/corretto.key | gpg --dearmor -o /usr/share/keyrings/corretto-keyring.gpg \
     && echo "deb [signed-by=/usr/share/keyrings/corretto-keyring.gpg] https://apt.corretto.aws stable main" | tee /etc/apt/sources.list.d/corretto.list \
-    && apt-get update && apt-get install -y java-25-amazon-corretto-jdk \
+    && apt-get update && apt-get install -y java-21-amazon-corretto-jdk && apt-get install -y java-25-amazon-corretto-jdk \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
@@ -43,6 +44,7 @@ RUN npm init -y \
     && npx playwright install --with-deps chromium firefox webkit
 
 RUN npm install -g allure-commandline
+
 
 
 
