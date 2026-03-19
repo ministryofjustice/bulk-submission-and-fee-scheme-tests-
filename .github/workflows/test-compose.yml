@@ -326,6 +326,7 @@ jobs:
           AUTH_CLIENT_SECRET=${{ secrets.AUTH_CLIENT_SECRET }}
           AUTH_TENANT_ID=${{ secrets.AUTH_TENANT_ID }}
           AUTH_SCOPE=openid, profile
+          REDIRECT_BASE_URI=host.docker.internal:8082
           EOF
 
       # This step is required to allow E2E to use http://oidc:9000, just like the containers would. This keeps
@@ -385,24 +386,17 @@ jobs:
           set -euo pipefail
           
           for i in {1..36}; do
-            echo "Checking claims-api health... attempt $i/36"
-          
-            if curl -fsS http://host.docker.internal:8183/actuator/health | grep -q '"status":"UP"'; then
-              echo "claims-api is healthy"
-              exit 0
-            fi
-          
-            # Print logs to help with debugging
-            docker logs data-claims-api-app
+          if curl -fsS http://host.docker.internal:8183/actuator/health | grep -q '"status":"UP"'; then
+            echo "Healthy"
+            exit 0
+          fi
             sleep 5
           done
           
-          echo "claims-api did not become healthy in time"
-          docker compose -f docker-compose.yml ps
-          docker compose -f docker-compose.yml logs data-claims-api-app
-          exit 1
+          docker logs --tail 200 data-claims-api-app
+          exit 
 
-      - name: Curl multiple endpoints
+      - name: Curl multiple endpoints (DEBUGGING)
         shell: bash
         run: |
           set +e

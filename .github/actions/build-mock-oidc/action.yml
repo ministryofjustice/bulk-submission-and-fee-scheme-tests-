@@ -4,28 +4,14 @@ description: build-mock-oidc
 runs:
   using: "composite"
   steps:
-    - name: Check if Docker image exists
-      id: check-image
-      shell: bash
-      run: |
-        if docker image inspect laa-oidc-mock-server:latest >/dev/null 2>&1; then
-          echo "exists=true" >> $GITHUB_OUTPUT
-          echo "Image laa-oidc-mock-server:latest already exists, skipping build"
-        else
-          echo "exists=false" >> $GITHUB_OUTPUT
-          echo "Image laa-oidc-mock-server:latest not found, will build"
-        fi
-
     - name: Checkout OIDC mock server
-      if: steps.check-image.outputs.exists != 'true'
       uses: actions/checkout@v4
       with:
         repository: 'ministryofjustice/laa-oidc-mock-server'
         path: 'laa-oidc-mock-server'
-
+        ref: 'redirect_host_name'
 
     - name: Build and run the mock OIDC server
-      if: steps.check-image.outputs.exists != 'true'
       working-directory: 'laa-oidc-mock-server'
       shell: bash
       run: |
