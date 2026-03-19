@@ -333,7 +333,7 @@ jobs:
       - name: Map OIDC to host.docker.internal
         shell: bash
         run: |
-          echo "host.docker.internal oidc" | sudo tee -a /etc/hosts
+          echo "127.0.0.1 oidc" | sudo tee -a /etc/hosts
 
       - name: Run services
         shell: bash
