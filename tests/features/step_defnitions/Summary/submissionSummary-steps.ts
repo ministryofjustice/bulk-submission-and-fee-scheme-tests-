@@ -567,3 +567,29 @@ When(
         await this.submissionSummaryPage!.openClaimByIndex(0);
     }
 );
+
+Then(
+  'I should see a VOIDED tag under the View link for claim {int}',
+  async function (this: CustomWorld, claimNumber: number) {
+    if (!this.submissionSummaryPage) {
+      throw new Error('Submission summary page is not available.');
+    }
+
+    const index = Math.max(claimNumber - 1, 0);
+    await this.submissionSummaryPage.expectVoidedTagForClaim(index);
+    await this.attach(`✅ VOIDED tag displayed for claim row ${claimNumber}`, 'text/plain');
+  }
+);
+
+Then(
+  'I should see a voided claim banner on the fee calculation screen',
+  async function (this: CustomWorld) {
+    if (!this.claimDetailPage) {
+      this.claimDetailPage = new ClaimDetailPage(this.page!);
+      await this.claimDetailPage.waitForPage();
+    }
+
+    await this.claimDetailPage.expectVoidedBanner();
+    await this.attach('✅ Voided claim banner is displayed on fee calculation screen', 'text/plain');
+  }
+);
