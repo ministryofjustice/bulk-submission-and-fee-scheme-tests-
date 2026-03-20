@@ -150,11 +150,11 @@ jobs:
       - name: List all docker containers
         run: docker ps -a
 
-      #      - name: Setup Node.js
-      #        uses: actions/setup-node@v4
-      #        with:
-      #          node-version: 24
-      #          cache: npm
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
 
       - name: Install dependencies
         run: npm ci; npx playwright install
@@ -168,6 +168,15 @@ jobs:
           repository: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}
           #image-tag: ${{ needs.get-app-versions.outputs.sabc_image_tag }}
           image-tag: submit-a-bulk-claim-1.0.135-SNAPSHOT-3874ab5
+
+      - name: Pull OIDC image
+        uses: ./.github/actions/pull-ecr-image
+        with:
+          role-to-assume: ${{ secrets.LAA_SUBMIT_A_BULK_CLAIM_ECR_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
+          registry-account: ${{ secrets.ECR_ACCOUNT }}
+          repository: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}
+          image-tag: mock-oidc-latest
 
       - name: Pull Event Service image
         uses: ./.github/actions/pull-ecr-image
@@ -274,6 +283,7 @@ jobs:
           #SABC_TAG: ${{ needs.get-app-versions.outputs.sabc_image_tag }}
           EVENT_SERVICE_TAG: ${{ needs.get-app-versions.outputs.claims_events_image_tag }}
           CLAIMS_API_TAG: ${{ needs.get-app-versions.outputs.claims_api_image_tag }}
+          OIDC_TAG: mock-oidc-latest
 
       - name: Wait for sabc-ui health
         shell: bash
