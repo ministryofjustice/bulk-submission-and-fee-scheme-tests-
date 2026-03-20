@@ -162,7 +162,7 @@ jobs:
         run: |
           set +e
           echo "Checking if e2e-github-runner Helm release is deployed and pod is running..."
-          helm status e2e-github-runner --namespace ${KUBE_NAMESPACE} > /dev/null 2>&1
+          helm status e2e-github-runner-jamie --namespace ${KUBE_NAMESPACE} > /dev/null 2>&1
           HELM_STATUS=$?
           POD_STATUS=$(kubectl get pods -n ${KUBE_NAMESPACE} -l app=e2e-github-runner -o jsonpath='{.items[0].status.phase}' 2>/dev/null)
           if [ "$HELM_STATUS" -eq 0 ] && [ "$POD_STATUS" = "Running" ]; then
@@ -200,7 +200,7 @@ jobs:
           REPOSITORY: ${{ vars.ECR_REPOSITORY }}
         run: |
           echo "Deploying persistent GitHub runner..."
-          helm upgrade --install e2e-github-runner ./.helm/github-runner \
+          helm upgrade --install e2e-github-runner-jamie ./.helm/github-runner \
             --namespace ${KUBE_NAMESPACE} \
             --set image.repository=${REGISTRY}/${REPOSITORY} \
             --set image.tag=github-runner-${{ github.run_id }} \
@@ -219,8 +219,8 @@ jobs:
   run-accessibility-tests:
     needs: [ ensure-runner-available, get-app-versions ]
     environment: uat
-    #runs-on: [ self-hosted,linux,X64,local-testing ]
-    runs-on: [self-hosted,linux,uat,k8s]
+    runs-on: [ jamie ]
+    #runs-on: [self-hosted,linux,uat,k8s]
     permissions:
       id-token: write
       contents: read
