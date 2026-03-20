@@ -283,7 +283,7 @@ jobs:
           #SABC_TAG: ${{ needs.get-app-versions.outputs.sabc_image_tag }}
           EVENT_SERVICE_TAG: ${{ needs.get-app-versions.outputs.claims_events_image_tag }}
           CLAIMS_API_TAG: ${{ needs.get-app-versions.outputs.claims_api_image_tag }}
-          OIDC_TAG: mock-oidc-latest
+          OIDC_TAG: oidc-mock-latest
 
       - name: Wait for sabc-ui health
         shell: bash
