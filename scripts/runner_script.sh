@@ -19,7 +19,7 @@ start_docker() {
     fi
 
     echo "Docker not available yet; attempting to start dockerd..."
-    sudo dockerd \
+    dockerd \
         --host=unix:///var/run/docker.sock \
         --pidfile=/tmp/dockerd.pid \
         >/tmp/dockerd.log 2>&1 &
@@ -59,7 +59,7 @@ cleanup() {
 
     if [ "${DOCKERD_STARTED}" -eq 1 ] && [ -f /tmp/dockerd.pid ]; then
         echo "Stopping dockerd..."
-        sudo kill "$(cat /tmp/dockerd.pid)" 2>/dev/null || true
+        kill "$(cat /tmp/dockerd.pid)" 2>/dev/null || true
     fi
 }
 
