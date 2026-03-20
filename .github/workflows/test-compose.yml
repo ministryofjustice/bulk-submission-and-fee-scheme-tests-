@@ -219,8 +219,7 @@ jobs:
   run-accessibility-tests:
     needs: [ ensure-runner-available, get-app-versions ]
     environment: uat
-    runs-on: [ jamie ]
-    #runs-on: [self-hosted,linux,uat,k8s]
+    runs-on: ubuntu-latest\
     permissions:
       id-token: write
       contents: read
@@ -303,19 +302,19 @@ jobs:
         shell: bash
         run: |
           cat <<EOF > .env
-          UI_BASE_URL=http://host.docker.internal:8082
+          UI_BASE_URL=http://127.0.0.1:8082
           FSP_API_BASE_URL=${{ secrets.FSP_API_BASE_URL }}
           FSP_API_TOKEN=${{ secrets.FSP_API_TOKEN }}
           PDA_API_BASE_URL=${{ secrets.PDA_API_BASE_URL }}
           PDA_API_TOKEN=${{ secrets.PDA_API_TOKEN }}
           PROVIDER_API=${{ secrets.PDA_API_BASE_URL }}
           PROVIDER_API_KEY=${{ secrets.PDA_API_TOKEN }}
-          DSTEW_API_BASE_URL=host.docker.internal:8080
+          DSTEW_API_BASE_URL=127.0.0.1:8080
           DSTEW_API_TOKEN=f67f968e-b479-4e61-b66e-f57984931e56
           MFA_SECRET=${{ secrets.MFA_SECRET }}
           PASSWORD=${{ secrets.PASSWORD }}
           USERNAME=${{ secrets.USERNAME }}
-          DB_HOST=jdbc:postgresql://host.docker.internal
+          DB_HOST=jdbc:postgresql://127.0.0.1
           DB_PORT=5432
           DB_USER=user
           DB_PASS=dev
@@ -326,19 +325,19 @@ jobs:
           AUTH_CLIENT_SECRET=${{ secrets.AUTH_CLIENT_SECRET }}
           AUTH_TENANT_ID=${{ secrets.AUTH_TENANT_ID }}
           AUTH_SCOPE=openid, profile
-          REDIRECT_BASE_URI=host.docker.internal:8082
+          REDIRECT_BASE_URI=127.0.0.1:8082
           EOF
 
       # This step is required to allow E2E to use http://oidc:9000, just like the containers would. This keeps
       # the host name the same, generating a valid JWT for SaBC. On the github runner, this should resolve to
-      # the IP address of the host.docker.internal container. Otherwise, should resolve to 127.0.0.1.
-      - name: Map OIDC to host.docker.internal
+      # the IP address of the 127.0.0.1 container. Otherwise, should resolve to 127.0.0.1.
+      - name: Map OIDC to 127.0.0.1
         shell: bash
         run: |
           set -euo pipefail
 
-          OIDC_IP="$(getent ahostsv4 host.docker.internal | awk 'NR==1 {print $1}')"
-          echo "Resolved IPv4 host.docker.internal to: ${OIDC_IP}"
+          OIDC_IP="$(getent ahostsv4 127.0.0.1 | awk 'NR==1 {print $1}')"
+          echo "Resolved IPv4 127.0.0.1 to: ${OIDC_IP}"
 
           if ! grep -qE '(^|[[:space:]])oidc([[:space:]]|$)' /etc/hosts; then
             echo "${OIDC_IP} oidc" | sudo tee -a /etc/hosts >/dev/null
@@ -370,7 +369,7 @@ jobs:
           set -euo pipefail
           
           for i in {1..36}; do
-          if curl -fsS http://host.docker.internal:8181/actuator/health | grep -q '"status":"UP"'; then
+          if curl -fsS http://127.0.0.1:8181/actuator/health | grep -q '"status":"UP"'; then
             echo "Healthy"
             exit 0
           fi
@@ -386,7 +385,7 @@ jobs:
           set -euo pipefail
           
           for i in {1..36}; do
-          if curl -fsS http://host.docker.internal:8183/actuator/health | grep -q '"status":"UP"'; then
+          if curl -fsS http://127.0.0.1:8183/actuator/health | grep -q '"status":"UP"'; then
             echo "Healthy"
             exit 0
           fi
@@ -401,13 +400,13 @@ jobs:
         run: |
           set +e
           echo "=== sabc-ui health ==="
-          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://host.docker.internal:8181/actuator/health
+          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://127.0.0.1:8181/actuator/health
       
           echo "=== UI ==="
-          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://host.docker.internal:8082
+          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://127.0.0.1:8082
       
           echo "=== OIDC ==="
-          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://host.docker.internal:9000
+          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://127.0.0.1:9000
           
           echo "=== OIDC (host) ==="
           curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://oidc:9000
