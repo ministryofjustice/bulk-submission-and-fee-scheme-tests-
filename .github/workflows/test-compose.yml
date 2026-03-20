@@ -15,9 +15,6 @@ on:
     # 6pm UTC Mon–Fri
     - cron: '0 18 * * 1-5'
 
-concurrency:
-  group: run-docker-e2e-tests
-  cancel-in-progress: false
 
 permissions:
   id-token: write
