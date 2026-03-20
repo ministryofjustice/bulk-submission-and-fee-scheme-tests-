@@ -131,7 +131,7 @@ jobs:
   run-accessibility-tests:
     needs: [ get-app-versions ]
     environment: uat
-    runs-on: ubuntu-latest\
+    runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
