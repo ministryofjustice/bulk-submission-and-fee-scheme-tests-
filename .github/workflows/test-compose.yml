@@ -335,6 +335,30 @@ jobs:
           docker logs --tail 200 data-claims-api-app
           exit 
 
+      - name: Check DB accessibility (DEBUGGING)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Checking PostgreSQL accessibility on jdbc:postgresql://127.0.0.1:5432"
+
+          # Install PostgreSQL client if not available
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+
+          # Test connection
+          for i in {1..12}; do
+            if PGPASSWORD=dev psql -h 127.0.0.1 -p 5432 -U user -d laa_data_claims_api_dev -c "SELECT 1;" >/dev/null 2>&1; then
+              echo "PostgreSQL is accessible"
+              exit 0
+            fi
+            echo "Attempt $i: PostgreSQL not ready, waiting..."
+            sleep 5
+          done
+
+          echo "PostgreSQL connection failed"
+          exit 1
+
       - name: Curl multiple endpoints (DEBUGGING)
         shell: bash
         run: |
@@ -356,6 +380,7 @@ jobs:
           
           echo "=== PDA  (PF) ==="
           curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://127.0.0.1:8086/swagger-ui/index.html
+          
           
           exit 0
 
