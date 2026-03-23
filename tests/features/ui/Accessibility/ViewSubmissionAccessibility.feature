@@ -4,7 +4,6 @@ Feature: View submission details page (VS)
   Background:
     Given I am on the bulk import page
 
-  @jamie
   Scenario Outline: VS1-<abbr> accessibility checks
     When I generate "<areaOfLaw>" "csv" file with "11" outcomes
     And I upload the generated file
@@ -12,8 +11,8 @@ Feature: View submission details page (VS)
     Examples:
       | areaOfLaw   | abbr |
       | Legal help  | LH   |
-      #| Crime lower | CL   |
-      #| Mediation   | M    |
+      | Crime lower | CL   |
+      | Mediation   | M    |
 
   Scenario Outline: VS3-<abbr>-EMP accessibility checks
     When I generate "<areaOfLaw>" "csv" with all matter type file

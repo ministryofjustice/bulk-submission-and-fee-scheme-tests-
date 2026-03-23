@@ -6,14 +6,10 @@ on:
 
   workflow_dispatch:
     inputs:
-      branch:
-        description: 'Branch to run tests against'
+      test_annotation:
+        description: 'Test annotation to run'
         required: false
-        default: 'main'
-
-  schedule:
-    # 6pm UTC Mon–Fri
-    - cron: '0 18 * * 1-5'
+        default: '@stable'
 
 
 permissions:
@@ -425,8 +421,7 @@ jobs:
 
       - name: Run accessibility tests
         shell: bash
-        run: npm run test -- --tags "@accessibility"  --parallel 8 --retry 1
-        #run: npm run test -- --tags "@jamie"
+        run: npm run test -- --tags "${{ inputs.test_annotation || '@stable'}}"  --parallel 8 --retry 1
 
       - name: Logs for OIDC
         if: failure()
