@@ -196,10 +196,6 @@ jobs:
           repository: ${{ vars.LAA_DATA_CLAIMS_API_ECR_REPOSITORY }}
           image-tag: ${{ needs.get-app-versions.outputs.claims_api_image_tag }}
 
-      - name: Build Mock OIDC Server
-        uses: ./.github/actions/build-mock-oidc
-        id: build-mock-oidc
-
       - name: Authenticate to Kubernetes Cluster
         uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
         with:
