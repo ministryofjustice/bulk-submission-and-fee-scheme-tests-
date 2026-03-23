@@ -215,10 +215,10 @@ jobs:
           pid_env_var: PORT_FORWARD_PID
           wait_label: fsp-api
 
-      - name: Port forward to PDA-API pod from Event Service Namespace
+      - name: Port forward to PDA-API pod from SaBC Namespace
         uses: ./.github/actions/port-forward
         with:
-          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
           pod_selector: app.kubernetes.io/name=uat-e2e-testing-pda-proxy
           local_port: "8086"
           pid_env_var: PORT_FORWARD_PID
