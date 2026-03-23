@@ -370,17 +370,19 @@ jobs:
         run: |
           set -euo pipefail
           
-          for i in {1..10}; do
-          if curl -fsS http://127.0.0.1:4566/health | grep -q '"status":"running"'; then
-            echo "Healthy"
-            docker logs --tail 200 event-service-localstack
-            exit 0
-          fi
-            sleep 5
+          echo "Waiting for localstack SQS queue creation..."
+          for i in {1..60}; do
+            if docker logs event-service-localstack 2>&1 | grep -q "AWS sqs.CreateQueue => 200"; then
+              echo "SQS queue created successfully"
+              exit 0
+            fi
+            echo "Attempt $i: SQS queue not ready, waiting..."
+            sleep 2
           done
-          
-          docker logs --tail 200 event-service-localstack
-          exit -1
+
+          echo "Timeout waiting for SQS queue creation"
+          docker logs --tail 100 event-service-localstack
+          exit 1
 
       - name: Curl multiple endpoints (DEBUGGING)
         shell: bash
