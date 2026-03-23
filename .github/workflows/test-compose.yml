@@ -219,7 +219,7 @@ jobs:
         uses: ./.github/actions/port-forward
         with:
           kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
-          pod_selector: app.kubernetes.io/name=uat-e2e-testing-pda-proxy
+          pod_selector: app.kubernetes.io/name=uat-e2e-testing-pda-proxy-0
           local_port: "8086"
           pid_env_var: PORT_FORWARD_PID
           wait_label: pda-api
