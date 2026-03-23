@@ -339,6 +339,16 @@ jobs:
         #run: npm run test:accessibility:browserstack
         run: npm run test -- --tags "@accessibility"  --parallel 4 --retry 1
 
+      - name: Logs for OIDC
+        if: failure()
+        run: |
+          docker logs --tail 200 oidc
+
+      - name: Logs for SaBC
+        if: failure()
+        run: |
+          docker logs --tail 200 submit-a-bulk-claim-app
+
       - name: Teardown docker containers
         if: always()
         run: |
