@@ -205,7 +205,6 @@ jobs:
           kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
           kube-sa: deploy-user
 
-
       - name: Port forward to FPS-API pod
         uses: ./.github/actions/port-forward
         with:
@@ -214,6 +213,15 @@ jobs:
           local_port: "8085"
           pid_env_var: PORT_FORWARD_PID
           wait_label: fsp-api
+
+      - name: Authenticate to the SaBC EKS cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
+        with:
+          kube-cert: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-token: ${{ secrets.KUBE_TOKEN_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-sa: deploy-user
 
       - name: Port forward to PDA-API pod from SaBC Namespace
         uses: ./.github/actions/port-forward
