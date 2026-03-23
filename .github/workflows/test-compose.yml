@@ -229,6 +229,7 @@ jobs:
           kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
           pod_selector: app=uat-e2e-testing-pda-proxy
           local_port: "8086"
+          remote_port: "8080"
           pid_env_var: PORT_FORWARD_PID
           wait_label: pda-api
 
