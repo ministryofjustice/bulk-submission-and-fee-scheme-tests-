@@ -370,16 +370,16 @@ jobs:
         run: |
           set -euo pipefail
           
-          for i in {1..36}; do
+          for i in {1..10}; do
           if curl -fsS http://127.0.0.1:4566/health | grep -q '"status":"running"'; then
             echo "Healthy"
-            docker logs --tail 200 localstack
+            docker logs --tail 200 event-service-localstack
             exit 0
           fi
             sleep 5
           done
           
-          docker logs --tail 200 localstack
+          docker logs --tail 200 event-service-localstack
           exit -1
 
       - name: Curl multiple endpoints (DEBUGGING)

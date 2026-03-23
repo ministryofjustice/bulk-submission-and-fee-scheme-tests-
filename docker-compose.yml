@@ -47,8 +47,8 @@ services:
         - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/laa_data_claims_api_dev
         - AWS_ACCESS_KEY_ID=dummy-access-key
         - AWS_SECRET_ACCESS_KEY=dummy-access-key
-        - AWS_ENDPOINT_URL=http://127.0.0.1:4566
-        - AWS_SQS_ENDPOINT=http://127.0.0.1:4566
+        - AWS_ENDPOINT_URL=http://event-service-localstack:4566
+        - AWS_SQS_ENDPOINT=http://event-service-localstack:4566
       depends_on:
         - postgres
         - localstack
@@ -73,8 +73,8 @@ services:
       - AWS_REGION=us-east-1
       - AWS_ACCESS_KEY_ID=dummy-access-key
       - AWS_SECRET_ACCESS_KEY=dummy-access-key
-      - AWS_ENDPOINT_URL=http://localstack:4566
-      - SPRING_CLOUD_AWS_SQS_ENDPOINT=http://localstack:4566
+      - AWS_ENDPOINT_URL=http://event-service-localstack:4566
+      - SPRING_CLOUD_AWS_SQS_ENDPOINT=http://event-service-localstack:4566
       - SPRING_CLOUD_AWS_CREDENTIALS_ACCESS-KEY=dummy-access-key
       - SPRING_CLOUD_AWS_CREDENTIALS_SECRET-KEY=dummy-access-key
     depends_on:
