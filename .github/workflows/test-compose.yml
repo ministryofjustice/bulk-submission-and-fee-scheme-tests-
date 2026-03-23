@@ -328,7 +328,6 @@ jobs:
           
           echo "=== OIDC (host) ==="
           curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://oidc:9000
-          exit 0
           
           echo "=== FSP (PF) ==="
           curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://127.0.0.1:8085/swagger-ui/index.html
