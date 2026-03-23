@@ -365,6 +365,23 @@ jobs:
           echo "Schema 'claims' not found"
           exit 1
 
+      - name: Wait for localstack health
+        shell: bash
+        run: |
+          set -euo pipefail
+          
+          for i in {1..36}; do
+          if curl -fsS http://127.0.0.1:4566/health | grep -q '"status":"running"'; then
+            echo "Healthy"
+            docker logs --tail 200 localstack
+            exit 0
+          fi
+            sleep 5
+          done
+          
+          docker logs --tail 200 localstack
+          exit -1
+
       - name: Curl multiple endpoints (DEBUGGING)
         shell: bash
         run: |
