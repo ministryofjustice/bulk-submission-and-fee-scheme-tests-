@@ -222,8 +222,6 @@ jobs:
           UI_BASE_URL=http://127.0.0.1:8082
           FSP_API_BASE_URL=http://127.0.0.1:8085
           FSP_API_TOKEN=${{ secrets.FSP_API_TOKEN }}
-          PDA_API_BASE_URL=${{ secrets.PDA_API_BASE_URL }}
-          PDA_API_TOKEN=${{ secrets.PDA_API_TOKEN }}
           PROVIDER_API=${{ secrets.PDA_API_BASE_URL }}
           PROVIDER_API_KEY=${{ secrets.PDA_API_TOKEN }}
           DSTEW_API_BASE_URL=127.0.0.1:8080
@@ -331,6 +329,9 @@ jobs:
           
           echo "=== FSP (PF) ==="
           curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://127.0.0.1:8085/swagger-ui/index.html
+          
+          echo "=== PDA ==="
+          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' ${{ secrets.PDA_API_BASE_URL }}/swagger-ui/index.html
           exit 0
 
       - name: Login
