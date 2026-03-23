@@ -146,7 +146,6 @@ export async function hasValidContract(
         }
     );
 
-    console.log(`[DEBUG] Provider API response for ${office}/${period}:`, res.data);
     console.log(`[DEBUG] Provider API status code: ${res.status}`);
 
     const schedules = res.data?.schedules ?? [];
