@@ -1,4 +1,4 @@
-@accessibility @viewSubmission
+@accessibility @jamie @viewSubmission
 Feature: View submission details page (VS)
 
   Background:
