@@ -176,7 +176,7 @@ jobs:
           aws-region: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
           registry-account: ${{ secrets.ECR_ACCOUNT }}
           repository: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}
-          image-tag: mock-oidc-latest
+          image-tag: oidc-mock-latest
 
       - name: Pull Event Service image
         uses: ./.github/actions/pull-ecr-image
