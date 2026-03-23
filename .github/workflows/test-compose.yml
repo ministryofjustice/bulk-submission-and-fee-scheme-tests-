@@ -215,14 +215,14 @@ jobs:
           pid_env_var: PORT_FORWARD_PID
           wait_label: fsp-api
 
-      - name: Port forward to PDA-API pod
-        uses: ./.github/actions/port-forward
-        with:
-          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_PDA_API_UAT }}
-          pod_selector: app.kubernetes.io/name=providers-app
-          local_port: "8086"
-          pid_env_var: PORT_FORWARD_PID
-          wait_label: pda-api
+      #- name: Port forward to PDA-API pod
+      #  uses: ./.github/actions/port-forward
+      #  with:
+      #    kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_PDA_API_UAT }}
+      #    pod_selector: app.kubernetes.io/name=providers-app
+      #    local_port: "8086"
+      #    pid_env_var: PORT_FORWARD_PID
+      #    wait_label: pda-api
 
       - name: Create .env file
         shell: bash
