@@ -296,6 +296,12 @@ jobs:
           EVENT_SERVICE_TAG: ${{ needs.get-app-versions.outputs.claims_events_image_tag }}
           CLAIMS_API_TAG: ${{ needs.get-app-versions.outputs.claims_api_image_tag }}
           OIDC_TAG: oidc-mock-latest
+          DB_HOST: postgres
+          DB_PORT: 5432
+          DB_USER: user
+          DB_PASS: dev
+          DB_NAME: laa_data_claims_api_dev
+          DB_SSL: false
 
       - name: Wait for sabc-ui health
         shell: bash
@@ -351,14 +357,6 @@ jobs:
           echo "=== PDA  (PF) ==="
           curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://127.0.0.1:8086/swagger-ui/index.html
           
-          echo "=== PDA 2 (PF) ==="
-          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://localhost:8086/swagger-ui/index.html
-          
-          echo "=== PDA 3 (PF) ==="
-          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://docker.host.internal:8086/swagger-ui/index.html
-          
-          echo "=== PDA ==="
-          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' ${{ secrets.PDA_API_BASE_URL }}/swagger-ui/index.html
           exit 0
 
       - name: Print PIDs on port 8086 (DEBUGGING)
