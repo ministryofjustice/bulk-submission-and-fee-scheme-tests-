@@ -342,12 +342,12 @@ jobs:
       - name: Logs for OIDC
         if: failure()
         run: |
-          docker logs --tail 200 oidc
+          docker logs --tail 500 oidc
 
       - name: Logs for SaBC
         if: failure()
         run: |
-          docker logs --tail 200 submit-a-bulk-claim-app
+          docker logs --tail 500 submit-a-bulk-claim-app
 
       - name: Teardown docker containers
         if: always()
