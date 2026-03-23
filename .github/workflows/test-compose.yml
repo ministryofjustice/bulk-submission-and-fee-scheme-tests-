@@ -397,7 +397,7 @@ jobs:
       - name: Run accessibility tests
         shell: bash
         #run: npm run test -- --tags "@accessibility"  --parallel 4 --retry 1
-        run: npm run test -- --tags "@jamie"  --parallel 4 --retry 1
+        run: npm run test -- --tags "@jamie"
 
       - name: Logs for OIDC
         if: failure()
