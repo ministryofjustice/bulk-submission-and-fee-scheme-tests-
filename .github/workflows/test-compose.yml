@@ -331,7 +331,7 @@ jobs:
           docker logs --tail 200 data-claims-api-app
           exit 
 
-      - name: Check DB accessibility (DEBUGGING)
+      - name: Check DB setup
         shell: bash
         run: |
           set -euo pipefail
@@ -346,13 +346,23 @@ jobs:
           for i in {1..12}; do
             if PGPASSWORD=dev psql -h 127.0.0.1 -p 5432 -U user -d laa_data_claims_api_dev -c "SELECT 1;" >/dev/null 2>&1; then
               echo "PostgreSQL is accessible"
-              exit 0
+              break
             fi
             echo "Attempt $i: PostgreSQL not ready, waiting..."
             sleep 5
           done
 
-          echo "PostgreSQL connection failed"
+          # Wait for schema "claims" to be available
+          for i in {1..12}; do
+            if PGPASSWORD=dev psql -h 127.0.0.1 -p 5432 -U user -d laa_data_claims_api_dev -c "SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'claims';" | grep -q 'claims'; then
+              echo "Schema 'claims' is available"
+              exit 0
+            fi
+            echo "Attempt $i: Schema 'claims' not ready, waiting..."
+            sleep 5
+          done
+
+          echo "Schema 'claims' not found"
           exit 1
 
       - name: Curl multiple endpoints (DEBUGGING)
