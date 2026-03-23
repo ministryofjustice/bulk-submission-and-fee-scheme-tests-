@@ -257,7 +257,7 @@ jobs:
           UI_BASE_URL=http://127.0.0.1:8082
           FSP_API_BASE_URL=http://127.0.0.1:8085
           FSP_API_TOKEN=${{ secrets.FSP_API_TOKEN }}
-          PROVIDER_API=http://127.0.0.1:8086/api/v1/provider-offices/
+          PROVIDER_API=http://127.0.0.1:8086/api/v1/provider-offices
           PROVIDER_API_KEY=${{ secrets.PDA_API_TOKEN }}
           DSTEW_API_BASE_URL=127.0.0.1:8080
           DSTEW_API_TOKEN=f67f968e-b479-4e61-b66e-f57984931e56
