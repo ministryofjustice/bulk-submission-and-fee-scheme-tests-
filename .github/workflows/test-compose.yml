@@ -409,6 +409,16 @@ jobs:
         run: |
           docker logs --tail 500 submit-a-bulk-claim-app
 
+      - name: Logs for Claims API
+        if: failure()
+        run: |
+          docker logs --tail 500 data-claims-api-app
+
+      - name: Logs for Claims Event Service
+        if: failure()
+        run: |
+          docker logs --tail 500 data-claims-event-service-app
+
       - name: Teardown docker containers
         if: always()
         run: |
