@@ -124,7 +124,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
 
-  run-accessibility-tests:
+  run-tests:
     needs: [ get-app-versions ]
     environment: uat
     runs-on: ubuntu-latest
@@ -419,7 +419,7 @@ jobs:
         shell: bash
         run: npm run login:mock
 
-      - name: Run accessibility tests
+      - name: Run tests
         shell: bash
         run: npm run test -- --tags "${{ inputs.test_annotation || '@stable'}}"  --parallel 4 --retry 1
 
