@@ -167,7 +167,7 @@ jobs:
           registry-account: ${{ secrets.ECR_ACCOUNT }}
           repository: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}
           #image-tag: ${{ needs.get-app-versions.outputs.sabc_image_tag }}
-          image-tag: submit-a-bulk-claim-1.0.135-SNAPSHOT-3874ab5
+          image-tag: submit-a-bulk-claim-1.0.139-SNAPSHOT-b4c11bc
 
       - name: Pull OIDC image
         uses: ./.github/actions/pull-ecr-image
@@ -275,7 +275,7 @@ jobs:
           LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REGION: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REGION }}
           LAA_DATA_CLAIMS_API_ECR_REGION: ${{ vars.LAA_DATA_CLAIMS_API_ECR_REGION }}
           LAA_DATA_CLAIMS_API_ECR_REPOSITORY: ${{ vars.LAA_DATA_CLAIMS_API_ECR_REPOSITORY }}
-          SABC_TAG: submit-a-bulk-claim-1.0.135-SNAPSHOT-3874ab5
+          SABC_TAG: submit-a-bulk-claim-1.0.139-SNAPSHOT-b4c11bc
           #SABC_TAG: ${{ needs.get-app-versions.outputs.sabc_image_tag }}
           EVENT_SERVICE_TAG: ${{ needs.get-app-versions.outputs.claims_events_image_tag }}
           CLAIMS_API_TAG: ${{ needs.get-app-versions.outputs.claims_api_image_tag }}
