@@ -252,6 +252,7 @@ jobs:
           DB_USER=user
           DB_PASS=dev
           DB_NAME=laa_data_claims_api_dev
+          DB_SSL=false
           DB_SSL=${{ secrets.DB_SSL }}
           HEADLESS=true
           AUTH_CLIENT_ID=${{ secrets.AUTH_CLIENT_ID }}
