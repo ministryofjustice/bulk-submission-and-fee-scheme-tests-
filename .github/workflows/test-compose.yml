@@ -425,8 +425,8 @@ jobs:
 
       - name: Run accessibility tests
         shell: bash
-        #run: npm run test -- --tags "@accessibility"  --parallel 4 --retry 1
-        run: npm run test -- --tags "@jamie"
+        run: npm run test -- --tags "@accessibility"  --parallel 8 --retry 1
+        #run: npm run test -- --tags "@jamie"
 
       - name: Logs for OIDC
         if: failure()
@@ -452,11 +452,6 @@ jobs:
         if: always()
         run: |
           docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml down sabc-ui event-service claims-api postgres localstack redis laa-mock-oidc-service -v;
-
-      - name: Teardown (global cleanup)
-        if: always()
-        run: |
-          npm run teardown
 
       - name: Publish Cucumber summary
         if: always()
