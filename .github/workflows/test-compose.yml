@@ -350,8 +350,24 @@ jobs:
           echo "=== PDA  (PF) ==="
           curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://127.0.0.1:8086/swagger-ui/index.html
           
+          echo "=== PDA 2 (PF) ==="
+          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://localhost:8086/swagger-ui/index.html
+          
+          echo "=== PDA 3 (PF) ==="
+          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://docker.host.internal:8086/swagger-ui/index.html
+          
           echo "=== PDA ==="
           curl -sS -w '\nHTTP_STATUS:%{http_code}\n' ${{ secrets.PDA_API_BASE_URL }}/swagger-ui/index.html
+          exit 0
+
+      - name: Print PIDs on port 8086 (DEBUGGING)
+        shell: bash
+        run: |
+          set +e
+          echo "=== PIDs using port 8086 ==="
+          sudo lsof -i :8086 -t || echo "No processes found on port 8086"
+          sudo lsof -i :8086 || echo "Detailed lsof failed"
+          sudo netstat -tlnp | grep :8086 || echo "No netstat entries for port 8086"
           exit 0
 
       - name: Login
