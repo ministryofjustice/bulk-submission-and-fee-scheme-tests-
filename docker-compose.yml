@@ -5,6 +5,8 @@ services:
     container_name: submit-a-bulk-claim-app
     image: ${ECR_ACCOUNT}.dkr.ecr.${LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION}.amazonaws.com/${LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY}:${SABC_TAG}
     environment:
+      JAVA_TOOL_OPTIONS: -XX:MaxDirectMemorySize=256m
+      JAVA_OPTS: -XX:MaxDirectMemorySize=256m
       SERVER_MAX_FILE_SIZE: 50MB
       UPLOAD_MAX_FILE_SIZE: 10MB
       AUTH_CLIENT_ID: ${AUTH_CLIENT_ID}
@@ -35,46 +37,53 @@ services:
       - laa-mock-oidc-service
 
   claims-api:
-      container_name: data-claims-api-app
-      profiles:
-        - application
-      image: ${ECR_ACCOUNT}.dkr.ecr.${LAA_DATA_CLAIMS_API_ECR_REGION}.amazonaws.com/${LAA_DATA_CLAIMS_API_ECR_REPOSITORY}:${CLAIMS_API_TAG}
-      ports:
-        - "8080:8080"
-        - "8183:8081"
-      environment:
-        - AWS_REGION=us-east-1
-        - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/laa_data_claims_api_dev
-        - AWS_ACCESS_KEY_ID=dummy-access-key
-        - AWS_SECRET_ACCESS_KEY=dummy-access-key
-        - AWS_ENDPOINT_URL=http://event-service-localstack:4566
-        - AWS_SQS_ENDPOINT=http://event-service-localstack:4566
-      depends_on:
-        - postgres
-        - localstack
+    container_name: data-claims-api-app
+    profiles:
+      - application
+    image: ${ECR_ACCOUNT}.dkr.ecr.${LAA_DATA_CLAIMS_API_ECR_REGION}.amazonaws.com/${LAA_DATA_CLAIMS_API_ECR_REPOSITORY}:${CLAIMS_API_TAG}
+    ports:
+      - "8080:8080"
+      - "8183:8081"
+    environment:
+      - JAVA_TOOL_OPTIONS=-XX:MaxDirectMemorySize=256m
+      - JAVA_OPTS=-XX:MaxDirectMemorySize=256m
+      - AWS_REGION=us-east-1
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/laa_data_claims_api_dev
+      - AWS_ACCESS_KEY_ID=dummy-access-key
+      - AWS_SECRET_ACCESS_KEY=dummy-access-key
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      - AWS_SQS_ENDPOINT=http://localstack:4566
+    depends_on:
+      - postgres
+      - localstack
 
   event-service:
     container_name: data-claims-event-service-app
     image: ${ECR_ACCOUNT}.dkr.ecr.${LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REGION}.amazonaws.com/${LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY}:${EVENT_SERVICE_TAG}
     profiles:
       - application
+    # Using network_mode: host to allow the event service to access port forwarded services. This also means needing
+    # to use the host IP address for the event service.
+    network_mode: host
     ports:
       - "8182:8081"
     environment:
+      - JAVA_TOOL_OPTIONS=-XX:MaxDirectMemorySize=256m
+      - JAVA_OPTS=-XX:MaxDirectMemorySize=256m
       - CLAIMS_API_HOSTNAME=http://127.0.0.1:8080
       - CLAIMS_API_ACCESS_TOKEN=f67f968e-b479-4e61-b66e-f57984931e56
       - BULK_CLAIM_QUEUE_NAME=claims-api-queue
-      - PROVIDER_DETAILS_API_HOSTNAME=${PROVIDER_API}
+      - PROVIDER_DETAILS_API_HOSTNAME=http://127.0.0.1:8186
       - PROVIDER_DETAILS_API_ACCESS_TOKEN=${PROVIDER_API_KEY}
-      - FEE_SCHEME_PLATFORM_API_URL=${FSP_API_BASE_URL}
+      - FEE_SCHEME_PLATFORM_API_URL=http://127.0.0.1:8095
       - FEE_SCHEME_PLATFORM_API_ACCESS_TOKEN=${FSP_API_TOKEN}
       - SUBMISSION_VALIDATION_MINIMUM_PERIOD=JAN-1600
       - SPRING_CLOUD_AWS_REGION_STATIC=us-east-1
       - AWS_REGION=us-east-1
       - AWS_ACCESS_KEY_ID=dummy-access-key
       - AWS_SECRET_ACCESS_KEY=dummy-access-key
-      - AWS_ENDPOINT_URL=http://event-service-localstack:4566
-      - SPRING_CLOUD_AWS_SQS_ENDPOINT=http://event-service-localstack:4566
+      - AWS_ENDPOINT_URL=http://127.0.0.1:4566
+      - SPRING_CLOUD_AWS_SQS_ENDPOINT=http://127.0.0.1:4566
       - SPRING_CLOUD_AWS_CREDENTIALS_ACCESS-KEY=dummy-access-key
       - SPRING_CLOUD_AWS_CREDENTIALS_SECRET-KEY=dummy-access-key
     depends_on:
@@ -130,7 +139,7 @@ services:
       retries: 5
       start_period: 10s
     environment:
-      LAA_ACCOUNTS: 1,123,0P322F,2Q779P,2Q286D,2Q263D,2Q271M,0E525U,2Q286D,2N199K,1T102C,2P746R
+      LAA_ACCOUNTS: 0P322F,2Q779P,2Q286D,2Q263D,2Q271M,0E525U,2Q286D,2N199K,1T102C,2P746R,2L847Q
       REDIRECT_BASE_URI: ${REDIRECT_BASE_URI}
 
 volumes:
