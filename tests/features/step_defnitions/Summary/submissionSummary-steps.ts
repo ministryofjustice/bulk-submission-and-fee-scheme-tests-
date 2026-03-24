@@ -67,6 +67,33 @@ Then(
 );
 
 Then(
+    'sorting can be done on calculated value in asc and desc order',
+    async function (this: CustomWorld) {
+        const summaryPage = new SubmissionSummaryPage(this.page!);
+        this.submissionSummaryPage = summaryPage;
+
+        await summaryPage.waitForPage();
+
+        await summaryPage.sortByCalculatedValue('ascending');
+        await summaryPage.validateCalculatedValueSorting('ascending');
+
+        await summaryPage.sortByCalculatedValue('descending');
+        await summaryPage.validateCalculatedValueSorting('descending');
+    }
+);
+
+
+Then(
+    'sorting can be done on claim summary headers',
+    async function (this: CustomWorld) {
+        const summaryPage = new SubmissionSummaryPage(this.page!);
+        this.submissionSummaryPage = summaryPage;
+
+        await summaryPage.validateSortingForCurrentAreaOfLaw();
+    }
+);
+
+Then(
     'I should see the submission summary for {string} with {string} claims',
     async function (this: CustomWorld, areaOfLaw: string, claimCount: string) {
       const summaryPage = new SubmissionSummaryPage(this.page!);
@@ -79,6 +106,7 @@ Then(
 
       const claims = await summaryPage.validateClaimsCount(Number(claimCount));
 
+
       await this.attach(
           `✅ Summary validated:\n${JSON.stringify(summary, null, 2)}`,
           'text/plain'
@@ -88,6 +116,8 @@ Then(
           'text/plain'
       );
     }
+
+
 );
 
 Then(`I should be able to export the {string} submission`, async function (this: CustomWorld, areaOfLaw: string) {

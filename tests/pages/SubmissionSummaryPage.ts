@@ -357,4 +357,340 @@ export class SubmissionSummaryPage extends BasePage {
     console.log(`⬇️ Downloaded file: ${filename}`);
     return download;
   }
+
+  async sortByCalculatedValue(direction: 'ascending' | 'descending') {
+    const header = this.page.locator('th[aria-sort]', {
+      has: this.page.locator('button', { hasText: 'Calculated value' }),
+    });
+
+    const button = header.locator('button');
+
+    await this.claimsTable.waitFor({ state: 'visible', timeout: 10000 });
+    await this.page.waitForLoadState('domcontentloaded');
+
+    for (let i = 0; i < 3; i++) {
+      const current = await header.getAttribute('aria-sort');
+      if (current === direction) return;
+
+      await button.click();
+      await expect(header).toHaveAttribute('aria-sort', direction, { timeout: 10000 });
+    }
+
+    throw new Error(`Could not sort Calculated value to ${direction}`);
+  }
+
+  async getVisibleCalculatedValues(): Promise<number[]> {
+    const rows = this.claimsTable.locator('tbody tr');
+    const rowCount = await rows.count();
+    const values: number[] = [];
+
+    for (let i = 0; i < rowCount; i++) {
+      const valueCell = rows.nth(i).locator('td').nth(6);
+      const sortValue = await valueCell.getAttribute('data-sort-value');
+      values.push(Number(sortValue));
+    }
+
+    return values;
+  }
+
+  async validateCalculatedValueSorting(direction: 'ascending' | 'descending') {
+    await this.validateNumericColumnSorting(6, direction);
+  }
+
+  async getVisibleColumnTextValues(columnIndex: number): Promise<string[]> {
+    const rows = this.claimsTable.locator('tbody tr');
+    const rowCount = await rows.count();
+    const values: string[] = [];
+
+    for (let i = 0; i < rowCount; i++) {
+      const cell = rows.nth(i).locator('td').nth(columnIndex);
+      values.push(((await cell.textContent()) ?? '').trim());
+    }
+
+    return values;
+  }
+
+  async getVisibleColumnNumericValues(columnIndex: number): Promise<number[]> {
+    const rows = this.claimsTable.locator('tbody tr');
+    const rowCount = await rows.count();
+    const values: number[] = [];
+
+    for (let i = 0; i < rowCount; i++) {
+      const cell = rows.nth(i).locator('td').nth(columnIndex);
+      const sortValue = await cell.getAttribute('data-sort-value');
+      values.push(Number(sortValue));
+    }
+
+    return values;
+  }
+
+  async validateTextColumnSorting(
+      columnIndex: number,
+      direction: 'ascending' | 'descending'
+  ) {
+    const values = await this.getVisibleColumnTextValues(columnIndex);
+
+    const expected = [...values].sort((a, b) =>
+        direction === 'ascending'
+            ? a.localeCompare(b)
+            : b.localeCompare(a)
+    );
+
+    expect(values).toEqual(expected);
+  }
+
+  async validateNumericColumnSorting(
+      columnIndex: number,
+      direction: 'ascending' | 'descending'
+  ) {
+    const values = await this.getVisibleColumnNumericValues(columnIndex);
+
+    const expected = [...values].sort((a, b) =>
+        direction === 'ascending' ? a - b : b - a
+    );
+
+    expect(values).toEqual(expected);
+  }
+
+  async getAreaOfLaw(): Promise<string> {
+    const summary = await this.getSummaryData();
+    return summary['Area of law']?.trim() ?? '';
+  }
+
+  private getExpectedSortableHeaders(areaOfLaw: string): {
+    text: string[];
+    numeric: string[];
+  } {
+    switch (areaOfLaw.toLowerCase()) {
+      case 'legal help':
+        return {
+          text: [
+            'Client Surname',
+            'Client Forename',
+            'UFN',
+            'UCN',
+            'Fee code',
+            'Escape case',
+            'Messages',
+          ],
+          numeric: ['Calculated value'],
+        };
+
+      case 'crime lower':
+        return {
+          text: [
+            'Client Surname',
+            'Client Initial',
+            'UFN',
+            'Fee code',
+            'Date work concluded',
+            'Escape case',
+            'Messages',
+          ],
+          numeric: ['Calculated value'],
+        };
+
+      case 'mediation':
+        return {
+          text: [
+            'Client 1 Surname',
+            'Client 1 Forename',
+            'Client 1 UCN',
+            'Client 2 Surname',
+            'Client 2 Forename',
+            'Client 2 UCN',
+            'Fee code',
+            'Messages',
+          ],
+          numeric: ['Calculated value'],
+        };
+
+      default:
+        return {
+          text: [],
+          numeric: ['Calculated value'],
+        };
+    }
+  }
+
+  async sortByHeader(headerText: string, direction: 'ascending' | 'descending') {
+    const header = this.page.locator('th[aria-sort]', {
+      has: this.page.locator('button', { hasText: headerText }),
+    });
+
+    await expect(header, `Sortable header "${headerText}" was not found`).toHaveCount(1, {
+      timeout: 10000,
+    });
+
+    const button = header.locator('button');
+
+    for (let i = 0; i < 3; i++) {
+      const current = await header.getAttribute('aria-sort');
+      if (current === direction) return;
+
+      await button.click();
+      await expect(header).toHaveAttribute('aria-sort', direction, { timeout: 10000 });
+    }
+
+    throw new Error(`Could not sort ${headerText} to ${direction}`);
+  }
+
+  async getColumnIndex(headerText: string): Promise<number> {
+    const headers = this.claimsTable.locator('thead th');
+    const count = await headers.count();
+
+    for (let i = 0; i < count; i++) {
+      const text = ((await headers.nth(i).textContent()) ?? '')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+      if (text.includes(headerText)) {
+        return i;
+      }
+    }
+
+    throw new Error(`Column "${headerText}" not found`);
+  }
+
+  async getColumnTextValuesByHeader(headerText: string): Promise<string[]> {
+    const columnIndex = await this.getColumnIndex(headerText);
+    const rows = this.claimsTable.locator('tbody tr');
+    const rowCount = await rows.count();
+    const values: string[] = [];
+
+    for (let i = 0; i < rowCount; i++) {
+      const cell = rows.nth(i).locator('td').nth(columnIndex);
+      values.push(((await cell.textContent()) ?? '').replace(/\s+/g, ' ').trim());
+    }
+
+    return values;
+  }
+
+  async getColumnNumericValuesByHeader(headerText: string): Promise<number[]> {
+    const columnIndex = await this.getColumnIndex(headerText);
+    const rows = this.claimsTable.locator('tbody tr');
+    const rowCount = await rows.count();
+    const values: number[] = [];
+
+    for (let i = 0; i < rowCount; i++) {
+      const cell = rows.nth(i).locator('td').nth(columnIndex);
+      const sortValue = await cell.getAttribute('data-sort-value');
+      values.push(Number(sortValue));
+    }
+
+    return values;
+  }
+
+  async validateTextSortingByHeader(
+      headerText: string,
+      direction: 'ascending' | 'descending'
+  ) {
+    const values = await this.getColumnTextValuesByHeader(headerText);
+
+    const expected = [...values].sort((a, b) =>
+        direction === 'ascending'
+            ? a.localeCompare(b)
+            : b.localeCompare(a)
+    );
+
+    expect(values).toEqual(expected);
+  }
+
+  async validateNumericSortingByHeader(
+      headerText: string,
+      direction: 'ascending' | 'descending'
+  ) {
+    const values = await this.getColumnNumericValuesByHeader(headerText);
+
+    const expected = [...values].sort((a, b) =>
+        direction === 'ascending' ? a - b : b - a
+    );
+
+    expect(values).toEqual(expected);
+  }
+
+
+  async validateSortingForCurrentAreaOfLaw() {
+    await this.waitForPage();
+
+    const areaOfLaw = await this.getAreaOfLaw();
+    const { text, numeric } = this.getExpectedSortableHeaders(areaOfLaw);
+
+    for (const header of text) {
+      await this.sortByHeader(header, 'ascending');
+
+      if (header === 'Escape case') {
+        await this.validateEscapeCaseSorting('ascending');
+      } else if (header === 'Messages') {
+        await this.validateMessagesSorting('ascending');
+      } else {
+        await this.validateTextSortingByHeader(header, 'ascending');
+      }
+
+      await this.sortByHeader(header, 'descending');
+
+      if (header === 'Escape case') {
+        await this.validateEscapeCaseSorting('descending');
+      } else if (header === 'Messages') {
+        await this.validateMessagesSorting('descending');
+      } else {
+        await this.validateTextSortingByHeader(header, 'descending');
+      }
+    }
+
+    for (const header of numeric) {
+      await this.sortByHeader(header, 'ascending');
+      await this.validateNumericSortingByHeader(header, 'ascending');
+
+      await this.sortByHeader(header, 'descending');
+      await this.validateNumericSortingByHeader(header, 'descending');
+    }
+  }
+
+  async validateEscapeCaseSorting(direction: 'ascending' | 'descending') {
+    const values = await this.getColumnTextValuesByHeader('Escape case');
+
+    const rank = (value: string) => {
+      const normalised = value.trim().toLowerCase();
+
+      if (normalised === 'no') return 0;
+      if (normalised === 'escaped') return 1;
+
+      return 999; // fallback
+    };
+
+    const expected = [...values].sort((a, b) => {
+      return direction === 'ascending'
+          ? rank(a) - rank(b)
+          : rank(b) - rank(a);
+    });
+
+    expect(values).toEqual(expected);
+  }
+
+  async validateMessagesSorting(direction: 'ascending' | 'descending') {
+    const values = await this.getColumnTextValuesByHeader('Messages');
+
+    const rank = (value: string) => {
+      const normalised = value.trim();
+
+      if (normalised.length > 0) return 0; // has message link
+      return 1; // empty
+    };
+
+    const expected = [...values].sort((a, b) => {
+      const rankDiff =
+          direction === 'ascending'
+              ? rank(a) - rank(b)
+              : rank(b) - rank(a);
+
+      if (rankDiff !== 0) return rankDiff;
+
+      return direction === 'ascending'
+          ? a.localeCompare(b)
+          : b.localeCompare(a);
+    });
+
+    expect(values).toEqual(expected);
+  }
 }

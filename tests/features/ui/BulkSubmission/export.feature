@@ -5,6 +5,7 @@ Feature: Export submission via UI
     Given I start from a clean logged-in state
     Given I am on the bulk import page
 
+    @sorting
   Scenario Outline: Successful export of submission for <AreaOfLaw>
     When I generate "<AreaOfLaw>" "<Format>" file with "<Outcomes>" outcomes
     And I upload the generated file
@@ -14,12 +15,13 @@ Feature: Export submission via UI
     And I open the most recent submission from the results list
     Then I should see the submission summary for "<AreaOfLaw>" with "<Claims>" claims
     And I should be able to export the "<AreaOfLaw>" submission
+    Then sorting can be done on claim summary headers
 
     Examples:
       | AreaOfLaw   | Format | Outcomes | Claims |
-      | Legal help  | csv    | 2        | 2      |
-      | Mediation   | csv    | 2        | 2      |
-      | Crime lower | csv    | 3        | 3      |
+      | Legal help  | csv    | 10       | 10     |
+      | Mediation   | csv    | 10       | 10     |
+      | Crime lower | csv    | 10       | 10      |
 
   Scenario Outline: Should not be able to export when failed submission for <AreaOfLaw>
     Given I generate "<AreaOfLaw>" "csv" file with the following claims
