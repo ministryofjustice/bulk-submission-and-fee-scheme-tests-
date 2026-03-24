@@ -514,14 +514,6 @@ Then('I should see a message saying {string}', async function (this: CustomWorld
   await searchPage.verifyNoSubmissionsMessage();
 });
 
-
-Then('I open an existing submission {string}', async function (this: CustomWorld, id: string) {
-  await this.page!.goto(
-      `https://uat-submit-a-bulk-claim-laa-submit-a-bulk-claim-uat.apps.live.cloud-platform.service.justice.gov.uk/view-submission-detail?submissionId=${id}&page=0&messagesPage=0&navTab=CLAIM_DETAILS`,
-      {waitUntil: 'domcontentloaded', timeout: 60000}
-  );
-});
-
 Given('I choose a submission period with no submissions', async function (this: CustomWorld) {
 
   const dbAvailable = await dataSourceManager.ensureInitialized();
