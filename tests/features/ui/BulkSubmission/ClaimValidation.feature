@@ -256,7 +256,7 @@ Feature: Display message checks
       | DSCC Number must be exactly 10 alphanumeric characters                                                                                     |
       | MAAT ID must be up to 10 alphanumeric characters                                                                                           |
       | Scheme ID must be exactly 4 alphanumeric characters                                                                                        |
-      | Mediation Sessions count must be less than 100                                                                                          |
+      | Mediation Sessions Count must be less than 100                                                                                          |
       | Mediation Time Minutes must be 99999 or less                                                                                                |
       | Outreach Location must be exactly 3 alphanumeric characters                                                                                |
       | Referral Source must be a valid 2-digit code (02-11)                                                                                       |
