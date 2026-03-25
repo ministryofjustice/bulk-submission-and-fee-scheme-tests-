@@ -1,15 +1,29 @@
 name: Run E2E Tests via Docker Compose
 
-on:
-  push:
-    branches: [ feature/test-compose ]
+#  push:
+#    branches: [ feature/test-compose ]
 
+on:
   workflow_dispatch:
     inputs:
       test_annotation:
         description: 'Test annotation to run'
+        type: string
         required: false
-        default: '@stable'
+        default: '@accessibility'
+      sabc_image_tag:
+        description: 'SaBC image tag to use instead of UAT'
+        type: string
+        required: false
+      claims_api_image_tag:
+        description: 'Claims API image tag to use instead of UAT'
+        type: string
+        required: false
+      claims_events_image_tag:
+        description: 'Claims Events image tag to use instead of UAT'
+        type: string
+        required: false
+
 
 
 permissions:
@@ -20,9 +34,9 @@ jobs:
   get-app-versions:
     runs-on: ubuntu-latest
     outputs:
-      sabc_image_tag: ${{ steps.sabc.outputs.image_tag }}
-      claims_events_image_tag: ${{ steps.claims_events.outputs.image_tag }}
-      claims_api_image_tag: ${{ steps.claims_api.outputs.image_tag }}
+      sabc_image_tag: ${{ inputs.sabc_image_tag || steps.sabc.outputs.image_tag }}
+      claims_events_image_tag: ${{ inputs.claims_events_image_tag || steps.claims_events.outputs.image_tag }}
+      claims_api_image_tag: ${{ inputs.claims_api_image_tag || steps.claims_api.outputs.image_tag }}
       fsp_api_image_tag: ${{ steps.fsp_api.outputs.image_tag }}
     # TODO: Switch environment to UAT after copying the secrets to the UAT environment
     environment: uat
@@ -110,16 +124,36 @@ jobs:
           namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
           friendly_name: Data Claims Events
 
-      - name: Publish UAT deployment summary
+
+      - name: Publish test image versions summary
         run: |
           {
-            echo "## UAT deployment versions"
+            echo "## Versions testing against deployment versions"
             echo ""
             echo "| Service | Context | Image tag | Release time | Status |"
             echo "| --- | --- | --- | --- | --- |"
-            echo "| Submit a Bulk Claim | ${{ steps.sabc.outputs.context }} | ${{ steps.sabc.outputs.image_tag }} | ${{ steps.sabc.outputs.release_time }} | ${{ steps.sabc.outputs.status }} |"
-            echo "| Data Claims Events | ${{ steps.claims_events.outputs.context }} | ${{ steps.claims_events.outputs.image_tag }} | ${{ steps.claims_events.outputs.release_time }} | ${{ steps.claims_events.outputs.status }} |"
-            echo "| Data Claims API | ${{ steps.claims_api.outputs.context }} | ${{ steps.claims_api.outputs.image_tag }} | ${{ steps.claims_api.outputs.release_time }} | ${{ steps.claims_api.outputs.status }} |"
+
+            SABC_TAG="${{ steps.sabc.outputs.image_tag }}"
+            SABC_OVERRIDE=""
+            if [ -n "${{ inputs.sabc_image_tag }}" ]; then
+              SABC_OVERRIDE=" (overridden: ${{ inputs.sabc_image_tag }})"
+            fi
+            echo "| Submit a Bulk Claim | ${{ steps.sabc.outputs.context }} | ${SABC_TAG}${SABC_OVERRIDE} | ${{ steps.sabc.outputs.release_time }} | ${{ steps.sabc.outputs.status }} |"
+
+            EVENTS_TAG="${{ steps.claims_events.outputs.image_tag }}"
+            EVENTS_OVERRIDE=""
+            if [ -n "${{ inputs.claims_events_image_tag }}" ]; then
+              EVENTS_OVERRIDE=" (overridden: ${{ inputs.claims_events_image_tag }})"
+            fi
+            echo "| Data Claims Events | ${{ steps.claims_events.outputs.context }} | ${EVENTS_TAG}${EVENTS_OVERRIDE} | ${{ steps.claims_events.outputs.release_time }} | ${{ steps.claims_events.outputs.status }} |"
+
+            API_TAG="${{ steps.claims_api.outputs.image_tag }}"
+            API_OVERRIDE=""
+            if [ -n "${{ inputs.claims_api_image_tag }}" ]; then
+              API_OVERRIDE=" (overridden: ${{ inputs.claims_api_image_tag }})"
+            fi
+            echo "| Data Claims API | ${{ steps.claims_api.outputs.context }} | ${API_TAG}${API_OVERRIDE} | ${{ steps.claims_api.outputs.release_time }} | ${{ steps.claims_api.outputs.status }} |"
+
             echo "| FSP API | ${{ steps.fsp_api.outputs.context }} | ${{ steps.fsp_api.outputs.image_tag }} | ${{ steps.fsp_api.outputs.release_time }} | ${{ steps.fsp_api.outputs.status }} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -152,8 +186,24 @@ jobs:
           node-version: 24
           cache: npm
 
+      - name: Get Playwright version
+        id: pw
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').devDependencies.playwright || require('./package.json').dependencies.playwright")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.pw.outputs.version }}
+
       - name: Install dependencies
-        run: npm ci; npx playwright install
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
 
       - name: Pull SABC image
         uses: ./.github/actions/pull-ecr-image
@@ -162,16 +212,15 @@ jobs:
           aws-region: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
           registry-account: ${{ secrets.ECR_ACCOUNT }}
           repository: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}
-          #image-tag: ${{ needs.get-app-versions.outputs.sabc_image_tag }}
-          image-tag: submit-a-bulk-claim-1.0.141-SNAPSHOT-d21324e
+          image-tag: ${{ needs.get-app-versions.outputs.sabc_image_tag }}
 
       - name: Pull OIDC image
         uses: ./.github/actions/pull-ecr-image
         with:
-          role-to-assume: ${{ secrets.LAA_SUBMIT_A_BULK_CLAIM_ECR_ROLE_TO_ASSUME }}
-          aws-region: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
+          role-to-assume: ${{ secrets.LAA_OIDC_MOCK_SERVER_ECR_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.LAA_OIDC_MOCK_SERVER_ECR_REGION }}
           registry-account: ${{ secrets.ECR_ACCOUNT }}
-          repository: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}
+          repository: ${{ vars.LAA_OIDC_MOCK_SERVER_ECR_REPOSITORY }}
           image-tag: oidc-mock-latest
 
       - name: Pull Event Service image
@@ -192,7 +241,7 @@ jobs:
           repository: ${{ vars.LAA_DATA_CLAIMS_API_ECR_REPOSITORY }}
           image-tag: ${{ needs.get-app-versions.outputs.claims_api_image_tag }}
 
-      - name: Authenticate to Kubernetes Cluster
+      - name: Authenticate to FSP Kube Cluster
         uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
         with:
           kube-cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
@@ -202,16 +251,16 @@ jobs:
           kube-sa: deploy-user
 
       - name: Port forward to FPS-API pod
-        uses: ./.github/actions/port-forward
+        uses: ./.github/actions/port-forward-service
         with:
           kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
-          pod_selector: app.kubernetes.io/name=laa-fee-scheme-api
+          service_name: 'laa-fee-scheme-api-service'
           local_port: "8095"
           remote_port: "8085"
           pid_env_var: PORT_FORWARD_PID
           wait_label: fsp-api
 
-      - name: Authenticate to the SaBC EKS cluster
+      - name: Authenticate to the SaBC Kube Cluster
         uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
         with:
           kube-cert: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
@@ -221,10 +270,10 @@ jobs:
           kube-sa: deploy-user
 
       - name: Port forward to PDA-API pod from SaBC Namespace
-        uses: ./.github/actions/port-forward
+        uses: ./.github/actions/port-forward-service
         with:
           kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
-          pod_selector: app=uat-e2e-testing-pda-proxy
+          service_name: 'uat-e2e-testing-pda-proxy'
           local_port: "8186"
           remote_port: "8080"
           pid_env_var: PORT_FORWARD_PID
@@ -279,28 +328,28 @@ jobs:
       - name: Run services
         shell: bash
         run: |
-          docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml up sabc-ui  event-service claims-api -d
           set -euo pipefail
+          docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml up sabc-ui event-service claims-api -d --wait
         env:
           ECR_ACCOUNT: ${{ secrets.ECR_ACCOUNT }}
           LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}
-          LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY }}
           LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
+          LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY }}
           LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REGION: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REGION }}
           LAA_DATA_CLAIMS_API_ECR_REGION: ${{ vars.LAA_DATA_CLAIMS_API_ECR_REGION }}
           LAA_DATA_CLAIMS_API_ECR_REPOSITORY: ${{ vars.LAA_DATA_CLAIMS_API_ECR_REPOSITORY }}
-          SABC_TAG: submit-a-bulk-claim-1.0.141-SNAPSHOT-d21324e
-          #SABC_TAG: ${{ needs.get-app-versions.outputs.sabc_image_tag }}
+          LAA_OIDC_MOCK_SERVER_ECR_REGION: ${{ vars.LAA_OIDC_MOCK_SERVER_ECR_REGION }}
+          LAA_OIDC_MOCK_SERVER_ECR_REPOSITORY: ${{ vars.LAA_OIDC_MOCK_SERVER_ECR_REPOSITORY }}
+          SABC_TAG: ${{ needs.get-app-versions.outputs.sabc_image_tag }}
           EVENT_SERVICE_TAG: ${{ needs.get-app-versions.outputs.claims_events_image_tag }}
           CLAIMS_API_TAG: ${{ needs.get-app-versions.outputs.claims_api_image_tag }}
           OIDC_TAG: oidc-mock-latest
-
 
       - name: Wait for sabc-ui health
         shell: bash
         run: |
           set -euo pipefail
-          
+
           for i in {1..36}; do
           if curl -fsS http://127.0.0.1:8181/actuator/health | grep -q '"status":"UP"'; then
             echo "Healthy"
@@ -308,7 +357,7 @@ jobs:
           fi
             sleep 5
           done
-          
+
           docker logs --tail 200 submit-a-bulk-claim-app
           exit 
 
@@ -316,7 +365,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          
+
           for i in {1..36}; do
           if curl -fsS http://127.0.0.1:8183/actuator/health | grep -q '"status":"UP"'; then
             echo "Healthy"
@@ -324,7 +373,7 @@ jobs:
           fi
             sleep 5
           done
-          
+
           docker logs --tail 200 data-claims-api-app
           exit 
 
@@ -362,25 +411,6 @@ jobs:
           echo "Schema 'claims' not found"
           exit 1
 
-      - name: Wait for localstack health
-        shell: bash
-        run: |
-          set -euo pipefail
-          
-          echo "Waiting for localstack SQS queue creation..."
-          for i in {1..60}; do
-            if docker logs event-service-localstack 2>&1 | grep -q "AWS sqs.CreateQueue => 200"; then
-              echo "SQS queue created successfully"
-              exit 0
-            fi
-            echo "Attempt $i: SQS queue not ready, waiting..."
-            sleep 2
-          done
-
-          echo "Timeout waiting for SQS queue creation"
-          docker logs --tail 100 event-service-localstack
-          exit 1
-
       - name: Curl multiple endpoints (DEBUGGING)
         shell: bash
         run: |
@@ -399,22 +429,11 @@ jobs:
           curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://oidc:9000
           
           echo "=== FSP (PF) ==="
-          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://127.0.0.1:8095/v3/api-docs
-          
-          echo "=== PDA (PF) ==="
-          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://127.0.0.1:8186/v3/api-docs
-          
-          
-          exit 0
+          curl -sS -o /dev/null -w '\nHTTP_STATUS:%{http_code}\n' http://127.0.0.1:8095/v3/api-docs
 
-      - name: Print PIDs on port 8086 (DEBUGGING)
-        shell: bash
-        run: |
-          set +e
-          echo "=== PIDs using port 8086 ==="
-          sudo lsof -i :8186 -t || echo "No processes found on port 8086"
-          sudo lsof -i :8186 || echo "Detailed lsof failed"
-          sudo netstat -tlnp | grep :8186 || echo "No netstat entries for port 8086"
+          echo "=== PDA (PF) ==="
+          curl -sS -o /dev/null -w '\nHTTP_STATUS:%{http_code}\n' http://127.0.0.1:8186/v3/api-docs
+          
           exit 0
 
       - name: Login
@@ -423,27 +442,28 @@ jobs:
 
       - name: Run tests
         shell: bash
-        run: npm run test -- --tags "${{ inputs.test_annotation || '@stable'}}"  --parallel 2 --retry 1
+        run: npm run test -- --tags "${{ inputs.test_annotation || '@accessibility'}}"  --parallel 4 --retry 1
 
-      - name: Logs for OIDC
-        if: failure()
-        run: |
-          docker logs --tail 500 oidc
 
-      - name: Logs for SaBC
-        if: failure()
+      - name: Collect Docker logs
+        if: always()
         run: |
-          docker logs --tail 500 submit-a-bulk-claim-app
+          mkdir -p logs
+          docker logs oidc > logs/oidc.log 2>&1 || true
+          docker logs submit-a-bulk-claim-app > logs/sabc.log 2>&1 || true
+          docker logs data-claims-api-app > logs/claims-api.log 2>&1 || true
+          docker logs data-claims-event-service-app > logs/claims-event-service.log 2>&1 || true
+          docker logs local-postgres > logs/postgres.log 2>&1 || true
+          docker logs event-service-localstack > logs/localstack.log 2>&1 || true
+          docker logs redis > logs/redis.log 2>&1 || true
 
-      - name: Logs for Claims API
-        if: failure()
-        run: |
-          docker logs --tail 1000 data-claims-api-app
-
-      - name: Logs for Claims Event Service
-        if: failure()
-        run: |
-          docker logs --tail 1000 data-claims-event-service-app
+      - name: Upload Docker logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-logs
+          path: logs
+          if-no-files-found: warn
 
       - name: Teardown docker containers
         if: always()
@@ -461,5 +481,3 @@ jobs:
           name: test-reports
           path: reports
           if-no-files-found: warn
-
-

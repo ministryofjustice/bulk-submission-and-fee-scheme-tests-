@@ -75,6 +75,7 @@ Feature: View submission details page (VS)
       | Legal help  | LH   |
       | Crime lower | CL   |
 
+    @jamie
   Scenario Outline: VS3-<abbr>-EMP-CW accessibility checks
     When I generate "<areaOfLaw>" "csv" file with "11" outcomes
     And I override the generated file field "PROFIT_COST" with value "10000"
