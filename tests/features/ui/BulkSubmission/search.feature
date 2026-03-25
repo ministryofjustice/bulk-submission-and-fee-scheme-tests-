@@ -51,7 +51,7 @@ Feature: Bulk Submission Search
     When I deselect all office accounts
     And I click search
     Then I should see the following validation messages:
-      | You must select an office account |
+      | Select an office code |
 
   Scenario: Search with a past date range that returns no submissions
     Given I choose a submission period with no submissions
