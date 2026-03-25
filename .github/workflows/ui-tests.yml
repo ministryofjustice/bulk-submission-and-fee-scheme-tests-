@@ -158,7 +158,7 @@ jobs:
         uses: ./.github/actions/port-forward
         with:
           kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
-          pod_selector: run=port-forward-pod
+          pod_selector: run=port-forward
           local_port: '5432'
           pid_env_var: PORT_FORWARD_PID_DSTEW_DB
           wait_label: dstew-db

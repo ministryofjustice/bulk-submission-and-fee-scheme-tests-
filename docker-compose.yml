@@ -23,12 +23,6 @@ services:
       ALLOWED_HOSTS: 127.0.0.1,127.0.0.1:8082,localhost,localhost:8082,127.0.0.1,127.0.0.1:8082
       CANONICAL_BASE_URL: http://127.0.0.1:8082
 
-    healthcheck:
-      test: [ "CMD-SHELL", "wget --spider --quiet http://localhost:8181/actuator/health || exit 1" ]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 30s
     ports:
       - "8082:8082"
       - "8181:8081"
@@ -41,18 +35,19 @@ services:
     profiles:
       - application
     image: ${ECR_ACCOUNT}.dkr.ecr.${LAA_DATA_CLAIMS_API_ECR_REGION}.amazonaws.com/${LAA_DATA_CLAIMS_API_ECR_REPOSITORY}:${CLAIMS_API_TAG}
+    environment:
+      JAVA_TOOL_OPTIONS: -XX:MaxDirectMemorySize=256m
+      JAVA_OPTS: -XX:MaxDirectMemorySize=256m
+      AWS_REGION: us-east-1
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/laa_data_claims_api_dev
+      AWS_ACCESS_KEY_ID: dummy-access-key
+      AWS_SECRET_ACCESS_KEY: dummy-access-key
+      AWS_ENDPOINT_URL: http://localstack:4566
+      AWS_SQS_ENDPOINT: http://localstack:4566
+
     ports:
       - "8080:8080"
       - "8183:8081"
-    environment:
-      - JAVA_TOOL_OPTIONS=-XX:MaxDirectMemorySize=256m
-      - JAVA_OPTS=-XX:MaxDirectMemorySize=256m
-      - AWS_REGION=us-east-1
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/laa_data_claims_api_dev
-      - AWS_ACCESS_KEY_ID=dummy-access-key
-      - AWS_SECRET_ACCESS_KEY=dummy-access-key
-      - AWS_ENDPOINT_URL=http://localstack:4566
-      - AWS_SQS_ENDPOINT=http://localstack:4566
     depends_on:
       - postgres
       - localstack
@@ -65,27 +60,28 @@ services:
     # Using network_mode: host to allow the event service to access port forwarded services. This also means needing
     # to use the host IP address for the event service.
     network_mode: host
+    environment:
+      JAVA_TOOL_OPTIONS: -XX:MaxDirectMemorySize=256m
+      JAVA_OPTS: -XX:MaxDirectMemorySize=256m
+      CLAIMS_API_HOSTNAME: http://127.0.0.1:8080
+      CLAIMS_API_ACCESS_TOKEN: f67f968e-b479-4e61-b66e-f57984931e56
+      BULK_CLAIM_QUEUE_NAME: claims-api-queue
+      PROVIDER_DETAILS_API_HOSTNAME: http://127.0.0.1:8186
+      PROVIDER_DETAILS_API_ACCESS_TOKEN: ${PROVIDER_API_KEY}
+      FEE_SCHEME_PLATFORM_API_URL: http://127.0.0.1:8095
+      FEE_SCHEME_PLATFORM_API_ACCESS_TOKEN: ${FSP_API_TOKEN}
+      SUBMISSION_VALIDATION_MINIMUM_PERIOD: JAN-1600
+      SPRING_CLOUD_AWS_REGION_STATIC: us-east-1
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: dummy-access-key
+      AWS_SECRET_ACCESS_KEY: dummy-access-key
+      AWS_ENDPOINT_URL: http://127.0.0.1:4566
+      SPRING_CLOUD_AWS_SQS_ENDPOINT: http://127.0.0.1:4566
+      SPRING_CLOUD_AWS_CREDENTIALS_ACCESS-KEY: dummy-access-key
+      SPRING_CLOUD_AWS_CREDENTIALS_SECRET-KEY: dummy-access-key
+
     ports:
       - "8182:8081"
-    environment:
-      - JAVA_TOOL_OPTIONS=-XX:MaxDirectMemorySize=256m
-      - JAVA_OPTS=-XX:MaxDirectMemorySize=256m
-      - CLAIMS_API_HOSTNAME=http://127.0.0.1:8080
-      - CLAIMS_API_ACCESS_TOKEN=f67f968e-b479-4e61-b66e-f57984931e56
-      - BULK_CLAIM_QUEUE_NAME=claims-api-queue
-      - PROVIDER_DETAILS_API_HOSTNAME=http://127.0.0.1:8186
-      - PROVIDER_DETAILS_API_ACCESS_TOKEN=${PROVIDER_API_KEY}
-      - FEE_SCHEME_PLATFORM_API_URL=http://127.0.0.1:8095
-      - FEE_SCHEME_PLATFORM_API_ACCESS_TOKEN=${FSP_API_TOKEN}
-      - SUBMISSION_VALIDATION_MINIMUM_PERIOD=JAN-1600
-      - SPRING_CLOUD_AWS_REGION_STATIC=us-east-1
-      - AWS_REGION=us-east-1
-      - AWS_ACCESS_KEY_ID=dummy-access-key
-      - AWS_SECRET_ACCESS_KEY=dummy-access-key
-      - AWS_ENDPOINT_URL=http://127.0.0.1:4566
-      - SPRING_CLOUD_AWS_SQS_ENDPOINT=http://127.0.0.1:4566
-      - SPRING_CLOUD_AWS_CREDENTIALS_ACCESS-KEY=dummy-access-key
-      - SPRING_CLOUD_AWS_CREDENTIALS_SECRET-KEY=dummy-access-key
     depends_on:
       - localstack
 
@@ -113,6 +109,12 @@ services:
       - SERVICES=sqs
       - DEBUG=1
       - AWS_DEFAULT_REGION=us-east-1
+    healthcheck:
+      test: [ "CMD-SHELL", "awslocal sqs list-queues --region us-east-1 | grep -q 'claims-api-queue' || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     volumes:
       - "localstack-data:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
@@ -129,15 +131,9 @@ services:
 
   laa-mock-oidc-service:
     container_name: oidc
-    image: ${ECR_ACCOUNT}.dkr.ecr.${LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION}.amazonaws.com/${LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY}:${OIDC_TAG}
+    image: ${ECR_ACCOUNT}.dkr.ecr.${LAA_OIDC_MOCK_SERVER_ECR_REGION}.amazonaws.com/${LAA_OIDC_MOCK_SERVER_ECR_REPOSITORY}:${OIDC_TAG}
     ports:
       - "9000:9000"
-    healthcheck:
-      test: [ "CMD", "nc", "-z", "oidc", "9000" ] # Checks if the port is open
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
     environment:
       LAA_ACCOUNTS: 0P322F,2Q779P,2Q286D,2Q263D,2Q271M,0E525U,2Q286D,2N199K,1T102C,2P746R,2L847Q
       REDIRECT_BASE_URI: ${REDIRECT_BASE_URI}
