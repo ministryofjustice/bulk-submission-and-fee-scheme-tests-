@@ -37,4 +37,26 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        docker pull "${{ inputs.registry-account }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/${{ inputs.repository }}:${{ inputs.image-tag }}"
+        
+        IMAGE_URI="${{ inputs.registry-account }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/${{ inputs.repository }}:${{ inputs.image-tag }}"
+        MAX_RETRIES=30
+        RETRY_DELAY=20
+      
+        attempt=0
+        while (( attempt < MAX_RETRIES )); do
+          ((attempt++))
+          echo "Attempting to pull image (attempt ${attempt}/${MAX_RETRIES}): ${IMAGE_URI}"
+          
+          if docker pull "$IMAGE_URI"; then
+            echo "Successfully pulled image"
+            exit 0
+          fi
+          
+          if (( attempt < MAX_RETRIES )); then
+            echo "Pull failed, waiting ${RETRY_DELAY} seconds before retry..." >&2
+            sleep "$RETRY_DELAY"
+          fi
+        done
+      
+        echo "Failed to pull image after ${MAX_RETRIES} attempts" >&2
+        exit 1
