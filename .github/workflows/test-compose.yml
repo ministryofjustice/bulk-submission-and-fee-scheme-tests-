@@ -1,5 +1,5 @@
 name: Run E2E Tests via Docker Compose
-run-name: Run ${{ inputs.test_annotation }} E2E tests by ${{ github.actor }}
+run-name: Run ${{ inputs.test_annotation }} E2E tests
 
 #  push:
 #    branches: [ feature/test-compose ]
