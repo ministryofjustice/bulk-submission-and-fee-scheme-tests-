@@ -1,5 +1,5 @@
 name: Run E2E Tests via Docker Compose
-run-name: Run ${{ inputs.test_annotation }} E2E tests
+run-name: Run ${{ inputs.test_annotation }} E2E tests - ${{ inputs.run_id }}
 
 #  push:
 #    branches: [ feature/test-compose ]
@@ -12,6 +12,10 @@ on:
         type: string
         required: false
         default: '@accessibility'
+      run_id:
+        description: 'The Identifier to give the run (Can be anything)'
+        type: string
+        required: false
       sabc_image_tag:
         description: 'SaBC image tag to use instead of UAT'
         type: string
