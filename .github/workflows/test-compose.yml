@@ -250,7 +250,7 @@ jobs:
           kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
           kube-sa: deploy-user
 
-      - name: Port forward to FPS-API pod
+      - name: Port forward to FPS-API Service
         uses: ./.github/actions/port-forward-service
         with:
           kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
@@ -269,7 +269,7 @@ jobs:
           kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
           kube-sa: deploy-user
 
-      - name: Port forward to PDA-API pod from SaBC Namespace
+      - name: Port forward to PDA-API Service SaBC Namespace
         uses: ./.github/actions/port-forward-service
         with:
           kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
