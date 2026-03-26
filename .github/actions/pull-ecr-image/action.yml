@@ -44,7 +44,7 @@ runs:
       
         attempt=0
         while (( attempt < MAX_RETRIES )); do
-          ((attempt++))
+          ((++attempt))
           echo "Attempting to pull image (attempt ${attempt}/${MAX_RETRIES}): ${IMAGE_URI}"
           
           if docker pull "$IMAGE_URI"; then
