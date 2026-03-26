@@ -3,7 +3,7 @@ Feature: Sort submission via UI
 
   Background:
     Given I start from a clean logged-in state
-    Given I am on the bulk import page
+    And I am on the bulk import page
 
 
   @sorting
