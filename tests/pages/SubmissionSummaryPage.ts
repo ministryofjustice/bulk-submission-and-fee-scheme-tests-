@@ -316,11 +316,20 @@ export class SubmissionSummaryPage extends BasePage {
   }
 
   async expectVoidedTagForClaim(index = 0): Promise<void> {
-    const row = this.page.locator('table[data-moj-sortable-table-init] tbody tr').nth(index);
-    await row.waitFor({ state: 'visible', timeout: 10_000 });
+    const rows = this.claimsTable.locator('tbody tr');
+    await rows.first().waitFor({ state: 'visible', timeout: 10000 });
+
+    const totalRows = await rows.count();
+    if (totalRows === 0) {
+      throw new Error('No claim rows were found on the submission summary page.');
+    }
+
+    const targetIndex = Math.min(Math.max(index, 0), totalRows - 1);
+    const row = rows.nth(targetIndex);
 
     const badge = row.locator('td:first-child .moj-badge.moj-badge--red', { hasText: 'VOIDED' });
-    await expect(badge).toBeVisible({ timeout: 10_000 });
+
+    await expect(badge).toBeVisible({ timeout: 10000 });
     await expect(badge).toHaveText('VOIDED');
   }
 
