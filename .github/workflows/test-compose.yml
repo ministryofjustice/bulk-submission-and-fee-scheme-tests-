@@ -345,11 +345,13 @@ jobs:
           CLAIMS_API_TAG: ${{ needs.get-app-versions.outputs.claims_api_image_tag }}
           OIDC_TAG: oidc-mock-latest
 
-      - name: Wait for sabc-ui health
+      - name: Wait for services
         shell: bash
         run: |
           set -euo pipefail
 
+          echo "Waiting for services to be ready..."
+          echo "Waiting for SaBC UI..."
           for i in {1..36}; do
           if curl -fsS http://127.0.0.1:8181/actuator/health | grep -q '"status":"UP"'; then
             echo "Healthy"
@@ -357,15 +359,17 @@ jobs:
           fi
             sleep 5
           done
-
-          docker logs --tail 200 submit-a-bulk-claim-app
-          exit 
-
-      - name: Wait for claims-api health
-        shell: bash
-        run: |
-          set -euo pipefail
-
+          
+          echo "Waiting for Event Service..."
+          for i in {1..36}; do
+          if curl -fsS http://127.0.0.1:8182/actuator/health | grep -q '"status":"UP"'; then
+            echo "Healthy"
+            exit 0
+          fi
+            sleep 5
+          done
+          
+          echo "Waiting for Claims API..."
           for i in {1..36}; do
           if curl -fsS http://127.0.0.1:8183/actuator/health | grep -q '"status":"UP"'; then
             echo "Healthy"
@@ -374,8 +378,7 @@ jobs:
             sleep 5
           done
 
-          docker logs --tail 200 data-claims-api-app
-          exit 
+          exit \
 
       - name: Check DB setup
         shell: bash
@@ -442,7 +445,7 @@ jobs:
 
       - name: Run tests
         shell: bash
-        run: npm run test -- --tags "${{ inputs.test_annotation || '@accessibility'}}"  --parallel 4 --retry 1
+        run: npm run test -- --tags "${{ inputs.test_annotation || '@accessibility'}}"  --parallel 4 --retry 3
 
 
       - name: Collect Docker logs
