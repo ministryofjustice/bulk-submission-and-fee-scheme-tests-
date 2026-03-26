@@ -1,4 +1,5 @@
 name: Run E2E Tests via Docker Compose
+run-name: Run ${{ inputs.test_annotation }} E2E tests by ${{ github.actor }}
 
 #  push:
 #    branches: [ feature/test-compose ]
@@ -38,7 +39,6 @@ jobs:
       claims_events_image_tag: ${{ inputs.claims_events_image_tag || steps.claims_events.outputs.image_tag }}
       claims_api_image_tag: ${{ inputs.claims_api_image_tag || steps.claims_api.outputs.image_tag }}
       fsp_api_image_tag: ${{ steps.fsp_api.outputs.image_tag }}
-    # TODO: Switch environment to UAT after copying the secrets to the UAT environment
     environment: uat
     permissions:
       id-token: write
