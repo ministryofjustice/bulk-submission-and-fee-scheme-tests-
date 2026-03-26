@@ -41,6 +41,7 @@ next-env.d.ts
 
 # local env
 .env
+.env_uat
 
 generated_fixed_crime_police
 generated_submissions_crime

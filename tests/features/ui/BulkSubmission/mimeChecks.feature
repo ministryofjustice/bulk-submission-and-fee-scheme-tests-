@@ -21,7 +21,7 @@ Feature: MIME validation checks
   Scenario Outline: Reject submission when <format> and has Mime Type <mimeType>
     Given I generate "Legal help" "<format>" file with "1" outcomes
     When I upload the generated file with mime type "<mimeType>"
-    Then the user sees an error message "File content does not match the file extension"
+    Then the user sees an error message "The selected file must be a valid CSV, XML or TXT file"
     Examples:
       | format | mimeType        |
       | txt    | application/xml |

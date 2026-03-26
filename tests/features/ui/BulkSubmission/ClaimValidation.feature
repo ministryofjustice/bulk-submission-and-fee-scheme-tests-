@@ -94,16 +94,16 @@ Feature: Display message checks
 
     Examples:
       | fieldName               | value | errorMessage                                                                                    |
-      | vatApplicable           | A     | Invalid value 'A' supplied for field 'VAT Applicable'. Valid values are 'Y' or 'N'              |
-      | postalApplication       | A     | Invalid value 'A' supplied for field 'Postal Application Accepted'. Valid values are 'Y' or 'N' |
-      | nrmAdvice               | A     | Invalid value 'A' supplied for field 'NRM Advice'. Valid values are 'Y' or 'N'                  |
-      | legacyCase              | A     | Invalid value 'A' supplied for field 'Legacy Case'. Valid values are 'Y' or 'N'                 |
-      | londonNonLondonRate     | A     | Invalid value 'A' supplied for field 'London Rate'. Valid values are 'Y' or 'N'                 |
-      | additionalTravelPayment | A     | Invalid value 'A' supplied for field 'Additional Travel Payment'. Valid values are 'Y' or 'N'   |
-      | eligibleClientIndicator | A     | Invalid value 'A' supplied for field 'Eligible Client'. Valid values are 'Y' or 'N'             |
-      | ircSurgery              | A     | Invalid value 'A' supplied for field 'IRC Surgery'. Valid values are 'Y' or 'N'                 |
-      | substantiveHearing      | A     | Invalid value 'A' supplied for field 'Substantive Hearing'. Valid values are 'Y' or 'N'         |
-      | toleranceIndicator      | A     | Invalid value 'A' supplied for field 'Tolerance Applicable'. Valid values are 'Y' or 'N'        |
+      | vatApplicable           | A     | VAT Applicable must only include Y or N              |
+      | postalApplication       | A     | Postal Application Accepted must only include Y or N |
+      | nrmAdvice               | A     | NRM Advice must only include Y or N                  |
+      | legacyCase              | A     | Legacy Case must only include Y or N                 |
+      | londonNonLondonRate     | A     | London Rate must only include Y or N                 |
+      | additionalTravelPayment | A     | Additional Travel Payment must only include Y or N   |
+      | eligibleClientIndicator | A     | Eligible Client must only include Y or N             |
+      | ircSurgery              | A     | IRC Surgery must only include Y or N                 |
+      | substantiveHearing      | A     | Substantive Hearing must only include Y or N         |
+      | toleranceIndicator      | A     | Tolerance Applicable must only include Y or N        |
       | caseStartDate           | abc   | Case Start Date must be a valid date in the format DD/MM/YYYY                                   |
       | workConcludedDate       | abc   | Work Concluded Date must be a valid date in the format DD/MM/YYYY                               |
       | clientDateOfBirth       | abc   | Client Date of Birth must be a valid date in the format DD/MM/YYYY                              |
@@ -134,25 +134,25 @@ Feature: Display message checks
       | Stage Reached Code must be exactly 2 alphanumeric characters for Legal Help claims                                                         |
       | Standard Fee Category Code must be valid                                                                                                   |
       | Outcome Code must be exactly 2 characters and contain only letters, numbers, and hyphens                                                   |
-      | Designated Accredited Representative Code must be valid                                                                                    |
+      | Designated Accredited Representative Code must be a number from 1 to 5                                                                     |
       | Mental Health Tribunal Reference must be in format AA/NNNN/NNNNN (English) or AANNNNN (Welsh)                                              |
       | Exemption Criteria Satisfied must be 2 uppercase letters followed by 3 digits                                                              |
       | Exceptional Case Funding Reference must be 7 digits followed by 2 uppercase letters                                                        |
-      | Advice Time must be in minutes                                                                                                             |
-      | Travel Time must be in minutes                                                                                                             |
-      | Waiting Time must be in minutes                                                                                                            |
-      | Net Profit Costs Amount must be a valid monetary value                                                                                     |
+      | Advice Time must be a number                                                                                                             |
+      | Travel Time must be a number                                                                                                             |
+      | Waiting Time must be a number                                                                                                            |
+      | Net Profit Costs Amount must be a number with no more than 2 decimal places                                                                                     |
       | Net Disbursement Amount must be a valid monetary value                                                                                     |
       | Net Counsel Costs Amount must be a valid monetary value                                                                                    |
       | Disbursements VAT Amount must be a valid monetary value                                                                                    |
       | Travel Waiting Costs Amount must be a valid monetary value                                                                                 |
       | Prior Authority Reference must be exactly 7 alphanumeric characters                                                                        |
-      | Adjourned Hearing Fee Amount must be between 0 and 9                                                                                       |
+      | Adjourned Hearing Fee Amount must be a number from 0 to 9                                                                                       |
       | Costs Damages Recovered Amount must be a valid monetary value                                                                              |
       | Meetings Attended Code must be valid                                                                                                       |
       | JR Form Filling Amount must be a valid monetary value                                                                                      |
       | Advice Type Code must be valid                                                                                                             |
-      | Medical Reports Count must be between 0 and 10                                                                                             |
+      | Medical Reports Count must be 20 or less                                                                                             |
       | Surgery Clients Count must be between 1 and 20                                                                                             |
       | Surgery Matters Count must be between 1 and 20                                                                                             |
       | CMRH Oral Count must be between 0 and 9                                                                                                    |
@@ -224,19 +224,19 @@ Feature: Display message checks
       | clientDateOfBirth       | abc   | Client Date of Birth must be a valid date in the format DD/MM/YYYY                              |
       | transferDate            | abc   | Transfer Date must be a valid date in the format DD/MM/YYYY                                     |
       | surgeryDate             | abc   | Surgery Date must be a valid date in the format DD/MM/YYYY                                      |
-      | vatApplicable           | A     | Invalid value 'A' supplied for field 'VAT Applicable'. Valid values are 'Y' or 'N'              |
-      | postalApplication       | A     | Invalid value 'A' supplied for field 'Postal Application Accepted'. Valid values are 'Y' or 'N' |
-      | nrmAdvice               | A     | Invalid value 'A' supplied for field 'NRM Advice'. Valid values are 'Y' or 'N'                  |
-      | legacyCase              | A     | Invalid value 'A' supplied for field 'Legacy Case'. Valid values are 'Y' or 'N'                 |
-      | londonNonLondonRate     | A     | Invalid value 'A' supplied for field 'London Rate'. Valid values are 'Y' or 'N'                 |
-      | additionalTravelPayment | A     | Invalid value 'A' supplied for field 'Additional Travel Payment'. Valid values are 'Y' or 'N'   |
-      | eligibleClientIndicator | A     | Invalid value 'A' supplied for field 'Eligible Client'. Valid values are 'Y' or 'N'             |
-      | ircSurgery              | A     | Invalid value 'A' supplied for field 'IRC Surgery'. Valid values are 'Y' or 'N'                 |
-      | substantiveHearing      | A     | Invalid value 'A' supplied for field 'Substantive Hearing'. Valid values are 'Y' or 'N'         |
-      | toleranceIndicator      | A     | Invalid value 'A' supplied for field 'Tolerance Applicable'. Valid values are 'Y' or 'N'        |
-      | dutySolicitor           | A     | Invalid value 'A' supplied for field 'Duty Solicitor'. Valid values are 'Y' or 'N'              |
-      | youthCourt              | A     | Invalid value 'A' supplied for field 'Youth Court'. Valid values are 'Y' or 'N'                 |
-      | clientLegallyAided      | A     | Invalid value 'A' supplied for field 'Is Legally Aided'. Valid values are 'Y' or 'N'            |
+      | vatApplicable           | A     | VAT Applicable must only include Y or N              |
+      | postalApplication       | A     | Postal Application Accepted must only include Y or N |
+      | nrmAdvice               | A     | NRM Advice must only include Y or N                  |
+      | legacyCase              | A     | Legacy Case must only include Y or N                 |
+      | londonNonLondonRate     | A     | London Rate must only include Y or N                 |
+      | additionalTravelPayment | A     | Additional Travel Payment must only include Y or N   |
+      | eligibleClientIndicator | A     | Eligible Client must only include Y or N             |
+      | ircSurgery              | A     | IRC Surgery must only include Y or N                 |
+      | substantiveHearing      | A     | Substantive Hearing must only include Y or N         |
+      | toleranceIndicator      | A     | Tolerance Applicable must only include Y or N        |
+      | dutySolicitor           | A     | Duty Solicitor must only include Y or N              |
+      | youthCourt              | A     | Youth Court must only include Y or N                 |
+      | clientLegallyAided      | A     | Is Legally Aided must only include Y or N            |
 
   Scenario: Crime Lower: Should check display messages are shown for format based errors (regex)
     Given I upload "tests/data/invalid/crime_lower_regex_errors.csv"
@@ -250,14 +250,14 @@ Feature: Display message checks
       | Procurement Area Code must be 2 uppercase letters followed by 5 digits                                                                     |
       | Access Point Code must be in the format AP##### (AP followed by 5 digits)                                                                  |
       | Delivery Location must be 2 uppercase letters followed by 5 digits                                                                         |
-      | Suspects Defendants Count must be between 0 and 99                                                                                         |
+      | Suspects Defendants Count must be less than 100                                                                                         |
       | Police Station Court Attendances Count must be between 0 and 99                                                                            |
       | Police Station Court Prison ID must be 1–6 alphanumeric characters and contain at least one letter                                         |
       | DSCC Number must be exactly 10 alphanumeric characters                                                                                     |
       | MAAT ID must be up to 10 alphanumeric characters                                                                                           |
       | Scheme ID must be exactly 4 alphanumeric characters                                                                                        |
-      | Mediation Sessions Count must be between 1 and 99                                                                                          |
-      | Mediation Time Minutes must be between 0 and 99999                                                                                         |
+      | Mediation Sessions Count must be less than 100                                                                                          |
+      | Mediation Time Minutes must be 99999 or less                                                                                                |
       | Outreach Location must be exactly 3 alphanumeric characters                                                                                |
       | Referral Source must be a valid 2-digit code (02-11)                                                                                       |
       | Client Forename must contain only letters, numbers, spaces, hyphens, apostrophes, ampersands, and be a maximum of 30 characters            |
@@ -276,25 +276,25 @@ Feature: Display message checks
       | Stage Reached Code must be exactly 4 uppercase letters for Crime Lower claims                                                              |
       | Standard Fee Category Code must be valid                                                                                                   |
       | Outcome Code must be a valid crime lower outcome code or left blank                                                                        |
-      | Designated Accredited Representative Code must be valid                                                                                    |
+      | Designated Accredited Representative Code must be a number from 1 to 5                                                                     |
       | Mental Health Tribunal Reference must be in format AA/NNNN/NNNNN (English) or AANNNNN (Welsh)                                              |
       | Exemption Criteria Satisfied must be 2 uppercase letters followed by 3 digits                                                              |
       | Exceptional Case Funding Reference must be 7 digits followed by 2 uppercase letters                                                        |
-      | Advice Time must be in minutes                                                                                                             |
-      | Travel Time must be in minutes                                                                                                             |
-      | Waiting Time must be in minutes                                                                                                            |
-      | Net Profit Costs Amount must be a valid monetary value                                                                                     |
+      | Advice Time must be a number                                                                                                             |
+      | Travel Time must be a number                                                                                                             |
+      | Waiting Time must be a number                                                                                                            |
+      | Net Profit Costs Amount must be a number with no more than 2 decimal places                                                                                     |
       | Net Disbursement Amount must be a valid monetary value                                                                                     |
       | Net Counsel Costs Amount must be a valid monetary value                                                                                    |
       | Disbursements VAT Amount must be a valid monetary value                                                                                    |
       | Net Waiting Costs Amount must be a valid monetary value                                                                                    |
       | Prior Authority Reference must be exactly 7 alphanumeric characters                                                                        |
-      | Adjourned Hearing Fee Amount must be between 0 and 9                                                                                       |
+      | Adjourned Hearing Fee Amount must be a number from 0 to 9                                                                                       |
       | Meetings Attended Code must be valid                                                                                                       |
       | Detention Travel Waiting Costs Amount must be a valid monetary value                                                                       |
       | JR Form Filling Amount must be a valid monetary value                                                                                      |
       | Advice Type Code must be valid                                                                                                             |
-      | Medical Reports Count must be between 0 and 10                                                                                             |
+      | Medical Reports Count must be 20 or less                                                                                             |
       | Surgery Matters Count must be between 1 and 20                                                                                             |
       | CMRH Oral Count must be between 0 and 9                                                                                                    |
       | CMRH Telephone Count must be between 0 and 9                                                                                               |
@@ -374,21 +374,21 @@ Feature: Display message checks
       | workConcludedDate        | abc   | Work Concluded Date must be a valid date in the format DD/MM/YYYY                                        |
       | clientDateOfBirth        | abc   | Client Date of Birth must be a valid date in the format DD/MM/YYYY                                       |
       | client2DateOfBirth       | abc   | Client 2 Date of Birth must be a valid date in the format DD/MM/YYYY                                     |
-      | vatApplicable            | A     | Invalid value 'A' supplied for field 'VAT Applicable'. Valid values are 'Y' or 'N'                       |
-      | postalApplication        | A     | Invalid value 'A' supplied for field 'Postal Application Accepted'. Valid values are 'Y' or 'N'          |
-      | client2PostalApplication | A     | Invalid value 'A' supplied for field 'Client 2 Postal Application Accepted'. Valid values are 'Y' or 'N' |
-      | nrmAdvice                | A     | Invalid value 'A' supplied for field 'NRM Advice'. Valid values are 'Y' or 'N'                           |
-      | legacyCase               | A     | Invalid value 'A' supplied for field 'Legacy Case'. Valid values are 'Y' or 'N'                          |
-      | londonNonLondonRate      | A     | Invalid value 'A' supplied for field 'London Rate'. Valid values are 'Y' or 'N'                          |
-      | additionalTravelPayment  | A     | Invalid value 'A' supplied for field 'Additional Travel Payment'. Valid values are 'Y' or 'N'            |
-      | eligibleClientIndicator  | A     | Invalid value 'A' supplied for field 'Eligible Client'. Valid values are 'Y' or 'N'                      |
-      | ircSurgery               | A     | Invalid value 'A' supplied for field 'IRC Surgery'. Valid values are 'Y' or 'N'                          |
-      | substantiveHearing       | A     | Invalid value 'A' supplied for field 'Substantive Hearing'. Valid values are 'Y' or 'N'                  |
-      | toleranceIndicator       | A     | Invalid value 'A' supplied for field 'Tolerance Applicable'. Valid values are 'Y' or 'N'                 |
-      | dutySolicitor            | A     | Invalid value 'A' supplied for field 'Duty Solicitor'. Valid values are 'Y' or 'N'                       |
-      | youthCourt               | A     | Invalid value 'A' supplied for field 'Youth Court'. Valid values are 'Y' or 'N'                          |
-      | clientLegallyAided       | A     | Invalid value 'A' supplied for field 'Is Legally Aided'. Valid values are 'Y' or 'N'                     |
-      | client2LegallyAided      | A     | Invalid value 'A' supplied for field 'Client 2 Legally Aided'. Valid values are 'Y' or 'N'               |
+      | vatApplicable            | A     | VAT Applicable must only include Y or N                       |
+      | postalApplication        | A     | Postal Application Accepted must only include Y or N          |
+      | client2PostalApplication | A     | Client 2 Postal Application Accepted must only include Y or N |
+      | nrmAdvice                | A     | NRM Advice must only include Y or N                           |
+      | legacyCase               | A     | Legacy Case must only include Y or N                          |
+      | londonNonLondonRate      | A     | London Rate must only include Y or N                          |
+      | additionalTravelPayment  | A     | Additional Travel Payment must only include Y or N            |
+      | eligibleClientIndicator  | A     | Eligible Client must only include Y or N                      |
+      | ircSurgery               | A     | IRC Surgery must only include Y or N                          |
+      | substantiveHearing       | A     | Substantive Hearing must only include Y or N                  |
+      | toleranceIndicator       | A     | Tolerance Applicable must only include Y or N                 |
+      | dutySolicitor            | A     | Duty Solicitor must only include Y or N                       |
+      | youthCourt               | A     | Youth Court must only include Y or N                          |
+      | clientLegallyAided       | A     | Is Legally Aided must only include Y or N                     |
+      | client2LegallyAided      | A     | Client 2 Legally Aided must only include Y or N               |
 
   Scenario: Mediation: Should check display messages are shown for format based errors (regex)
     Given I upload "tests/data/invalid/mediation_regex_errors.csv"
@@ -411,24 +411,24 @@ Feature: Display message checks
       | Case ID must be exactly 3 digits                                                                                                           |
       | Standard Fee Category Code must be valid                                                                                                   |
       | Outcome Code must be a valid mediation outcome code or left blank                                                                          |
-      | Designated Accredited Representative Code must be valid                                                                                    |
+      | Designated Accredited Representative Code must be a number from 1 to 5                                                                     |
       | Mental Health Tribunal Reference must be in format AA/NNNN/NNNNN (English) or AANNNNN (Welsh)                                              |
       | Exemption Criteria Satisfied must be 2 uppercase letters followed by 3 digits                                                              |
       | Exceptional Case Funding Reference must be 7 digits followed by 2 uppercase letters                                                        |
-      | Advice Time must be in minutes                                                                                                             |
-      | Travel Time must be in minutes                                                                                                             |
-      | Waiting Time must be in minutes                                                                                                            |
-      | Net Profit Costs Amount must be a valid monetary value                                                                                     |
+      | Advice Time must be a number                                                                                                             |
+      | Travel Time must be a number                                                                                                             |
+      | Waiting Time must be a number                                                                                                            |
+      | Net Profit Costs Amount must be a number with no more than 2 decimal places                                                                                     |
       | Net Disbursement Amount must be a valid monetary value                                                                                     |
       | Net Counsel Costs Amount must be a valid monetary value                                                                                    |
       | Disbursements VAT Amount must be a valid monetary value                                                                                    |
       | Prior Authority Reference must be exactly 7 alphanumeric characters                                                                        |
-      | Adjourned Hearing Fee Amount must be between 0 and 9                                                                                       |
+      | Adjourned Hearing Fee Amount must be a number from 0 to 9                                                                                       |
       | Meetings Attended Code must be valid                                                                                                       |
       | Detention Travel Waiting Costs Amount must be a valid monetary value                                                                       |
       | JR Form Filling Amount must be a valid monetary value                                                                                      |
       | Advice Type Code must be valid                                                                                                             |
-      | Medical Reports Count must be between 0 and 10                                                                                             |
+      | Medical Reports Count must be 20 or less                                                                                             |
       | Surgery Matters Count must be between 1 and 20                                                                                             |
       | CMRH Oral Count must be between 0 and 9                                                                                                    |
       | CMRH Telephone Count must be between 0 and 9                                                                                               |
