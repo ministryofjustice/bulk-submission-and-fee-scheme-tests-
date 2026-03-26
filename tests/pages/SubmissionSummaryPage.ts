@@ -266,23 +266,19 @@ export class SubmissionSummaryPage extends BasePage {
   }
 
   async openClaimByIndex(index = 0): Promise<void> {
-    const tableScope = this.page.locator('table[data-moj-sortable-table-init] tbody tr');
-    await tableScope.first().waitFor({ state: 'visible', timeout: 10_000 });
+    const rows = this.claimsTable.locator('tbody tr');
+    await rows.first().waitFor({ state: 'visible', timeout: 10000 });
 
-    const viewLinks = this.page.locator(
-        'table[data-moj-sortable-table-init] tbody tr td:first-child a.govuk-link',
-        { hasText: 'View' }
-    );
-    await viewLinks.first().waitFor({ state: 'visible', timeout: 10_000 });
-
-    const totalLinks = await viewLinks.count();
-    if (totalLinks === 0) {
-      throw new Error('No claim rows with a View link were found on the submission details page.');
+    const totalRows = await rows.count();
+    if (totalRows === 0) {
+      throw new Error('No claim rows were found on the submission summary page.');
     }
 
-    const targetIndex = Math.min(Math.max(index, 0), totalLinks - 1);
-    const targetLink = viewLinks.nth(targetIndex);
+    const targetIndex = Math.min(Math.max(index, 0), totalRows - 1);
+    const targetRow = rows.nth(targetIndex);
 
+    const targetLink = targetRow.locator('td').first().locator('a.govuk-link', { hasText: 'View' });
+    await targetLink.waitFor({ state: 'visible', timeout: 10000 });
     await targetLink.scrollIntoViewIfNeeded();
 
     await Promise.all([
