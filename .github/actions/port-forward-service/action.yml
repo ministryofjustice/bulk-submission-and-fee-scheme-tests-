@@ -66,25 +66,29 @@ runs:
           exit 1
         fi
 
-        REMOTE_PORT="$REMOTE_PORT_INPUT"
-        if [ -z "$REMOTE_PORT" ]; then
-          REMOTE_PORT="$LOCAL_PORT"
-        fi
-
         SERVICE_NAME="$SERVICE_NAME_INPUT"
         if [ -z "$SERVICE_NAME" ]; then
           echo "service_name input is required" >&2
           exit 1
         fi
-        
-        # Set up port forward log
-        LOG_FILE="pf-${LOCAL_PORT}.log"
-      
-        echo "Port forwarding service: $SERVICE_NAME ($LOCAL_PORT -> $REMOTE_PORT)"
-        kubectl port-forward -n "$KUBE_NAMESPACE" service/"$SERVICE_NAME" "${LOCAL_PORT}:${REMOTE_PORT}" > "$LOG_FILE" 2>&1 &
-        PORT_FORWARD_PID=$!
-        echo "Port-forward started with PID $PORT_FORWARD_PID (log: $LOG_FILE)"
 
+        REMOTE_PORT="$REMOTE_PORT_INPUT"
+        if [ -z "$REMOTE_PORT" ]; then
+          REMOTE_PORT="$LOCAL_PORT"
+        fi
+
+        LOG_FILE="pf-${LOCAL_PORT}.log"
+        echo "Port forwarding service: $SERVICE_NAME ($LOCAL_PORT -> $REMOTE_PORT)"
+
+        bash ./.github/scripts/port-forward-watchdog.sh \
+          "$KUBE_NAMESPACE" \
+          "$SERVICE_NAME" \
+          "$LOCAL_PORT" \
+          "$REMOTE_PORT" \
+          "$LOG_FILE" &
+          PORT_FORWARD_PID=$!
+
+        echo "Port-forward watchdog started with PID $PORT_FORWARD_PID (log: $LOG_FILE)"
         echo "${PID_ENV_VAR}=${PORT_FORWARD_PID}" >> "$GITHUB_ENV"
 
         WAIT_PORT="$WAIT_PORT_INPUT"
