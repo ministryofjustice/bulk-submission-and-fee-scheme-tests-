@@ -67,6 +67,16 @@ Then(
 );
 
 Then(
+    'sorting can be done on claim summary headers',
+    async function (this: CustomWorld) {
+        const summaryPage = new SubmissionSummaryPage(this.page!);
+        this.submissionSummaryPage = summaryPage;
+
+        await summaryPage.validateSortingForCurrentAreaOfLawAcrossPages();
+    }
+);
+
+Then(
     'I should see the submission summary for {string} with {string} claims',
     async function (this: CustomWorld, areaOfLaw: string, claimCount: string) {
       const summaryPage = new SubmissionSummaryPage(this.page!);
