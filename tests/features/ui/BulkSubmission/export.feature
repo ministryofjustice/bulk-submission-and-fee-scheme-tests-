@@ -15,9 +15,13 @@ Feature: Export submission via UI
     Then I should see the submission summary for "<AreaOfLaw>" with "<Claims>" claims
     And I should be able to export the "<AreaOfLaw>" submission
 
+    @smoke
+    Examples:
+      | AreaOfLaw  | Format | Outcomes | Claims |
+      | Legal help | csv    | 2        | 2      |
+
     Examples:
       | AreaOfLaw   | Format | Outcomes | Claims |
-      | Legal help  | csv    | 2        | 2      |
       | Mediation   | csv    | 2        | 2      |
       | Crime lower | csv    | 3        | 3      |
 

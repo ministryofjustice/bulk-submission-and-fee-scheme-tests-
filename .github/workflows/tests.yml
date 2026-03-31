@@ -341,7 +341,7 @@ jobs:
         run: |
           npm run login
           npm run teardown
-          npm run test:accessibility:browserstack
+          npm run test:accessibility
 
       - name: Teardown (global cleanup)
         if: always()
@@ -432,7 +432,7 @@ jobs:
         run: |
           npm run login
           npm run teardown
-          npm run test:e2e:browserstack
+          npm run test:e2e
 
       - name: Teardown (global cleanup)
         if: always()
