@@ -87,7 +87,7 @@ jobs:
         id: fsp_api
         uses: ./.github/actions/collect-deployment-version
         with:
-          deployment: laa-fee-scheme-api-deployment
+          deployment: laa-fee-scheme-api-uat-deployment
           namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
           friendly_name: FSP API
 
