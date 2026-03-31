@@ -21,7 +21,7 @@ module.exports = {
     "--format json:reports/cucumber.json",
     "--format html:reports/cucumber.html",
     "--tags '@stable and not @ignore'",
-    "--parallel 2",
+    "--parallel 4",
     "--retry 1",
     "tests/features/**/BulkSubmission/*.feature"
   ].join(" "),
@@ -31,7 +31,7 @@ module.exports = {
     "--format json:reports/cucumber.json",
     "--format html:reports/cucumber.html",
     "--tags '@accessibility and not @ignore'",
-    "--parallel 3",
+    "--parallel 4",
     "--retry 1",
     "tests/features/**/Accessibility/*.feature"
   ].join(" "),
