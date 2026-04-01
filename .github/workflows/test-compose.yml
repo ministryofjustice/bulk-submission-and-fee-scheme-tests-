@@ -207,7 +207,7 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install
 
       - name: Pull SABC image
         uses: ./.github/actions/pull-ecr-image
