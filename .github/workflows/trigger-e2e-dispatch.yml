@@ -58,7 +58,7 @@ jobs:
           echo "Dispatched at ${DISPATCH_TIME}"
 
           echo "Dispatching E2E in ministryofjustice/bulk-submission-and-fee-scheme-tests-"
-          gh api -X POST "repos/ministryofjustice/bulk-submission-and-fee-scheme-tests-/actions/workflows/run-tests-on-runner.yml/dispatches" \
+          gh api -X POST "repos/ministryofjustice/bulk-submission-and-fee-scheme-tests-/actions/workflows/test-compose.yml/dispatches" \
             -f ref="${TARGET_REF}" \
             -f inputs[test_annotation]="${TEST_ANNOTATION}" \
             -f inputs[sabc_image_tag]="${SABC_IMAGE_TAG}" \
@@ -76,7 +76,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          WORKFLOW_FILE_ID="$(gh api "repos/ministryofjustice/bulk-submission-and-fee-scheme-tests-/actions/workflows/run-tests-on-runner.yml" --jq '.id')"
+          WORKFLOW_FILE_ID="$(gh api "repos/ministryofjustice/bulk-submission-and-fee-scheme-tests-/actions/workflows/test-compose.yml" --jq '.id')"
 
           echo "Looking for run created after ${DISPATCH_TIME} with sabc_image_tag=${SABC_IMAGE_TAG}, test_annotation=${TEST_ANNOTATION}"
 
