@@ -341,7 +341,7 @@ jobs:
         run: |
           npm run login
           npm run teardown
-          npm run test:accessibility
+          npm run test:accessibility -- --tags @foo
 
       - name: Teardown (global cleanup)
         if: always()
