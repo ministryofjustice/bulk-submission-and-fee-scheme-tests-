@@ -5,6 +5,24 @@ This project supports both **UI** and **API** test automation, integrated with p
 
 ---
 
+## 📋 Table of Contents
+
+- [📁 Project Structure](#-project-structure)
+- [⚙️ Setup & Installation](#️-setup--installation)
+- [🧩 BrowserStack Configuration](#-browserstack-configuration)
+- [🧠 Scripts](#-scripts)
+- [🧭 How to Run Tests](#-how-to-run-tests)
+- [🧰 Key Features](#-key-features)
+- [📸 Reports & Logs](#-reports--logs)
+- [🧼 Cleanup Logic](#-cleanup-logic)
+- [🧪 Example Feature](#-example-feature)
+- [🧱 Tech Stack](#-tech-stack)
+- [🧩 Developer Notes](#-developer-notes)
+- [⛙ GitHub Workflows](#-github-workflows)
+- [🔁 Reusable Workflow for External Repositories](#-reusable-workflow-for-external-repositories)
+
+---
+
 ## 📁 Project Structure
 
 ```
@@ -366,3 +384,44 @@ This workflow has two jobs:
 - `.github/actions/collect-deployment-version`
 - `.github/actions/port-forward-service`
 - `.github/actions/pull-ecr-image`
+
+## 🔁 Reusable Workflow for External Repositories
+
+This repository also provides a reusable GitHub workflow that is intended to be called by **other repositories**, not by this one directly.
+
+### `trigger-e2e-dispatch.yml`
+
+This workflow acts as a dispatcher for E2E test runs in this repository.
+
+#### Purpose
+It allows another repository to:
+- trigger an E2E test run here,
+- pass in the image tag and test annotation to use,
+- wait for the run to be created,
+- and poll until the remote workflow completes.
+
+#### How it is used
+This workflow is designed to be called with `workflow_call` from another repository's workflow.
+
+#### What it does
+- Creates an authenticated GitHub App token.
+- Dispatches the `run-tests-on-runner.yml` workflow in this repository.
+- Passes through the requested test annotation and image tag.
+- Locates the created workflow run.
+- Adds a link to the run in the calling workflow summary.
+- Polls until the triggered workflow finishes.
+- Fails if the remote workflow fails or times out.
+
+#### Typical use case
+Use this when another repository wants to:
+- test a specific application image against this project’s E2E suite,
+- coordinate test execution from its own CI pipeline,
+- and receive a pass/fail result without manually visiting the Actions page.
+
+#### Notes
+- This workflow is not meant to run tests itself.
+- It exists to bridge external repositories to the E2E runner workflow in this repository.
+- The calling repository must provide the required GitHub App credentials and test inputs.
+
+### Related workflow
+- `.github/workflows/run-tests-on-runner.yml`

@@ -1,9 +1,6 @@
 name: Run E2E Tests via Docker Compose
 run-name: Run ${{ inputs.test_annotation }} E2E tests - ${{ inputs.run_id }}
 
-#  push:
-#    branches: [ feature/test-compose ]
-
 on:
   workflow_dispatch:
     inputs:
@@ -450,7 +447,6 @@ jobs:
       - name: Run tests
         shell: bash
         run: npm run test -- --tags "${{ inputs.test_annotation || '@accessibility'}}"  --parallel 4 --retry 3
-
 
       - name: Collect Docker logs
         if: always()
