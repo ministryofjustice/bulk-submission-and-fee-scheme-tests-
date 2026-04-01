@@ -2,6 +2,7 @@
 Feature: Display message checks
 
   Background:
+    Given I start from a clean logged-in state
     Given I am on the bulk import page
 
   Scenario: Invalid Fee code
@@ -13,6 +14,7 @@ Feature: Display message checks
       | A category of law could not be found for the provided fee code: lol                 |
       | The provider is not contracted for the category of law associated with the fee code |
 
+  @smoke
   Scenario: Legal Help: Should check display messages are shown for missing field based errors
     Given I upload "tests/data/invalid/legal_help_missing_fields.csv"
     And I wait on validation in progress screen
@@ -93,22 +95,22 @@ Feature: Display message checks
     Then the user sees an error message "<errorMessage>"
 
     Examples:
-      | fieldName               | value | errorMessage                                                                                    |
-      | vatApplicable           | A     | VAT Applicable must only include Y or N              |
-      | postalApplication       | A     | Postal Application Accepted must only include Y or N |
-      | nrmAdvice               | A     | NRM Advice must only include Y or N                  |
-      | legacyCase              | A     | Legacy Case must only include Y or N                 |
-      | londonNonLondonRate     | A     | London Rate must only include Y or N                 |
-      | additionalTravelPayment | A     | Additional Travel Payment must only include Y or N   |
-      | eligibleClientIndicator | A     | Eligible Client must only include Y or N             |
-      | ircSurgery              | A     | IRC Surgery must only include Y or N                 |
-      | substantiveHearing      | A     | Substantive Hearing must only include Y or N         |
-      | toleranceIndicator      | A     | Tolerance Applicable must only include Y or N        |
-      | caseStartDate           | abc   | Case Start Date must be a valid date in the format DD/MM/YYYY                                   |
-      | workConcludedDate       | abc   | Work Concluded Date must be a valid date in the format DD/MM/YYYY                               |
-      | clientDateOfBirth       | abc   | Client Date of Birth must be a valid date in the format DD/MM/YYYY                              |
-      | transferDate            | abc   | Transfer Date must be a valid date in the format DD/MM/YYYY                                     |
-      | surgeryDate             | abc   | Surgery Date must be a valid date in the format DD/MM/YYYY                                      |
+      | fieldName               | value | errorMessage                                                       |
+      | vatApplicable           | A     | VAT Applicable must only include Y or N                            |
+      | postalApplication       | A     | Postal Application Accepted must only include Y or N               |
+      | nrmAdvice               | A     | NRM Advice must only include Y or N                                |
+      | legacyCase              | A     | Legacy Case must only include Y or N                               |
+      | londonNonLondonRate     | A     | London Rate must only include Y or N                               |
+      | additionalTravelPayment | A     | Additional Travel Payment must only include Y or N                 |
+      | eligibleClientIndicator | A     | Eligible Client must only include Y or N                           |
+      | ircSurgery              | A     | IRC Surgery must only include Y or N                               |
+      | substantiveHearing      | A     | Substantive Hearing must only include Y or N                       |
+      | toleranceIndicator      | A     | Tolerance Applicable must only include Y or N                      |
+      | caseStartDate           | abc   | Case Start Date must be a valid date in the format DD/MM/YYYY      |
+      | workConcludedDate       | abc   | Work Concluded Date must be a valid date in the format DD/MM/YYYY  |
+      | clientDateOfBirth       | abc   | Client Date of Birth must be a valid date in the format DD/MM/YYYY |
+      | transferDate            | abc   | Transfer Date must be a valid date in the format DD/MM/YYYY        |
+      | surgeryDate             | abc   | Surgery Date must be a valid date in the format DD/MM/YYYY         |
 
   Scenario: Legal Help: Should check display messages are shown for format based errors (regex)
     Given I upload "tests/data/invalid/legal_help_regex_errors.csv"
@@ -138,21 +140,21 @@ Feature: Display message checks
       | Mental Health Tribunal Reference must be in format AA/NNNN/NNNNN (English) or AANNNNN (Welsh)                                              |
       | Exemption Criteria Satisfied must be 2 uppercase letters followed by 3 digits                                                              |
       | Exceptional Case Funding Reference must be 7 digits followed by 2 uppercase letters                                                        |
-      | Advice Time must be a number                                                                                                             |
-      | Travel Time must be a number                                                                                                             |
-      | Waiting Time must be a number                                                                                                            |
-      | Net Profit Costs Amount must be a number with no more than 2 decimal places                                                                                     |
+      | Advice Time must be a number                                                                                                               |
+      | Travel Time must be a number                                                                                                               |
+      | Waiting Time must be a number                                                                                                              |
+      | Net Profit Costs Amount must be a number with no more than 2 decimal places                                                                |
       | Net Disbursement Amount must be a valid monetary value                                                                                     |
       | Net Counsel Costs Amount must be a valid monetary value                                                                                    |
       | Disbursements VAT Amount must be a valid monetary value                                                                                    |
       | Travel Waiting Costs Amount must be a valid monetary value                                                                                 |
       | Prior Authority Reference must be exactly 7 alphanumeric characters                                                                        |
-      | Adjourned Hearing Fee Amount must be a number from 0 to 9                                                                                       |
+      | Adjourned Hearing Fee Amount must be a number from 0 to 9                                                                                  |
       | Costs Damages Recovered Amount must be a valid monetary value                                                                              |
       | Meetings Attended Code must be valid                                                                                                       |
       | JR Form Filling Amount must be a valid monetary value                                                                                      |
       | Advice Type Code must be valid                                                                                                             |
-      | Medical Reports Count must be 20 or less                                                                                             |
+      | Medical Reports Count must be 20 or less                                                                                                   |
       | Surgery Clients Count must be between 1 and 20                                                                                             |
       | Surgery Matters Count must be between 1 and 20                                                                                             |
       | CMRH Oral Count must be between 0 and 9                                                                                                    |
@@ -173,6 +175,7 @@ Feature: Display message checks
       | Case Concluded Date is required for Crime Lower claims     |
       | Net Profit Costs Amount is required for Crime Lower claims |
 
+
   Scenario: Crime Lower: Should check display messages are shown for out of bound dates with concluded date before 01/04/2016
     Given I upload "tests/data/invalid/crime_lower_wrong_dates_with_concluded_date_before_01_04_2016.csv"
     And I wait on validation in progress screen
@@ -190,12 +193,13 @@ Feature: Display message checks
     And I wait on validation in progress screen
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "CRIME LOWER":
-      | Error Message                                                                                       |
-      | Case Start Date must be between 01/01/1995 and today                                                |
-      | Case Concluded Date cannot be later than the 20th of the month following the submission period      |
-      | Transfer Date must be between 01/01/1995 and today                                                  |
-      | Representation Order Date must be between 01/04/2016 and today                                      |
-      | Client Date of Birth must be between 01/01/1900 and today                                           |
+      | Error Message                                                                                  |
+      | Case Start Date must be between 01/01/1995 and today                                           |
+      | Case Concluded Date cannot be later than the 20th of the month following the submission period |
+      | Transfer Date must be between 01/01/1995 and today                                             |
+      | Representation Order Date must be between 01/04/2016 and today                                 |
+      | Client Date of Birth must be between 01/01/1900 and today                                      |
+
 
   Scenario: Crime Lower: Should check display messages are shown for out of bound dates with concluded date in the future
     Given I upload "tests/data/invalid/crime_lower_wrong_dates_with_concluded_date_in_the_future.csv"
@@ -209,6 +213,7 @@ Feature: Display message checks
       | Representation Order Date must be between 01/04/2016 and today |
       | Client Date of Birth must be between 01/01/1900 and today      |
 
+
   Scenario Outline: Crime Lower: Should check parse errors for <fieldName>
     Given I generate "Crime lower" "csv" file with the following claims
       | <fieldName> |
@@ -217,27 +222,28 @@ Feature: Display message checks
     Then the user sees an error message "<errorMessage>"
 
     Examples:
-      | fieldName               | value | errorMessage                                                                                    |
-      | caseStartDate           | abc   | Case Start Date must be a valid date in the format DD/MM/YYYY                                   |
-      | workConcludedDate       | abc   | Work Concluded Date must be a valid date in the format DD/MM/YYYY                               |
-      | repOrderDate            | abc   | Rep Order Date must be a valid date in the format DD/MM/YYYY                                    |
-      | clientDateOfBirth       | abc   | Client Date of Birth must be a valid date in the format DD/MM/YYYY                              |
-      | transferDate            | abc   | Transfer Date must be a valid date in the format DD/MM/YYYY                                     |
-      | surgeryDate             | abc   | Surgery Date must be a valid date in the format DD/MM/YYYY                                      |
-      | vatApplicable           | A     | VAT Applicable must only include Y or N              |
-      | postalApplication       | A     | Postal Application Accepted must only include Y or N |
-      | nrmAdvice               | A     | NRM Advice must only include Y or N                  |
-      | legacyCase              | A     | Legacy Case must only include Y or N                 |
-      | londonNonLondonRate     | A     | London Rate must only include Y or N                 |
-      | additionalTravelPayment | A     | Additional Travel Payment must only include Y or N   |
-      | eligibleClientIndicator | A     | Eligible Client must only include Y or N             |
-      | ircSurgery              | A     | IRC Surgery must only include Y or N                 |
-      | substantiveHearing      | A     | Substantive Hearing must only include Y or N         |
-      | toleranceIndicator      | A     | Tolerance Applicable must only include Y or N        |
-      | dutySolicitor           | A     | Duty Solicitor must only include Y or N              |
-      | youthCourt              | A     | Youth Court must only include Y or N                 |
-      | clientLegallyAided      | A     | Is Legally Aided must only include Y or N            |
+      | fieldName               | value | errorMessage                                                       |
+      | caseStartDate           | abc   | Case Start Date must be a valid date in the format DD/MM/YYYY      |
+      | workConcludedDate       | abc   | Work Concluded Date must be a valid date in the format DD/MM/YYYY  |
+      | repOrderDate            | abc   | Rep Order Date must be a valid date in the format DD/MM/YYYY       |
+      | clientDateOfBirth       | abc   | Client Date of Birth must be a valid date in the format DD/MM/YYYY |
+      | transferDate            | abc   | Transfer Date must be a valid date in the format DD/MM/YYYY        |
+      | surgeryDate             | abc   | Surgery Date must be a valid date in the format DD/MM/YYYY         |
+      | vatApplicable           | A     | VAT Applicable must only include Y or N                            |
+      | postalApplication       | A     | Postal Application Accepted must only include Y or N               |
+      | nrmAdvice               | A     | NRM Advice must only include Y or N                                |
+      | legacyCase              | A     | Legacy Case must only include Y or N                               |
+      | londonNonLondonRate     | A     | London Rate must only include Y or N                               |
+      | additionalTravelPayment | A     | Additional Travel Payment must only include Y or N                 |
+      | eligibleClientIndicator | A     | Eligible Client must only include Y or N                           |
+      | ircSurgery              | A     | IRC Surgery must only include Y or N                               |
+      | substantiveHearing      | A     | Substantive Hearing must only include Y or N                       |
+      | toleranceIndicator      | A     | Tolerance Applicable must only include Y or N                      |
+      | dutySolicitor           | A     | Duty Solicitor must only include Y or N                            |
+      | youthCourt              | A     | Youth Court must only include Y or N                               |
+      | clientLegallyAided      | A     | Is Legally Aided must only include Y or N                          |
 
+  @smoke
   Scenario: Crime Lower: Should check display messages are shown for format based errors (regex)
     Given I upload "tests/data/invalid/crime_lower_regex_errors.csv"
     And I wait on validation in progress screen
@@ -250,14 +256,14 @@ Feature: Display message checks
       | Procurement Area Code must be 2 uppercase letters followed by 5 digits                                                                     |
       | Access Point Code must be in the format AP##### (AP followed by 5 digits)                                                                  |
       | Delivery Location must be 2 uppercase letters followed by 5 digits                                                                         |
-      | Suspects Defendants Count must be less than 100                                                                                         |
+      | Suspects Defendants Count must be less than 100                                                                                            |
       | Police Station Court Attendances Count must be between 0 and 99                                                                            |
       | Police Station Court Prison ID must be 1–6 alphanumeric characters and contain at least one letter                                         |
       | DSCC Number must be exactly 10 alphanumeric characters                                                                                     |
       | MAAT ID must be up to 10 alphanumeric characters                                                                                           |
       | Scheme ID must be exactly 4 alphanumeric characters                                                                                        |
-      | Mediation Sessions Count must be less than 100                                                                                          |
-      | Mediation Time Minutes must be 99999 or less                                                                                                |
+      | Mediation Sessions Count must be less than 100                                                                                             |
+      | Mediation Time Minutes must be 99999 or less                                                                                               |
       | Outreach Location must be exactly 3 alphanumeric characters                                                                                |
       | Referral Source must be a valid 2-digit code (02-11)                                                                                       |
       | Client Forename must contain only letters, numbers, spaces, hyphens, apostrophes, ampersands, and be a maximum of 30 characters            |
@@ -280,21 +286,21 @@ Feature: Display message checks
       | Mental Health Tribunal Reference must be in format AA/NNNN/NNNNN (English) or AANNNNN (Welsh)                                              |
       | Exemption Criteria Satisfied must be 2 uppercase letters followed by 3 digits                                                              |
       | Exceptional Case Funding Reference must be 7 digits followed by 2 uppercase letters                                                        |
-      | Advice Time must be a number                                                                                                             |
-      | Travel Time must be a number                                                                                                             |
-      | Waiting Time must be a number                                                                                                            |
-      | Net Profit Costs Amount must be a number with no more than 2 decimal places                                                                                     |
+      | Advice Time must be a number                                                                                                               |
+      | Travel Time must be a number                                                                                                               |
+      | Waiting Time must be a number                                                                                                              |
+      | Net Profit Costs Amount must be a number with no more than 2 decimal places                                                                |
       | Net Disbursement Amount must be a valid monetary value                                                                                     |
       | Net Counsel Costs Amount must be a valid monetary value                                                                                    |
       | Disbursements VAT Amount must be a valid monetary value                                                                                    |
       | Net Waiting Costs Amount must be a valid monetary value                                                                                    |
       | Prior Authority Reference must be exactly 7 alphanumeric characters                                                                        |
-      | Adjourned Hearing Fee Amount must be a number from 0 to 9                                                                                       |
+      | Adjourned Hearing Fee Amount must be a number from 0 to 9                                                                                  |
       | Meetings Attended Code must be valid                                                                                                       |
       | Detention Travel Waiting Costs Amount must be a valid monetary value                                                                       |
       | JR Form Filling Amount must be a valid monetary value                                                                                      |
       | Advice Type Code must be valid                                                                                                             |
-      | Medical Reports Count must be 20 or less                                                                                             |
+      | Medical Reports Count must be 20 or less                                                                                                   |
       | Surgery Matters Count must be between 1 and 20                                                                                             |
       | CMRH Oral Count must be between 0 and 9                                                                                                    |
       | CMRH Telephone Count must be between 0 and 9                                                                                               |
@@ -302,6 +308,7 @@ Feature: Display message checks
       | HO Interview must be between 0 and 9                                                                                                       |
       | Local Authority Number must contain only letters and numbers, and be a maximum of 30 characters                                            |
 
+  @smoke
   Scenario: Mediation: Should check display messages are shown for missing field based errors
     Given I upload "tests/data/invalid/mediation_missing_fields.csv"
     And I wait on validation in progress screen
@@ -343,22 +350,22 @@ Feature: Display message checks
     And I wait on validation in progress screen
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "MEDIATION":
-      | Error Message                                                                                       |
-      | Case Start Date must be between 01/01/1995 and today                                                |
-      | Case Concluded Date cannot be later than the 20th of the month following the submission period      |
-      | Client Date of Birth must be between 01/01/1900 and today                                           |
-      | Client 2 Date of Birth must be between 01/01/1900 and today                                         |
+      | Error Message                                                                                  |
+      | Case Start Date must be between 01/01/1995 and today                                           |
+      | Case Concluded Date cannot be later than the 20th of the month following the submission period |
+      | Client Date of Birth must be between 01/01/1900 and today                                      |
+      | Client 2 Date of Birth must be between 01/01/1900 and today                                    |
 
   Scenario: Mediation: Should check display messages are shown for out of bound dates with concluded date in the future
     Given I upload "tests/data/invalid/mediation_wrong_dates_with_concluded_date_in_the_future.csv"
     And I wait on validation in progress screen
     When I should see an error banner saying "1 claim has errors for missing or incorrect information"
     And I should see the following submission error messages for "MEDIATION":
-      | Error Message                                                                                       |
-      | Case Start Date must be between 01/01/1995 and today                                                |
-      | Case Concluded Date cannot be a future date                                                         |
-      | Client Date of Birth must be between 01/01/1900 and today                                           |
-      | Client 2 Date of Birth must be between 01/01/1900 and today                                         |
+      | Error Message                                               |
+      | Case Start Date must be between 01/01/1995 and today        |
+      | Case Concluded Date cannot be a future date                 |
+      | Client Date of Birth must be between 01/01/1900 and today   |
+      | Client 2 Date of Birth must be between 01/01/1900 and today |
 
   Scenario Outline: Mediation: Should check parse errors for <fieldName>
     Given I generate "Mediation" "csv" file with the following claims
@@ -368,27 +375,27 @@ Feature: Display message checks
     Then the user sees an error message "<errorMessage>"
 
     Examples:
-      | fieldName                | value | errorMessage                                                                                             |
-      | caseStartDate            | abc   | Case Start Date must be a valid date in the format DD/MM/YYYY                                            |
-      | medConcludedDate         | abc   | Med Concluded Date must be a valid date in the format DD/MM/YYYY                                         |
-      | workConcludedDate        | abc   | Work Concluded Date must be a valid date in the format DD/MM/YYYY                                        |
-      | clientDateOfBirth        | abc   | Client Date of Birth must be a valid date in the format DD/MM/YYYY                                       |
-      | client2DateOfBirth       | abc   | Client 2 Date of Birth must be a valid date in the format DD/MM/YYYY                                     |
-      | vatApplicable            | A     | VAT Applicable must only include Y or N                       |
-      | postalApplication        | A     | Postal Application Accepted must only include Y or N          |
-      | client2PostalApplication | A     | Client 2 Postal Application Accepted must only include Y or N |
-      | nrmAdvice                | A     | NRM Advice must only include Y or N                           |
-      | legacyCase               | A     | Legacy Case must only include Y or N                          |
-      | londonNonLondonRate      | A     | London Rate must only include Y or N                          |
-      | additionalTravelPayment  | A     | Additional Travel Payment must only include Y or N            |
-      | eligibleClientIndicator  | A     | Eligible Client must only include Y or N                      |
-      | ircSurgery               | A     | IRC Surgery must only include Y or N                          |
-      | substantiveHearing       | A     | Substantive Hearing must only include Y or N                  |
-      | toleranceIndicator       | A     | Tolerance Applicable must only include Y or N                 |
-      | dutySolicitor            | A     | Duty Solicitor must only include Y or N                       |
-      | youthCourt               | A     | Youth Court must only include Y or N                          |
-      | clientLegallyAided       | A     | Is Legally Aided must only include Y or N                     |
-      | client2LegallyAided      | A     | Client 2 Legally Aided must only include Y or N               |
+      | fieldName                | value | errorMessage                                                         |
+      | caseStartDate            | abc   | Case Start Date must be a valid date in the format DD/MM/YYYY        |
+      | medConcludedDate         | abc   | Med Concluded Date must be a valid date in the format DD/MM/YYYY     |
+      | workConcludedDate        | abc   | Work Concluded Date must be a valid date in the format DD/MM/YYYY    |
+      | clientDateOfBirth        | abc   | Client Date of Birth must be a valid date in the format DD/MM/YYYY   |
+      | client2DateOfBirth       | abc   | Client 2 Date of Birth must be a valid date in the format DD/MM/YYYY |
+      | vatApplicable            | A     | VAT Applicable must only include Y or N                              |
+      | postalApplication        | A     | Postal Application Accepted must only include Y or N                 |
+      | client2PostalApplication | A     | Client 2 Postal Application Accepted must only include Y or N        |
+      | nrmAdvice                | A     | NRM Advice must only include Y or N                                  |
+      | legacyCase               | A     | Legacy Case must only include Y or N                                 |
+      | londonNonLondonRate      | A     | London Rate must only include Y or N                                 |
+      | additionalTravelPayment  | A     | Additional Travel Payment must only include Y or N                   |
+      | eligibleClientIndicator  | A     | Eligible Client must only include Y or N                             |
+      | ircSurgery               | A     | IRC Surgery must only include Y or N                                 |
+      | substantiveHearing       | A     | Substantive Hearing must only include Y or N                         |
+      | toleranceIndicator       | A     | Tolerance Applicable must only include Y or N                        |
+      | dutySolicitor            | A     | Duty Solicitor must only include Y or N                              |
+      | youthCourt               | A     | Youth Court must only include Y or N                                 |
+      | clientLegallyAided       | A     | Is Legally Aided must only include Y or N                            |
+      | client2LegallyAided      | A     | Client 2 Legally Aided must only include Y or N                      |
 
   Scenario: Mediation: Should check display messages are shown for format based errors (regex)
     Given I upload "tests/data/invalid/mediation_regex_errors.csv"
@@ -415,20 +422,20 @@ Feature: Display message checks
       | Mental Health Tribunal Reference must be in format AA/NNNN/NNNNN (English) or AANNNNN (Welsh)                                              |
       | Exemption Criteria Satisfied must be 2 uppercase letters followed by 3 digits                                                              |
       | Exceptional Case Funding Reference must be 7 digits followed by 2 uppercase letters                                                        |
-      | Advice Time must be a number                                                                                                             |
-      | Travel Time must be a number                                                                                                             |
-      | Waiting Time must be a number                                                                                                            |
-      | Net Profit Costs Amount must be a number with no more than 2 decimal places                                                                                     |
+      | Advice Time must be a number                                                                                                               |
+      | Travel Time must be a number                                                                                                               |
+      | Waiting Time must be a number                                                                                                              |
+      | Net Profit Costs Amount must be a number with no more than 2 decimal places                                                                |
       | Net Disbursement Amount must be a valid monetary value                                                                                     |
       | Net Counsel Costs Amount must be a valid monetary value                                                                                    |
       | Disbursements VAT Amount must be a valid monetary value                                                                                    |
       | Prior Authority Reference must be exactly 7 alphanumeric characters                                                                        |
-      | Adjourned Hearing Fee Amount must be a number from 0 to 9                                                                                       |
+      | Adjourned Hearing Fee Amount must be a number from 0 to 9                                                                                  |
       | Meetings Attended Code must be valid                                                                                                       |
       | Detention Travel Waiting Costs Amount must be a valid monetary value                                                                       |
       | JR Form Filling Amount must be a valid monetary value                                                                                      |
       | Advice Type Code must be valid                                                                                                             |
-      | Medical Reports Count must be 20 or less                                                                                             |
+      | Medical Reports Count must be 20 or less                                                                                                   |
       | Surgery Matters Count must be between 1 and 20                                                                                             |
       | CMRH Oral Count must be between 0 and 9                                                                                                    |
       | CMRH Telephone Count must be between 0 and 9                                                                                               |

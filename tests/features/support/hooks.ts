@@ -94,6 +94,7 @@ Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHoo
             this.page = await this.context.newPage();
             // 🚫 Do NOT go to UI_BASE_URL here — stay blank
             await this.page.goto('about:blank');
+            this.resetUiObjects();
         } catch (err) {
             // @ts-ignore
             console.warn('⚠️ Context/Page creation failed:', err?.message || err);
@@ -126,13 +127,32 @@ After({tags: 'not @api'}, async function (this: World) {
     }
 });
 
-AfterStep({tags: 'not @api'}, async function (this: World, step) {
-    if (step.result?.status === Status.FAILED && this.page) {
-        const rawName = step.pickle?.name ?? 'failed-step';
-        const sanitized = rawName.replace(/[^A-Za-z0-9-_]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'failed-step';
-        const screenshotPath = `reports/attachments/${Date.now()}-${sanitized}.png`;
-        await this.page.screenshot({path: screenshotPath, fullPage: true});
-        await this.attach(fs.readFileSync(screenshotPath), 'image/png');
+AfterStep({ tags: 'not @api' }, async function (this: World, { result }) {
+    if (result?.status === Status.FAILED && this.page) {
+        const scenarioName = (this.currentScenarioName || 'UnnamedScenario')
+            .replace(/[^A-Za-z0-9-_]+/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '');
+
+        const stepName = (this.stepText || 'failed-step')
+            .replace(/[^A-Za-z0-9-_]+/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '');
+
+        const screenshotDir = path.join(process.cwd(), 'reports', 'attachments', `${process.pid}`);
+        fs.mkdirSync(screenshotDir, { recursive: true });
+
+        const screenshotPath = path.join(
+            screenshotDir,
+            `${scenarioName}__${stepName}__${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.png`
+        );
+
+        const screenshot = await this.page.screenshot({
+            path: screenshotPath,
+            fullPage: true,
+        });
+
+        await this.attach(screenshot, 'image/png');
         console.log(`📸 Screenshot captured for failed step: ${screenshotPath}`);
     }
 });

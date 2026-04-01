@@ -5,6 +5,7 @@ Feature: Bulk Submission Upload Validation
     Given I start from a clean logged-in state
     Given I am on the bulk import page
 
+  @smoke
   Scenario: Upload fails with an empty file
     Given I have generated an "empty" bulk submission file named "emptyFile.csv"
     When I upload that file
@@ -14,6 +15,7 @@ Feature: Bulk Submission Upload Validation
     When I click upload without attaching a file
     Then the user sees an error message "Select a file"
 
+  @smoke
   Scenario: Upload fails with an invalid file type
     Given I have generated an "invalid" bulk submission file named "invalid.docx"
     When I upload that file
@@ -24,6 +26,7 @@ Feature: Bulk Submission Upload Validation
     Given I have generated an "large" bulk submission file named "largeFile.csv"
     When I upload that file
     Then the user sees an error message "The file must be 10MB or smaller"
+
 
   Scenario: Upload fails with restricted office access
     Given I have generated an "restricted" bulk submission file named "officeRestriction.csv"
@@ -42,7 +45,7 @@ Feature: Bulk Submission Upload Validation
     # NOTE: wider permutations of invalid numeric values are covered by laa-data-claims-api unit tests.
     # See: https://github.com/ministryofjustice/laa-data-claims-api/blob/main/claims-data/service/src/test/java/uk/gov/justice/laa/dstew/payments/claimsdata/mapper/BulkSubmissionMapperTests.java
     Examples:
-      | AreaOfLaw  | field        | value      |  | fieldDisplayValue               |
+      | AreaOfLaw  | field        | value      |  | fieldDisplayValue             |
       | Legal help | TRAVEL_TIME  | 9999999999 |  | Travel Time must be a number  |
       | Legal help | WAITING_TIME | 9999999999 |  | Waiting Time must be a number |
       | Legal help | TRAVEL_TIME  | NAN        |  | Travel Time must be a number  |
@@ -54,9 +57,9 @@ Feature: Bulk Submission Upload Validation
     When I upload that file
     Then the user sees an error message "<message>"
     Examples:
-      | value     | message                                                             |
-      |           | Enter a submission period in the file                                             |
-      | blah-blah | Enter the submission period in the format MMM-YYYY (for example, JAN-2025)       |
+      | value     | message                                                                    |
+      |           | Enter a submission period in the file                                      |
+      | blah-blah | Enter the submission period in the format MMM-YYYY (for example, JAN-2025) |
 
 
     

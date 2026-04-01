@@ -69,6 +69,7 @@ Given('I start from a clean logged-in state', async function (this: World) {
 
     this.context = context;
     this.page = page;
+    this.resetUiObjects();
 
     await this.attach('🔄 Context reset and login state reapplied', 'text/plain');
 });

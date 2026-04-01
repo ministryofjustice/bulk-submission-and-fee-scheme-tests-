@@ -5,7 +5,7 @@ Feature: Invalid submission level validation
     Given I start from a clean logged-in state
     Given I am on the bulk import page
 
-  @submissionValidation
+  @submissionValidation @smoke
   Scenario: Reject submission due to period prior to 2015
     When I upload "tests/data/invalid/submissionPeriod.txt"
     And I wait on validation in progress screen

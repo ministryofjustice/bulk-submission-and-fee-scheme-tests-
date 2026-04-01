@@ -56,8 +56,6 @@ export class World {
   workerStoragePath: string | undefined;
   currentSubmissionMonth: string | undefined;
   // @ts-ignore
-  claimDetailPage: ClaimDetailPage;
-  // @ts-ignore
   firstFile: any;
   // @ts-ignore
   secondFile: any;
@@ -65,6 +63,16 @@ export class World {
   period: string;
     expectedCrimeClaim: any;
   expectedImmigrationClaims: any;
+  // @ts-ignore
+  stepText: string;
+  resetUiObjects() {
+    this.loginPage = undefined;
+    this.bulkImportPage = undefined;
+    this.bulkClaimSubmitPage = undefined;
+    this.submissionSummaryPage = undefined;
+    this.claimDetailPage = undefined;
+    this.bulkInProgressPage = undefined;
+  }
 
   constructor(options: IWorldOptions) {
     // @ts-ignore

@@ -21,10 +21,14 @@ Feature: Bulk Submission via UI
     And I open the most recent submission from the results list
     Then I should see the submission summary for "<AreaOfLaw>" with "<Claims>" claims
 
-    @validSubmissions @search
+    @validSubmissions @search @smoke
     Examples:
       | AreaOfLaw   | Format | Outcomes | Claims |
       | Legal help  | csv    | 2        | 2      |
+
+    @validSubmissions @search
+    Examples:
+      | AreaOfLaw   | Format | Outcomes | Claims |
       | Mediation   | csv    | 2        | 2      |
       | Crime lower | csv    | 3        | 3      |
 

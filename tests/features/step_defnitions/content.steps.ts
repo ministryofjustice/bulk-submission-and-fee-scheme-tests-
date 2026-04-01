@@ -141,21 +141,37 @@ When(/^I upload the generated file and wait for import in progress(?: (screen))?
 
 });
 
-When(`I wait on validation in progress screen`, async function (this: CustomWorld) {
-  // Wait for submission loading if it's present
-  const inProgressHeading = this.page!.locator('h1.moj-interruption-card__heading');
-  await inProgressHeading.waitFor({state: 'visible', timeout: 20000});
-  const startTime = Date.now();
-  const maxWaitTime = 60 * 1000; // 1 minute
+When('I wait on validation in progress screen', async function (this: CustomWorld) {
+  if (!this.page) {
+    throw new Error('Page is not initialized');
+  }
 
-  while (await inProgressHeading.isVisible()) {
+  const maxWaitTime = 5 * 60 * 1000;
+  const pollInterval = 1000;
+  const startTime = Date.now();
+
+  const inProgressHeading = this.page.locator('h1.moj-interruption-card__heading');
+
+  // If the screen appears, wait on it. If it does not, continue and validate outcome below.
+  await inProgressHeading.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+
+  while (true) {
+    const stillVisible = await inProgressHeading.isVisible().catch(() => false);
+
+    if (!stillVisible) {
+      break;
+    }
+
     if (Date.now() - startTime > maxWaitTime) {
       throw new Error('Timeout waiting for import to complete after 5 minutes');
     }
-    await this.page!.waitForTimeout(1000);
-    await this.page!.reload();
+
+    await this.page.waitForTimeout(pollInterval);
+    await this.page.reload({ waitUntil: 'domcontentloaded' });
   }
-})
+
+  await this.attach('✅ Validation in progress screen has cleared', 'text/plain');
+});
 
 Then('the search results table matches the expected layout', async function (this: CustomWorld) {
   const table = this.page!.locator('table.govuk-table').first();

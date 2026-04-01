@@ -1,4 +1,4 @@
-@duplicateChecks @stable @fr
+@duplicateChecks @stable
 Feature: Duplicate checks - Legal Help - Disbursements
 
   Background:
@@ -123,11 +123,15 @@ Feature: Duplicate checks - Legal Help - Disbursements
       | Error Message  |
       | <errorMessage> |
 
+    @smoke
+    Examples:
+      | format | office | ucn             | ufn        | feeCode | monthsDifference | errorMessage                                      |
+      | csv    | 0P322F | 05011998/S/CSVA | 020825/523 | ICISD   | 2                | A duplicate claim was found in another submission |
+
     Examples:
       | format | office | ucn             | ufn        | feeCode | monthsDifference | errorMessage                                      |
       | csv    | 2L849T | 03011998/S/CSVA | 010725/323 | ICISD   | 0                | Submission already exists for Office              |
       | csv    | 0P322F | 04011998/S/CSVA | 020825/423 | ICISD   | 1                | A duplicate claim was found in another submission |
-      | csv    | 0P322F | 05011998/S/CSVA | 020825/523 | ICISD   | 2                | A duplicate claim was found in another submission |
 
   @duplicateChecks
   Scenario: Duplicate claim is accepted when earlier CCD is on or before the cutoff

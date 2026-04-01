@@ -14,8 +14,8 @@ image:
 
 resources:
   requests:
-    memory: "2Gi"
-    cpu: "2000m"
-  limits:
     memory: "4Gi"
-    cpu: "4000m"
+    cpu: "3000m"
+  limits:
+    memory: "8Gi"
+    cpu: "6000m"

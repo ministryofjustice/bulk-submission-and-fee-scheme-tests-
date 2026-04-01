@@ -30,129 +30,145 @@ export async function cleanSubmissionData(
     console.log(`🚀 Beginning cleanup for submission IDs: ${submissionIdList}`);
 
     await dataSource.transaction(async (entityManager) => {
-        const runDelete = async (label: string, query: string) => {
-            const result = await entityManager.query(query, [submissionIds]);
-            const count = Array.isArray(result) ? result.length : 0;
-            console.log(`✅ Deleted from ${label} (${count} rows, if any)`);
+        const bulkSubmissionRows = await entityManager.query(
+            `
+            SELECT DISTINCT bulk_submission_id
+            FROM claims.submission
+            WHERE id = ANY($1)
+              AND bulk_submission_id IS NOT NULL
+            `,
+            [submissionIds]
+        );
+
+        const bulkSubmissionIds = bulkSubmissionRows.map((row: any) => row.bulk_submission_id);
+
+        const runDelete = async (label: string, query: string, params: any[]) => {
+            await entityManager.query(query, params);
+            console.log(`✅ Deleted from ${label}`);
         };
 
         await runDelete(
             'claims.calculated_fee_detail',
             `
-      DELETE FROM claims.calculated_fee_detail 
-      WHERE claim_id IN (
-          SELECT id FROM claims.claim WHERE submission_id = ANY($1)
-      )
-    `
+                DELETE FROM claims.calculated_fee_detail
+                WHERE claim_id IN (
+                    SELECT id FROM claims.claim WHERE submission_id = ANY($1)
+                )
+            `,
+            [submissionIds]
         );
 
         await runDelete(
             'claims.validation_message_log',
             `
-      DELETE FROM claims.validation_message_log
-      WHERE submission_id = ANY($1)
-         OR claim_id IN (
-              SELECT id FROM claims.claim WHERE submission_id = ANY($1)
-          )
-    `
+                DELETE FROM claims.validation_message_log
+                WHERE submission_id = ANY($1)
+                   OR claim_id IN (
+                    SELECT id FROM claims.claim WHERE submission_id = ANY($1)
+                )
+            `,
+            [submissionIds]
         );
-        
+
         await runDelete(
             'claims.assessment',
             `
-      DELETE FROM claims.assessment
-      WHERE claim_summary_fee_id IN (
-          SELECT id FROM claims.claim_summary_fee
-          WHERE claim_id IN (
-              SELECT id FROM claims.claim WHERE submission_id = ANY($1)
-          )
-      )
-    `
+                DELETE FROM claims.assessment
+                WHERE claim_summary_fee_id IN (
+                    SELECT id FROM claims.claim_summary_fee
+                    WHERE claim_id IN (
+                        SELECT id FROM claims.claim WHERE submission_id = ANY($1)
+                    )
+                )
+            `,
+            [submissionIds]
         );
 
         await runDelete(
             'claims.claim_summary_fee',
             `
-      DELETE FROM claims.claim_summary_fee
-      WHERE claim_id IN (
-          SELECT id FROM claims.claim WHERE submission_id = ANY($1)
-      )
-    `
+                DELETE FROM claims.claim_summary_fee
+                WHERE claim_id IN (
+                    SELECT id FROM claims.claim WHERE submission_id = ANY($1)
+                )
+            `,
+            [submissionIds]
         );
 
         await runDelete(
             'claims.claim_case',
             `
-      DELETE FROM claims.claim_case
-      WHERE claim_id IN (
-          SELECT id FROM claims.claim WHERE submission_id = ANY($1)
-      )
-    `
+                DELETE FROM claims.claim_case
+                WHERE claim_id IN (
+                    SELECT id FROM claims.claim WHERE submission_id = ANY($1)
+                )
+            `,
+            [submissionIds]
         );
 
         await runDelete(
             'claims.client',
             `
-      DELETE FROM claims.client
-      WHERE claim_id IN (
-          SELECT id FROM claims.claim WHERE submission_id = ANY($1)
-      )
-    `
+                DELETE FROM claims.client
+                WHERE claim_id IN (
+                    SELECT id FROM claims.claim WHERE submission_id = ANY($1)
+                )
+            `,
+            [submissionIds]
         );
 
         await runDelete(
             'claims.matter_start',
             `
-      DELETE FROM claims.matter_start
-      WHERE submission_id = ANY($1)
-    `
+                DELETE FROM claims.matter_start
+                WHERE submission_id = ANY($1)
+            `,
+            [submissionIds]
         );
 
         await runDelete(
             'claims.claim',
             `
-      DELETE FROM claims.claim
-      WHERE submission_id = ANY($1)
-    `
+                DELETE FROM claims.claim
+                WHERE submission_id = ANY($1)
+            `,
+            [submissionIds]
         );
 
         await runDelete(
             'claims.submission',
             `
-      DELETE FROM claims.submission
-      WHERE id = ANY($1)
-    `
+                DELETE FROM claims.submission
+                WHERE id = ANY($1)
+            `,
+            [submissionIds]
         );
 
-        await runDelete(
-            'claims.bulk_submission',
-            `
-      DELETE FROM claims.bulk_submission
-      WHERE id IN (
-          SELECT DISTINCT bulk_submission_id
-          FROM claims.submission
-          WHERE id = ANY($1)
-      )
-    `
-        );
+        if (bulkSubmissionIds.length > 0) {
+            await runDelete(
+                'claims.bulk_submission',
+                `
+                DELETE FROM claims.bulk_submission
+                WHERE id = ANY($1)
+                `,
+                [bulkSubmissionIds]
+            );
+        }
     });
 
     console.log(`🎉 Cleanup completed successfully for submission IDs: ${submissionIdList}`);
 }
-
-// ---------- 3️⃣ Get Submissions from the Past 4 Days ----------
-async function getRecentSubmissionIdsForUser(
-    dataSource: DataSource,
-    providerUser: string
+// ---------- 3️⃣ Get Submissions from the Past 30 Days ----------
+async function getRecentSubmissionIds(
+    dataSource: DataSource
 ): Promise<string[]> {
     const query = `
-      SELECT id 
-      FROM claims.submission
-      WHERE provider_user_id = $1
-        AND created_on >= (CURRENT_DATE - INTERVAL '30 days')
-  `;
+        SELECT id
+        FROM claims.submission
+        WHERE created_on >= (CURRENT_DATE - INTERVAL '30 days')
+    `;
 
-    const results = await dataSource.query(query, [providerUser]);
+    const results = await dataSource.query(query);
     return results.map((r: any) => r.id);
 }
 
@@ -165,13 +181,12 @@ if (require.main === module) {
             await AppDataSource.initialize();
             console.log('✅ Database connection established');
 
-            // @ts-ignore
-            const submissionIdsToDelete = await getRecentSubmissionIdsForUser(AppDataSource, providerUser);
+            const submissionIdsToDelete = await getRecentSubmissionIds(AppDataSource);
 
             if (submissionIdsToDelete.length === 0) {
-                console.log(`⚠️ No submissions found for ${providerUser} in the past 4 days.`);
+                console.log(`⚠️ No submissions found in the past 30 days.`);
             } else {
-                console.log(`🧾 Found ${submissionIdsToDelete.length} submission(s) for ${providerUser} in the past 4 days.`);
+                console.log(`🧾 Found ${submissionIdsToDelete.length} submission(s) in the past 80 days.`);
                 await cleanSubmissionData(AppDataSource, submissionIdsToDelete);
             }
         } catch (error) {
