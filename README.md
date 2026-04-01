@@ -306,7 +306,7 @@ This workflow is split into a few jobs:
 
 ---
 
-### 2) `run-tests-on-runner.yml` — Run E2E Tests via Docker Compose
+### 2) `test-compose.yml` — Run E2E Tests via Docker Compose
 
 This workflow is intended for running the test suite on a GitHub runner using locally started Docker containers.
 
@@ -374,13 +374,13 @@ This workflow has two jobs:
 ### Workflow selection guide
 
 - Use **`tests.yml`** for normal CI runs against UAT.
-- Use **`run-tests-on-runner.yml`** when you want to run tests against Docker Compose with optional image overrides.
+- Use **`test-compose.yml`** when you want to run tests against Docker Compose with optional image overrides.
 
 ---
 
 ### Related files
 - `.github/workflows/tests.yml`
-- `.github/workflows/run-tests-on-runner.yml`
+- `.github/workflows/test-compose.yml`
 - `.github/actions/collect-deployment-version`
 - `.github/actions/port-forward-service`
 - `.github/actions/pull-ecr-image`
@@ -405,7 +405,7 @@ This workflow is designed to be called with `workflow_call` from another reposit
 
 #### What it does
 - Creates an authenticated GitHub App token.
-- Dispatches the `run-tests-on-runner.yml` workflow in this repository.
+- Dispatches the `test-compose.yml` workflow in this repository.
 - Passes through the requested test annotation and image tag.
 - Locates the created workflow run.
 - Adds a link to the run in the calling workflow summary.
@@ -424,4 +424,4 @@ Use this when another repository wants to:
 - The calling repository must provide the required GitHub App credentials and test inputs.
 
 ### Related workflow
-- `.github/workflows/run-tests-on-runner.yml`
+- `.github/workflows/test-compose.yml`
