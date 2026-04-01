@@ -12,14 +12,9 @@ on:
       pr_number:
         required: false
         type: number
-      github_app_organisation:
-        required: false
-        type: string
     secrets:
-      github_app_id:
-        required: false
-      github_app_private_key:
-        required: false
+      gh_token:
+        required: true
 
 permissions:
   contents: read
@@ -31,20 +26,11 @@ jobs:
     env:
       GITHUB_APP_ID: ${{ secrets.github_app_id }}
       GITHUB_APP_PRIVATE_KEY: ${{ secrets.github_app_private_key }}
+      GH_TOKEN: ${{ secrets.gh_token }}
     steps:
-
-      - name: Get app token
-        id: get_workflow_token
-        uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3.0.0
-        with:
-          app-id: ${{ secrets.github_app_id }}
-          private-key: ${{ secrets.github_app_private_key }}
-          owner: ${{ inputs.github_app_organisation }}
-
       - name: Dispatch target workflow
         id: dispatch
         env:
-          GH_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
           TARGET_REF: 'feature/test-compose'
           SABC_IMAGE_TAG: ${{ inputs.sabc_image_tag }}
           TEST_ANNOTATION: ${{ inputs.test_annotation }}
@@ -66,7 +52,6 @@ jobs:
       - name: Find the created workflow run
         id: find_run
         env:
-          GH_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
           TARGET_REF: 'feature/test-compose'
           DISPATCH_TIME: ${{ steps.dispatch.outputs.dispatch_time }}
           RUN_ID: ${{ inputs.sabc_image_tag }}
@@ -112,7 +97,6 @@ jobs:
 
       - name: Poll until completion
         env:
-          GH_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
           WORKFLOW_RUN_ID: ${{ steps.find_run.outputs.run_id }}
         run: |
           set -euo pipefail
