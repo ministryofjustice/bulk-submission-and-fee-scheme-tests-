@@ -15,6 +15,10 @@ on:
       github_app_organisation:
         required: false
         type: string
+      target_ref:
+        required: false
+        type: string
+        default: 'feature/test-compose'
     secrets:
       github_app_id:
         required: false
@@ -41,7 +45,7 @@ jobs:
         id: dispatch
         env:
           GH_TOKEN: ${{ steps.generate-app-token.outputs.token }}
-          TARGET_REF: 'feature/test-compose'
+          TARGET_REF: ${{ inputs.target_ref }}
           SABC_IMAGE_TAG: ${{ inputs.sabc_image_tag }}
           TEST_ANNOTATION: ${{ inputs.test_annotation }}
         run: |
@@ -68,7 +72,7 @@ jobs:
         id: find_run
         env:
           GH_TOKEN: ${{ steps.generate-app-token.outputs.token }}
-          TARGET_REF: 'feature/test-compose'
+          TARGET_REF: ${{ inputs.target_ref }}
           DISPATCH_TIME: ${{ steps.dispatch.outputs.dispatch_time }}
           RUN_ID: ${{ inputs.sabc_image_tag }}
           SABC_IMAGE_TAG: ${{ inputs.sabc_image_tag }}
