@@ -12,29 +12,52 @@ on:
       pr_number:
         required: false
         type: number
+      github_app_organisation:
+        required: false
+        type: string
     secrets:
-      gh_token:
-        required: true
+      github_app_id:
+        required: false
+      github_app_private_key:
+        required: false
 
 permissions:
   contents: read
 
 jobs:
 
-  dispatch-and-wait:
+  generate-app-token:
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.gh_token }}
-      GITHUB_APP_ID: ${{ secrets.github_app_id }}
-      GITHUB_APP_PRIVATE_KEY: ${{ secrets.github_app_private_key }}
+    outputs:
+      token: ${{ steps.generate-app-token.outputs.token }}
     steps:
+      - name: Generate app token
+        id: generate-app-token
+        uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3.0.0
+        with:
+          app-id: ${{ vars.LAA_CCMS_CAAB_SERVICE_APP_ID }}
+          private-key: ${{ secrets.LAA_CCMS_CAAB_SERVICE_KEY }}
+          owner: 'ministryofjustice'
+
+  dispatch-and-wait:
+    needs: generate-app-token
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate app token
+        id: generate-app-token
+        uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3.0.0
+        with:
+          app-id: ${{ vars.LAA_CCMS_CAAB_SERVICE_APP_ID }}
+          private-key: ${{ secrets.LAA_CCMS_CAAB_SERVICE_KEY }}
+          owner: 'ministryofjustice'
+
       - name: Dispatch target workflow
         id: dispatch
         env:
+          GH_TOKEN: ${{ steps.generate-app-token.outputs.token }}
           TARGET_REF: 'feature/test-compose'
           SABC_IMAGE_TAG: ${{ inputs.sabc_image_tag }}
           TEST_ANNOTATION: ${{ inputs.test_annotation }}
-          GH_TOKEN: ${{ secrets.gh_token }}
         run: |
           set -euo pipefail
 
@@ -58,12 +81,12 @@ jobs:
       - name: Find the created workflow run
         id: find_run
         env:
+          GH_TOKEN: ${{ steps.generate-app-token.outputs.token }}
           TARGET_REF: 'feature/test-compose'
           DISPATCH_TIME: ${{ steps.dispatch.outputs.dispatch_time }}
           RUN_ID: ${{ inputs.sabc_image_tag }}
           SABC_IMAGE_TAG: ${{ inputs.sabc_image_tag }}
           TEST_ANNOTATION: ${{ inputs.test_annotation }}
-          GH_TOKEN: ${{ secrets.gh_token }}
         run: |
           set -euo pipefail
 
@@ -95,8 +118,8 @@ jobs:
       - name: Link to found workflow run
         if: steps.find_run.outputs.run_id != ''
         env:
+          GH_TOKEN: ${{ steps.generate-app-token.outputs.token }}
           WORKFLOW_RUN_ID: ${{ steps.find_run.outputs.run_id }}
-          GH_TOKEN: ${{ secrets.gh_token }}
         run: |
           RUN_URL="https://github.com/ministryofjustice/bulk-submission-and-fee-scheme-tests-/actions/runs/${WORKFLOW_RUN_ID}"
           echo "### 🔗 E2E Workflow Run" >> "$GITHUB_STEP_SUMMARY"
@@ -105,6 +128,7 @@ jobs:
 
       - name: Poll until completion
         env:
+          GH_TOKEN: ${{ steps.generate-app-token.outputs.token }}
           WORKFLOW_RUN_ID: ${{ steps.find_run.outputs.run_id }}
         run: |
           set -euo pipefail
