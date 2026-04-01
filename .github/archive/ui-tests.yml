@@ -1,3 +1,4 @@
+# This workflow is no longer used. It now resides within this archive directory in case it's needed in the future.
 name: Run UI Feature Tests
 
 on:
