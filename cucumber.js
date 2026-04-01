@@ -22,7 +22,7 @@ module.exports = {
     "--format html:reports/cucumber.html",
     "--tags '@stable and not @ignore'",
     "--parallel 4",
-    "--retry 2",
+    "--retry 1",
     "tests/features/**/BulkSubmission/*.feature"
   ].join(" "),
   accessibility: [

@@ -70,9 +70,7 @@ When('I click upload without attaching a file', async function (this: CustomWorl
 When('I upload {string}', async function (this: CustomWorld, relativePath: string) {
     const filePath = path.resolve(relativePath);
 
-    if (!this.bulkImportPage) {
-        this.bulkImportPage = new BulkImportPage(this.page!);
-    }
+    this.bulkImportPage = new BulkImportPage(this.page!);
 
     await this.bulkImportPage.uploadFile(filePath);
     await this.bulkImportPage.clickUpload();
