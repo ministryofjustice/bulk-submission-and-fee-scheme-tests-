@@ -45,6 +45,7 @@ jobs:
         id: dispatch
         env:
           GH_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
+          TARGET_REF: 'feature/test-compose'
           SABC_IMAGE_TAG: ${{ inputs.sabc_image_tag }}
           TEST_ANNOTATION: ${{ inputs.test_annotation }}
         run: |
@@ -66,6 +67,7 @@ jobs:
         id: find_run
         env:
           GH_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
+          TARGET_REF: 'feature/test-compose'
           DISPATCH_TIME: ${{ steps.dispatch.outputs.dispatch_time }}
           RUN_ID: ${{ inputs.sabc_image_tag }}
           SABC_IMAGE_TAG: ${{ inputs.sabc_image_tag }}
