@@ -24,6 +24,7 @@ jobs:
   dispatch-and-wait:
     runs-on: ubuntu-latest
     env:
+      GH_TOKEN: ${{ secrets.gh_token }}
       GITHUB_APP_ID: ${{ secrets.github_app_id }}
       GITHUB_APP_PRIVATE_KEY: ${{ secrets.github_app_private_key }}
     steps:
@@ -37,6 +38,11 @@ jobs:
         run: |
           set -euo pipefail
 
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "GH_TOKEN is empty"
+            exit 1
+          fi
+  
           # Record time BEFORE dispatching
           DISPATCH_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           echo "dispatch_time=${DISPATCH_TIME}" >> "$GITHUB_OUTPUT"
