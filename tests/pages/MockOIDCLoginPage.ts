@@ -75,7 +75,9 @@ class MockOIDCLoginPage extends BasePage {
         await this.page.waitForSelector('h1:has-text("Submit a bulk claim")', { timeout: 60000 });
 
         const title = await this.page.title();
-        await expect(title).toContain('Submit a bulk claim');
+
+        expect(title).toContain('Submit a bulk claim');
+        console.log(`[DEBUG] Page title found: ${title}`)
     }
 
 }
