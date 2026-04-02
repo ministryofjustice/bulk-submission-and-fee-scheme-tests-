@@ -440,20 +440,12 @@ jobs:
           
           exit 0
 
-      - name: Login
-        shell: bash
-        run: npm run login:mock
-
-      - name: Print storage state
-        shell: bash
-        run: cat storageState.json
-
       - name: Run tests
         shell: bash
         run: | 
           ls -la storageState.json
           cat storageState.json | head
-          npm run test -- --tags "${{ inputs.test_annotation || '@accessibility'}}"  --parallel 4 --retry 3
+          npm run login:mock; npm run test -- --tags "${{ inputs.test_annotation || '@accessibility'}}"  --parallel 4 --retry 3
 
       - name: Collect Docker logs
         if: always()
