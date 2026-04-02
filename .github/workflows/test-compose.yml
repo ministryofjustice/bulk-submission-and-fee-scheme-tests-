@@ -444,11 +444,6 @@ jobs:
         shell: bash
         run: npm run login:mock
 
-      - name: Curl SABC
-        shell: bash
-        run: |
-          curl -IL http://127.0.0.1:8082/
-
       - name: Run tests
         shell: bash
         run: npm run test -- --tags "${{ inputs.test_annotation || '@accessibility'}}"  --parallel 4 --retry 3
