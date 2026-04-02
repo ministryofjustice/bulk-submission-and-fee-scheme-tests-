@@ -444,9 +444,10 @@ jobs:
         shell: bash
         run: npm run login:mock
 
-      - name: Print storage state (DEBUG)
+      - name: Curl SABC
         shell: bash
-        run: cat storageState.json
+        run: |
+          curl -IL http://127.0.0.1:8082/
 
       - name: Run tests
         shell: bash
