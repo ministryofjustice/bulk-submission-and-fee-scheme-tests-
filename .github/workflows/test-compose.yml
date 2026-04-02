@@ -443,8 +443,6 @@ jobs:
       - name: Run tests
         shell: bash
         run: | 
-          ls -la storageState.json
-          cat storageState.json | head
           npm run login:mock; npm run test -- --tags "${{ inputs.test_annotation || '@accessibility'}}"  --parallel 4 --retry 3
 
       - name: Collect Docker logs
