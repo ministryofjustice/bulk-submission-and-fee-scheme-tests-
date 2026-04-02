@@ -66,12 +66,12 @@ export class World {
   // @ts-ignore
   stepText: string;
   resetUiObjects() {
-    /*this.loginPage = undefined;
+    this.loginPage = undefined;
     this.bulkImportPage = undefined;
     this.bulkClaimSubmitPage = undefined;
     this.submissionSummaryPage = undefined;
     this.claimDetailPage = undefined;
-    this.bulkInProgressPage = undefined;*/
+    this.bulkInProgressPage = undefined;
   }
 
   constructor(options: IWorldOptions) {
