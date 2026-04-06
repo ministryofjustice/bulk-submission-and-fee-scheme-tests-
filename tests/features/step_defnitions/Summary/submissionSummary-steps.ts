@@ -608,7 +608,7 @@ Then(
       await this.claimDetailPage.waitForPage();
     }
 
-    // await this.claimDetailPage.expectVoidedBanner();
+    await this.claimDetailPage.expectVoidedBanner();
     await this.attach('✅ Voided claim banner is displayed on fee calculation screen', 'text/plain');
   }
 );

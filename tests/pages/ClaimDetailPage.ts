@@ -41,22 +41,6 @@ class ClaimDetailPage extends BasePage {
     return this.getTableRow(this.totalClaimValueCard, targetLabel, false);
   }
 
-  // async getFeeCalculationHeadings(): Promise<string[]> {
-  //   const rows = this.valuesCard.locator('tbody tr');
-  //   const count = await rows.count();
-  //   const headings: string[] = [];
-  //
-  //   for (let i = 0; i < count; i++) {
-  //     const label = ((await rows.nth(i).locator('th').innerText()) || '')
-  //         .replace(/\s+/g, ' ')
-  //         .trim();
-  //
-  //     if (label) headings.push(label);
-  //   }
-  //
-  //   return headings;
-  // }
-
   async getFeeCalculationHeadings(): Promise<string[]> {
     const rows = this.valuesCard.locator('tbody tr');
     const count = await rows.count();
@@ -101,10 +85,6 @@ class ClaimDetailPage extends BasePage {
 
       const cells = row.locator('td');
 
-      // Actual table order is:
-      // td[0] = Calculated
-      // td[1] = Entered
-      // td[2] = Notes (Values table only)
       const calculated = await this.getCellText(cells, 0);
       const entered = await this.getCellText(cells, 1);
       const notes = hasNotes ? await this.getCellText(cells, 2) : '';

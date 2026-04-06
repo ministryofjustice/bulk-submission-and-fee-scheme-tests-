@@ -16,4 +16,4 @@ Feature: Sort submission via UI
       | AreaOfLaw   | Format | Outcomes |
       | Legal help  | csv    | 30       |
       | Mediation   | txt    | 40       |
-      | Crime lower | xml    | 2        |
+      | Crime lower | xml    | 20       |

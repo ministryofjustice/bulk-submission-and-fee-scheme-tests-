@@ -1,4 +1,4 @@
-@content @new @stable
+@content
 Feature: Content check for the UI matching UX designs
 
   Background:

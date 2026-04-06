@@ -5,10 +5,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 (async () => {
-    const browser = await chromium.launch({
-        headless: false,   // 👈 makes it headed
-        slowMo: 100        // 👈 optional: slows actions so you can see them
-    });
+    const browser = await chromium.launch();
     const page = await browser.newPage();
 
     const loginPage = new LoginPage(page);
