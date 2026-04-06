@@ -1,4 +1,4 @@
-@content
+@content @new @stable
 Feature: Content check for the UI matching UX designs
 
   Background:
@@ -27,19 +27,20 @@ Feature: Content check for the UI matching UX designs
     Then I should see the following fee calculation headings:
       | Heading                          |
       | Fixed Fee                        |
-      | Net Profit Cost                  |
-      | Net Disbursements                |
+      | Profit Cost(ex VAT)              |
+      | Disbursements(ex VAT)            |
       | Disbursement VAT                 |
-      | Net Cost of Counsel              |
+      | Counsel's cost(ex VAT)           |
       | Travel & Waiting Costs           |
-      | Adjourned Hearing Fee            |
       | JR / Form Filling                |
+      | Adjourned Hearing Fee            |
       | Detention Travel & Waiting Costs |
       | CMRH Telephone                   |
       | CMRH Oral                        |
       | Home Office Interview            |
       | Substantive Hearing              |
       | VAT                              |
+
 
   Scenario: Claim details show fee calculation headings for "Crime lower"
     Given I am on the bulk import page
@@ -50,14 +51,14 @@ Feature: Content check for the UI matching UX designs
     Then I should see the following fee calculation headings:
       | Heading                          |
       | Fixed Fee                        |
-      | Net Profit Cost                  |
-      | Net Disbursements                |
+      | Profit Cost(ex VAT)              |
+      | Disbursements(ex VAT)            |
       | Disbursement VAT                 |
-      | Net Cost of Counsel              |
+      | Counsel's cost(ex VAT)           |
       | Travel Costs                     |
       | Waiting Costs                    |
-      | Adjourned Hearing Fee            |
       | JR / Form Filling                |
+      | Adjourned Hearing Fee            |
       | Detention Travel & Waiting Costs |
       | CMRH Telephone                   |
       | CMRH Oral                        |

@@ -7,17 +7,20 @@ Feature: Bulk Submission via UI
 
   Scenario: Legal Help – CAPA calculation with disbursement VAT
     Given I generate "Legal help" "csv" file with the following civil claims
-      | feeCode | vatIndicator | netDisbursementAmount | disbursementVatAmount | 
-      | CAPA    | N            |                    20 |                  10.5 |  
+      | feeCode | vatIndicator | netDisbursementAmount | disbursementVatAmount |
+      | CAPA    | N            | 20                    | 10.5                  |
     When I upload the generated file
     Then the submission summary total should be "£269.50"
     And the claim calculated value should be "£269.50"
     When I view the first claim
     Then the fee calculation should show the following values
-      | Item               | Entered | Calculated |
-      | Net Disbursements  |   20.00 |      20.00 |
-      | Disbursement VAT   |   10.50 |      10.50 |
-      | Total              |         |     269.50 |
+      | Item                  | Entered | Calculated |
+      | Disbursements(ex VAT) | 20.00   | 20.00      |
+      | Disbursement VAT      | 10.50   | 10.50      |
+    And the total claim value should show the following values
+      | Item                    | Entered | Calculated |
+      | Assessed Total incl VAT |         | 269.50     |
+
 
   Scenario: Mediation – ASSA calculation with disbursement VAT
     Given I generate "Mediation" "csv" file with the following civil claims
@@ -55,9 +58,9 @@ Feature: Bulk Submission via UI
     When I upload the generated file
     Then the submission summary total should be "£<total>"
     When I view the first claim
-    Then the fee calculation should show the following values
-      | Item  | Entered | Calculated      |
-      | Total |         | <expectedTotal> |
+    Then the total claim value should show the following values
+      | Item                    | Entered | Calculated      |
+      | Assessed Total incl VAT |         | <expectedTotal> |
 
     Examples: Immigration and Asylum Fixed Fee
       | office | feeCode | startDate  | immigrationPriorAuthorityNumber | detentionTravelAndWaitingCosts | jrFormFilling | boltOnHomeOfficeInterview | boltOnAdjournedHearing | boltOnCmrhOral | boltOnCmrhTelephone | boltOnSubstantiveHearing | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal | total    |

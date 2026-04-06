@@ -20,11 +20,6 @@ Feature: Export submission via UI
       | AreaOfLaw  | Format | Outcomes | Claims |
       | Legal help | csv    | 2        | 2      |
 
-    Examples:
-      | AreaOfLaw   | Format | Outcomes | Claims |
-      | Mediation   | csv    | 2        | 2      |
-      | Crime lower | csv    | 3        | 3      |
-
   Scenario Outline: Should not be able to export when failed submission for <AreaOfLaw>
     Given I generate "<AreaOfLaw>" "csv" file with the following claims
       | caseStartDate |

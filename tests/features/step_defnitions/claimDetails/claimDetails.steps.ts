@@ -36,6 +36,40 @@ Then(
 );
 
 Then(
+    'the total claim value should show the following values',
+    async function (this: World, dataTable: DataTable) {
+        const claimPage = new ClaimDetailPage(this.page!);
+        await claimPage.waitForPage();
+
+        const rows = dataTable.hashes();
+
+        for (const row of rows) {
+            const label = row.Item;
+            const expectedEntered =
+                row.Entered && row.Entered.trim() !== ''
+                    ? `£${Number(row.Entered).toFixed(2)}`
+                    : '';
+            const expectedCalculated =
+                row.Calculated && row.Calculated.trim() !== ''
+                    ? `£${Number(row.Calculated).toFixed(2)}`
+                    : '';
+
+            const totalRow = await claimPage.getTotalClaimValueRow(label);
+
+            expect(totalRow, `Total claim row "${label}" was not found`).toBeTruthy();
+
+            if (expectedEntered) {
+                expect(totalRow!.entered).toBe(expectedEntered);
+            }
+
+            if (expectedCalculated) {
+                expect(totalRow!.calculated).toBe(expectedCalculated);
+            }
+        }
+    }
+);
+
+Then(
     'the fee calculation should show the following values',
     async function (this: World, dataTable: DataTable) {
 

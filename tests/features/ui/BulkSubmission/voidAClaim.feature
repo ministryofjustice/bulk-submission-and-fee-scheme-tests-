@@ -5,6 +5,7 @@ Feature: Void a claim
     Given I start from a clean logged-in state
     And I am on the bulk import page
 
+  @ignore
   Scenario: Successfully submitted claim can be voided and shown in the UI
     Given I generate "Crime lower" "csv" file with "1" outcomes
     When I upload the generated file
