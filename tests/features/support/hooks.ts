@@ -70,6 +70,17 @@ Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHoo
 
                 const workerStats = fs.statSync(workerStorage);
                 console.log(`✅ Copied storage state for worker (${workerStats.size} bytes)`);
+
+                // Debug: Log the cookies from the storage state
+                try {
+                    const storageContent = JSON.parse(fs.readFileSync(workerStorage, 'utf-8'));
+                    console.log('[DEBUG] Storage state cookies:');
+                    storageContent.cookies?.forEach((cookie: any) => {
+                        console.log(`  - ${cookie.name}: domain=${cookie.domain}, value=${cookie.value.substring(0, 20)}...`);
+                    });
+                } catch (err) {
+                    console.warn('⚠️ Could not parse storage state for debugging');
+                }
             } catch (err) {
                 // @ts-ignore
                 console.warn('⚠️ Failed to copy storage state:', err?.message || err);

@@ -40,6 +40,7 @@ export async function recreateLoggedInContext(opts: {
     storageStatePath?: string;
 }): Promise<{ context: BrowserContext; page: Page }> {
     console.log(`🌍 Recreating logged-in context for base URL: ${opts.baseURL}`);
+    console.log(`🌍 Using storageState: ${opts.storageStatePath || 'NONE'}`);
 
     const context = await opts.browser.newContext({
         baseURL: opts.baseURL,
@@ -47,6 +48,17 @@ export async function recreateLoggedInContext(opts: {
     });
 
     const page = await context.newPage();
+
+    // Debug: Log cookies after creating context
+    const cookies = await context.cookies();
+    console.log('[DEBUG] Cookies in new context:');
+    if (cookies.length === 0) {
+        console.log('  ⚠️ NO COOKIES LOADED!');
+    } else {
+        cookies.forEach(cookie => {
+            console.log(`  - ${cookie.name}: domain=${cookie.domain}, value=${cookie.value.substring(0, 20)}...`);
+        });
+    }
 
     try {
         // Navigate without waiting for full load
