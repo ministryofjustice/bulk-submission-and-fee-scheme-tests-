@@ -25,7 +25,6 @@ on:
         description: 'Claims Events image tag to use instead of UAT'
         type: string
         required: false
-  pull_request:
 
 
 
