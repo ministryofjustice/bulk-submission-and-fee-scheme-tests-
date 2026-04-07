@@ -5,7 +5,7 @@ import {MockOIDCLoginPage} from "../pages/MockOIDCLoginPage";
 dotenv.config();
 
 (async () => {
-    const browser = await chromium.launch();
+    const browser = await chromium.launch({ headless: process.env.HEADLESS === 'true' });
     const page = await browser.newPage();
 
     const loginPage = new MockOIDCLoginPage(page);
