@@ -13,7 +13,13 @@ dotenv.config();
     await loginPage.login();
 
     // ✅ Save session
-    await page.context().storageState({ path: 'storageState.json' });
+    const storageState = await page.context().storageState({ path: 'storageState.json' });
+
+    // Debug: Log the cookies that were saved
+    console.log('[DEBUG] Saved cookies:');
+    storageState.cookies.forEach(cookie => {
+        console.log(`  - ${cookie.name}: domain=${cookie.domain}, path=${cookie.path}`);
+    });
 
     await browser.close();
     console.log('✅ Auth state saved to storageState.json');
