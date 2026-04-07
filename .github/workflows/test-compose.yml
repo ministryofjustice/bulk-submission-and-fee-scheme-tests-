@@ -204,7 +204,7 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install
 
       - name: Pull SABC image
         uses: ./.github/actions/pull-ecr-image
@@ -330,6 +330,7 @@ jobs:
           AUTH_TENANT_ID=${{ secrets.AUTH_TENANT_ID }}
           AUTH_SCOPE=${{ secrets.AUTH_SCOPE }}
           REDIRECT_BASE_URI=app:8082
+          ALLOWED_HOSTS=app,app:8082
           EOF
 
       - name: Run services
@@ -360,7 +361,7 @@ jobs:
           echo "Waiting for services to be ready..."
           echo "Waiting for SaBC UI..."
           for i in {1..36}; do
-          if curl -fsS http://127.0.0.1:8181/actuator/health | grep -q '"status":"UP"'; then
+          if curl -fsS http://app:8181/actuator/health | grep -q '"status":"UP"'; then
             echo "Healthy"
             exit 0
           fi
