@@ -100,6 +100,10 @@ Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHoo
                 storageState: this.workerStoragePath,
             });
 
+
+            const cookies = await this.context.cookies('http://127.0.0.1:8082');
+            console.log('[DEBUG] Cookies Playwright will actually send:', JSON.stringify(cookies));
+
             this.page = await this.context.newPage();
             console.log(`✅ Context created. Current page URL: ${this.page.url() || '(empty)'}`);
 
