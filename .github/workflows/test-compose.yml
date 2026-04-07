@@ -441,10 +441,21 @@ jobs:
           
           exit 0
 
+      - name: Login
+        shell: bash
+        run: |
+          npm run login:mock
+
+      - name: Verify session is still alive
+        shell: bash
+        run: |
+           SESSION=$(cat storageState.json | python3 -c "import sys,json; cookies={c['name']:c['value'] for c in json.load(sys.stdin)['cookies']}; print(cookies.get('SESSION',''))")
+           curl -v -b "SESSION=$SESSION" http://127.0.0.1:8082/ 2>&1 | grep -E "(< HTTP|Location:)"
+
       - name: Run tests
         shell: bash
         run: | 
-          npm run login:mock; npm run test -- --tags "${{ inputs.test_annotation || '@accessibility'}}"  --parallel 4 --retry 3
+          npm run test -- --tags "${{ inputs.test_annotation || '@accessibility'}}"  --parallel 4 --retry 3
 
       - name: Collect Docker logs
         if: always()
