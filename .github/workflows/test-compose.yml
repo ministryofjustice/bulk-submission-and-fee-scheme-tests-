@@ -330,7 +330,6 @@ jobs:
           AUTH_TENANT_ID=${{ secrets.AUTH_TENANT_ID }}
           AUTH_SCOPE=${{ secrets.AUTH_SCOPE }}
           REDIRECT_BASE_URI=app:8082
-          ALLOWED_HOSTS=app,app:8082
           EOF
 
       - name: Run services

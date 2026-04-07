@@ -20,7 +20,7 @@ services:
       REST_CLIENT_READ_TIMEOUT: ${REST_CLIENT_READ_TIMEOUT:-40000}
       REDIS_HOST: redis://redis:6379
       SPRING_PROFILES_ACTIVE: github-test-runner
-      ALLOWED_HOSTS: 127.0.0.1,127.0.0.1:8082,localhost,localhost:8082,127.0.0.1,127.0.0.1:8082
+      ALLOWED_HOSTS: app,app:8082,localhost,localhost:8082,127.0.0.1,127.0.0.1:8082
       CANONICAL_BASE_URL: http://127.0.0.1:8082
 
     ports:
