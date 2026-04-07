@@ -441,10 +441,6 @@ jobs:
           
           exit 0
 
-      - name: Login
-        shell: bash
-        run: npm run login:mock
-
       - name: Run tests
         shell: bash
         run: | 
