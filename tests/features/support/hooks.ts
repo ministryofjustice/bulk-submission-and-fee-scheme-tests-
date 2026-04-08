@@ -118,6 +118,7 @@ Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHoo
                 baseURL: process.env.UI_BASE_URL || 'about:blank',
                 storageState: this.workerStoragePath,
             });
+            console.log('[DEBUG] Setting context baseURL to:', process.env.UI_BASE_URL || 'about:blank');
 
 
             const cookies = await this.context.cookies('http://app:8082');
