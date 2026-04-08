@@ -4,6 +4,7 @@ Feature: View claim details page (VC)
   Background:
     Given I am on the bulk import page
 
+    @jamie
   Scenario Outline: VC1-<abbr> accessibility checks
     Given I generate "<areaOfLaw>" "csv" file with "11" outcomes
     And I upload the generated file

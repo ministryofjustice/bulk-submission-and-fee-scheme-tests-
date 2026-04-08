@@ -18,7 +18,7 @@ on:
       target_ref:
         required: false
         type: string
-        default: 'test/previous-e2e-check'
+        default: 'main'
     secrets:
       github_app_id:
         required: false
