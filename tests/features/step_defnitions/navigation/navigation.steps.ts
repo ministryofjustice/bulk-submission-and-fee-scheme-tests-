@@ -1,6 +1,6 @@
 import { Given } from '@cucumber/cucumber';
 import World from '../../support/world';
-import { logoutAndWipe, recreateLoggedInContext } from './reset.helper';
+import { recreateLoggedInContext } from './reset.helper';
 
 Given('I start from a clean logged-in state', async function (this: World) {
     if (!this.page || !this.browser) {
@@ -8,8 +8,6 @@ Given('I start from a clean logged-in state', async function (this: World) {
     }
 
     const baseUrl = process.env.UI_BASE_URL!;
-    const expectedOrigin = new URL(baseUrl).origin;
-
     let status: number | undefined;
     let badStatus = false;
 
@@ -48,26 +46,10 @@ Given('I start from a clean logged-in state', async function (this: World) {
         if (resp) await this.page.waitForLoadState('domcontentloaded');
     }
 
-    // Wait for readiness indicator
-    const signOutVisible = await this.page
-        .locator('button.sign-in-button:has-text("Sign out")')
-        .waitFor({ state: 'visible', timeout: 45000 })
-        .then(() => true)
-        .catch(() => {
-            console.warn('⚠️ Sign-out button not visible — continuing.');
-            return false;
-        });
-
-    const currentUrl = this.page.url();
-    const isAppOrigin = currentUrl.startsWith(expectedOrigin);
-
-    if (signOutVisible && isAppOrigin) {
-        await logoutAndWipe(this.page);
-    } else {
-        console.warn(
-            `⚠️ Skipping logoutAndWipe because current page is not a stable app page (url=${currentUrl || '(empty)'}, signOutVisible=${signOutVisible})`
-        );
-    }
+    // Do not sign out server-side here. All parallel scenarios are seeded from the same
+    // saved auth state, so logging out in one worker can invalidate the shared session for
+    // other workers and trigger redirect loops. Closing the context is enough to reset the
+    // browser-side state for this scenario.
 
     try {
         await this.context?.close();
