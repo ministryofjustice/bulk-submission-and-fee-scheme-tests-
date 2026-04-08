@@ -128,7 +128,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
 
-  run-accessibility-tests:
+  run-tests:
     needs: [ get-app-versions ]
     environment: uat
     runs-on: ubuntu-latest
@@ -204,7 +204,6 @@ jobs:
           kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
           kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
           kube-sa: deploy-user
-
 
       - name: Port forward to FPS-API pod
         uses: ./.github/actions/port-forward
