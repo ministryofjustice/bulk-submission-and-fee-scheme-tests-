@@ -172,10 +172,10 @@ jobs:
       - name: Pull OIDC image
         uses: ./.github/actions/pull-ecr-image
         with:
-          role-to-assume: ${{ secrets.LAA_SUBMIT_A_BULK_CLAIM_ECR_ROLE_TO_ASSUME }}
-          aws-region: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
+          role-to-assume: ${{ secrets.LAA_OIDC_MOCK_SERVER_ECR_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.LAA_OIDC_MOCK_SERVER_ECR_REGION }}
           registry-account: ${{ secrets.ECR_ACCOUNT }}
-          repository: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}
+          repository: ${{ vars.LAA_OIDC_MOCK_SERVER_ECR_REPOSITORY }}
           image-tag: oidc-mock-latest
 
       - name: Pull Event Service image
