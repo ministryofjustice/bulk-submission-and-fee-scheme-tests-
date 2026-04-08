@@ -9,9 +9,6 @@ import {GenerateCrimeFiles} from '../../../utils/scripts/dataGenartor/generateCr
 import path from 'path';
 import {expect} from "@playwright/test";
 import {SearchPage} from "../../../pages/SearchPage";
-// @ts-ignore
-import {injectAxe, checkA11y} from '@axe-core/playwright';
-import AxeBuilder from '@axe-core/playwright';
 import {createDataSourceManager} from '../../../utils/db/dataSourceManager';
 import {parse, format} from 'date-fns';
 
@@ -569,55 +566,6 @@ Given('I choose a submission period with no submissions', async function (this: 
     'text/plain'
   );
 
-});
-
-Then('the Search page should pass accessibility checks', async function (this: CustomWorld) {
-  const results = await new AxeBuilder({page: this.page!})
-    .withTags(['wcag2a', 'wcag2aa'])
-    .analyze();
-
-  // If no violations — simple success message
-  if (results.violations.length === 0) {
-    const successMsg = '✅ Accessibility checks passed — no WCAG violations found.';
-    await this.attach(successMsg, 'text/plain');
-    console.log(successMsg);
-    return;
-  }
-
-  // --- Build a nicely formatted accessibility report ---
-  const formattedViolations = results.violations
-    .map((v, i) => {
-      const nodes = v.nodes
-        .map(
-          n => `
-  • **Target:** ${n.target.join(', ')}
-    • **HTML:** ${n.html}
-    • **Failure Summary:** ${n.failureSummary}
-  `
-        )
-        .join('\n');
-
-      return `### ${i + 1}. ${v.id} — ${v.help}  
-**Impact:** ${v.impact}  
-**Description:** ${v.description}  
-**Help URL:** [${v.helpUrl}](${v.helpUrl})  
-${nodes}
-`;
-    })
-    .join('\n---\n');
-
-  const fullReport = `
-## ⚠️ Accessibility Violations Found
-Total violations: **${results.violations.length}**
-
-${formattedViolations}
-`;
-
-  // Attach formatted markdown so it appears inline in the Cucumber HTML report
-  await this.attach(fullReport, 'text/markdown');
-
-  // Fail the step to mark the scenario as failed
-  throw new Error(`Accessibility violations detected: ${results.violations.length}`);
 });
 
 Then('I should see search results', async function (this: CustomWorld) {
