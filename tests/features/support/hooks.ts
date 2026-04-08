@@ -127,8 +127,11 @@ Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHoo
             this.page = await this.context.newPage();
             console.log(`✅ Context created. Current page URL: ${this.page.url() || '(empty)'}`);
 
-            await this.page.goto('about:blank');
-            console.log('📄 Navigated to about:blank');
+            // 👇 Force browser to re-enter the auth flow properly
+            await this.page.goto(process.env.UI_BASE_URL!);
+
+            await this.page.waitForLoadState('networkidle');
+            console.log('📄 Navigated to: ', process.env.UI_BASE_URL!);
 
             this.resetUiObjects();
         } catch (err) {
