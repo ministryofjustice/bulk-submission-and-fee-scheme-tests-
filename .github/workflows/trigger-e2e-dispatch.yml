@@ -18,7 +18,7 @@ on:
       target_ref:
         required: false
         type: string
-        default: 'feature/test-compose'
+        default: 'chore/fix-session'
     secrets:
       github_app_id:
         required: false
@@ -46,7 +46,8 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.generate-app-token.outputs.token }}
           TARGET_REF: ${{ inputs.target_ref }}
-          SABC_IMAGE_TAG: ${{ inputs.sabc_image_tag }}
+          # SABC_IMAGE_TAG: ${{ inputs.sabc_image_tag }}
+          SABC_IMAGE_TAG: submit-a-bulk-claim-1.0.154-SNAPSHOT-4874758
           TEST_ANNOTATION: ${{ inputs.test_annotation }}
         run: |
           set -euo pipefail
@@ -75,7 +76,8 @@ jobs:
           TARGET_REF: ${{ inputs.target_ref }}
           DISPATCH_TIME: ${{ steps.dispatch.outputs.dispatch_time }}
           RUN_ID: ${{ inputs.sabc_image_tag }}
-          SABC_IMAGE_TAG: ${{ inputs.sabc_image_tag }}
+          # SABC_IMAGE_TAG: ${{ inputs.sabc_image_tag }}
+          SABC_IMAGE_TAG: submit-a-bulk-claim-1.0.154-SNAPSHOT-4874758
           TEST_ANNOTATION: ${{ inputs.test_annotation }}
         run: |
           set -euo pipefail
