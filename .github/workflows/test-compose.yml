@@ -452,6 +452,11 @@ jobs:
         run: |
           npm run login:mock
 
+      - name: Check storageState.json
+        shell: bash
+        run: |
+          cat storageState.json
+
       - name: Verify session is still alive
         shell: bash
         run: |
