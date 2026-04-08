@@ -445,30 +445,47 @@ jobs:
         shell: bash
         run: npm run login:mock
 
-      - name: Run accessibility tests
+      - name: Check storageState.json
         shell: bash
-        #run: npm run test:accessibility:browserstack
-        run: npm run test -- --tags "@jamie"  --parallel 4 --retry 1
-
-      - name: Logs for OIDC
-        if: failure()
         run: |
-          docker logs --tail 500 oidc
+          cat storageState.json
 
-      - name: Logs for SaBC
-        if: failure()
+      - name: Verify session is still alive
+        shell: bash
         run: |
-          docker logs --tail 500 submit-a-bulk-claim-app
+          SESSION=$(cat storageState.json | python3 -c "import sys,json; cookies={c['name']:c['value'] for c in json.load(sys.stdin)['cookies']}; print(cookies.get('SESSION',''))")
+          echo "---- RESPONSE ----"
+          curl -s -i -b "SESSION=$SESSION" http://127.0.0.1:8082/
+
+      - name: Run tests
+        shell: bash
+        run: | 
+          npm run test -- --tags "${{ inputs.test_annotation || '@accessibility'}}"  --parallel 4 --retry 3
+
+      - name: Collect Docker logs
+        if: always()
+        run: |
+          mkdir -p logs
+          docker logs oidc > logs/oidc.log 2>&1 || true
+          docker logs app > logs/sabc.log 2>&1 || true
+          docker logs data-claims-api-app > logs/claims-api.log 2>&1 || true
+          docker logs data-claims-event-service-app > logs/claims-event-service.log 2>&1 || true
+          docker logs local-postgres > logs/postgres.log 2>&1 || true
+          docker logs event-service-localstack > logs/localstack.log 2>&1 || true
+          docker logs redis > logs/redis.log 2>&1 || true
+
+      - name: Upload Docker logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-logs
+          path: logs
+          if-no-files-found: warn
 
       - name: Teardown docker containers
         if: always()
         run: |
           docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml down sabc-ui event-service claims-api postgres localstack redis laa-mock-oidc-service -v;
-
-      - name: Teardown (global cleanup)
-        if: always()
-        run: |
-          npm run teardown
 
       - name: Publish Cucumber summary
         if: always()
@@ -478,8 +495,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ui-accessibility-reports
+          name: test-reports
           path: reports
           if-no-files-found: warn
-
-
