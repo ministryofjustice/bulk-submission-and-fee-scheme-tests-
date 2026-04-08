@@ -18,9 +18,8 @@ Feature: Bulk Submission via UI
       | Disbursements(ex VAT) | 20.00   | 20.00      |
       | Disbursement VAT      | 10.50   | 10.50      |
     And the total claim value should show the following values
-      | Item                    | Entered | Calculated |
-      | Assessed Total incl VAT |         | 269.50     |
-
+      | Item           | Entered | Calculated |
+      | Total incl VAT |         | 269.50     |
 
   Scenario: Mediation – ASSA calculation with disbursement VAT
     Given I generate "Mediation" "csv" file with the following civil claims
@@ -30,10 +29,12 @@ Feature: Bulk Submission via UI
     Then the submission summary total should be "£134.90"
     When I view the first claim
     Then the fee calculation should show the following values
-      | Item              | Entered | Calculated |
-      | Net Disbursements |   20.00 |      20.00 |
-      | Disbursement VAT  |   10.50 |      10.50 |
-      | Total             |         |     134.90 |
+      | Item                  | Entered | Calculated |
+      | Disbursements(ex VAT) | 20.00   | 20.00      |
+      | Disbursement VAT      | 10.50   | 10.50      |
+    And the total claim value should show the following values
+      | Item           | Entered | Calculated |
+      | Total incl VAT |         | 134.90     |
 
   Scenario: Crime – APPA calculation with disbursements and travel
     Given I generate "Crime lower" "csv" file with the following crime claims
@@ -43,13 +44,15 @@ Feature: Bulk Submission via UI
     Then the submission summary total should be "£131.50"
     When I view the first claim
     Then the crime fee calculation should show the following values
-      | Item              | Entered | Calculated |
-      | Net Profit Cost   |   40.00 |      40.00 |
-      | Net Disbursements |   20.00 |      20.00 |
-      | Disbursement VAT  |   15.50 |      15.50 |
-      | Travel Costs      |   10.00 |      10.00 |
-      | Waiting Costs     |   30.00 |      30.00 |
-      | Total             |         |     131.50 |
+      | Item                  | Entered | Calculated |
+      | Profit Cost(ex VAT)   | 40.00   | 40.00      |
+      | Disbursements(ex VAT) | 20.00   | 20.00      |
+      | Disbursement VAT      | 15.50   | 15.50      |
+      | Travel Costs          | 10.00   | 10.00      |
+      | Waiting Costs         | 30.00   | 30.00      |
+    And the total claim value should show the following values
+      | Item           | Entered | Calculated |
+      | Total incl VAT |         | 131.50     |
 
   Scenario Outline: Immigration and Asylum – Fixed fee with bolt-ons
     Given I generate "Legal help" "csv" file for office "<office>" with the following immigration claims
@@ -59,8 +62,8 @@ Feature: Bulk Submission via UI
     Then the submission summary total should be "£<total>"
     When I view the first claim
     Then the total claim value should show the following values
-      | Item                    | Entered | Calculated      |
-      | Assessed Total incl VAT |         | <expectedTotal> |
+      | Item           | Entered | Calculated      |
+      | Total incl VAT |         | <expectedTotal> |
 
     Examples: Immigration and Asylum Fixed Fee
       | office | feeCode | startDate  | immigrationPriorAuthorityNumber | detentionTravelAndWaitingCosts | jrFormFilling | boltOnHomeOfficeInterview | boltOnAdjournedHearing | boltOnCmrhOral | boltOnCmrhTelephone | boltOnSubstantiveHearing | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal | total    |
