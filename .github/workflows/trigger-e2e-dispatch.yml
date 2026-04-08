@@ -4,7 +4,13 @@ on:
   workflow_call:
     inputs:
       sabc_image_tag:
-        required: true
+        required: false
+        type: string
+      claims_api_image_tag:
+        required: false
+        type: string
+      claims_event_service_image_tag:
+        required: false
         type: string
       test_annotation:
         required: true
@@ -46,8 +52,9 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.generate-app-token.outputs.token }}
           TARGET_REF: ${{ inputs.target_ref }}
-          # SABC_IMAGE_TAG: ${{ inputs.sabc_image_tag }}
-          SABC_IMAGE_TAG: submit-a-bulk-claim-1.0.154-SNAPSHOT-4874758
+          SABC_IMAGE_TAG: ${{ inputs.sabc_image_tag }}
+          CLAIMS_API_IMAGE_TAG: ${{ inputs.claims_api_image_tag }}
+          CLAIMS_EVENTS_IMAGE_TAG: ${{ inputs.claims_event_service_image_tag }}
           TEST_ANNOTATION: ${{ inputs.test_annotation }}
         run: |
           set -euo pipefail
@@ -67,6 +74,8 @@ jobs:
             -f ref="${TARGET_REF}" \
             -f inputs[test_annotation]="${TEST_ANNOTATION}" \
             -f inputs[sabc_image_tag]="${SABC_IMAGE_TAG}" \
+            -f inputs[claims_api_image_tag]="${CLAIMS_API_IMAGE_TAG}" \
+            -f inputs[claims_events_image_tag]="${CLAIMS_EVENTS_IMAGE_TAG}" \
             -f inputs[run_id]="${SABC_IMAGE_TAG}"
 
       - name: Find the created workflow run
@@ -76,8 +85,9 @@ jobs:
           TARGET_REF: ${{ inputs.target_ref }}
           DISPATCH_TIME: ${{ steps.dispatch.outputs.dispatch_time }}
           RUN_ID: ${{ inputs.sabc_image_tag }}
-          # SABC_IMAGE_TAG: ${{ inputs.sabc_image_tag }}
-          SABC_IMAGE_TAG: submit-a-bulk-claim-1.0.154-SNAPSHOT-4874758
+          SABC_IMAGE_TAG: ${{ inputs.sabc_image_tag }}
+          CLAIMS_API_IMAGE_TAG: ${{ inputs.claims_api_image_tag }}
+          CLAIMS_EVENTS_IMAGE_TAG: ${{ inputs.claims_event_service_image_tag }}
           TEST_ANNOTATION: ${{ inputs.test_annotation }}
         run: |
           set -euo pipefail
