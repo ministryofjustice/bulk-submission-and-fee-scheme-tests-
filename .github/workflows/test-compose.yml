@@ -162,7 +162,7 @@ jobs:
   run-tests:
     needs: [ get-app-versions ]
     environment: uat
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
