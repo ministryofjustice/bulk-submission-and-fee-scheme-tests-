@@ -7,13 +7,16 @@ Given('I start from a clean logged-in state', async function (this: World) {
         throw new Error('Browser/Page not available');
     }
 
+    const baseUrl = process.env.UI_BASE_URL!;
+    const expectedOrigin = new URL(baseUrl).origin;
+
     let status: number | undefined;
     let badStatus = false;
 
     // Retry initial navigation (env may be cold-starting)
     for (let attempt = 1; attempt <= 3; attempt++) {
         try {
-            const resp = await this.page.goto(process.env.UI_BASE_URL!, { timeout: 60000 });
+            const resp = await this.page.goto(baseUrl, { timeout: 60000 });
             await this.page.waitForLoadState('domcontentloaded');
 
             status = resp?.status();
@@ -41,18 +44,30 @@ Given('I start from a clean logged-in state', async function (this: World) {
         console.warn(`🔧 Navigation unhealthy (status=${status ?? 'none'}) — retrying again...`);
 
         // Final retry without sleeps
-        const resp = await this.page.goto(process.env.UI_BASE_URL!, { timeout: 60000 }).catch(() => null);
+        const resp = await this.page.goto(baseUrl, { timeout: 60000 }).catch(() => null);
         if (resp) await this.page.waitForLoadState('domcontentloaded');
     }
 
     // Wait for readiness indicator
-    await this.page
+    const signOutVisible = await this.page
         .locator('button.sign-in-button:has-text("Sign out")')
         .waitFor({ state: 'visible', timeout: 45000 })
-        .catch(() => console.warn('⚠️ Sign-out button not visible — continuing.'));
+        .then(() => true)
+        .catch(() => {
+            console.warn('⚠️ Sign-out button not visible — continuing.');
+            return false;
+        });
 
-    // Log out + clear session
-    await logoutAndWipe(this.page);
+    const currentUrl = this.page.url();
+    const isAppOrigin = currentUrl.startsWith(expectedOrigin);
+
+    if (signOutVisible && isAppOrigin) {
+        await logoutAndWipe(this.page);
+    } else {
+        console.warn(
+            `⚠️ Skipping logoutAndWipe because current page is not a stable app page (url=${currentUrl || '(empty)'}, signOutVisible=${signOutVisible})`
+        );
+    }
 
     try {
         await this.context?.close();
@@ -63,7 +78,7 @@ Given('I start from a clean logged-in state', async function (this: World) {
     // Recreate logged-in context
     const { context, page } = await recreateLoggedInContext({
         browser: this.browser!,
-        baseURL: process.env.UI_BASE_URL!,
+        baseURL: baseUrl,
         storageStatePath: this.workerStoragePath,
     });
 
