@@ -1,5 +1,6 @@
 # scripts/Dockerfile.localstack
-FROM localstack/localstack:latest
+# Newer versions require an Auth token
+FROM localstack/localstack:4.14.0
 
 COPY scripts/init-localstack.sh /etc/localstack/init/ready.d/init-localstack.sh
 RUN chmod +x /etc/localstack/init/ready.d/init-localstack.sh
