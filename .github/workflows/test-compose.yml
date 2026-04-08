@@ -468,7 +468,7 @@ jobs:
         run: |
           mkdir -p logs
           docker logs oidc > logs/oidc.log 2>&1 || true
-          docker logs submit-a-bulk-claim-app > logs/sabc.log 2>&1 || true
+          docker logs app > logs/sabc.log 2>&1 || true
           docker logs data-claims-api-app > logs/claims-api.log 2>&1 || true
           docker logs data-claims-event-service-app > logs/claims-event-service.log 2>&1 || true
           docker logs local-postgres > logs/postgres.log 2>&1 || true
