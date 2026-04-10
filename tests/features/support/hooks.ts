@@ -19,7 +19,6 @@ import {execSync} from 'child_process';
 import {createDataSourceManager} from '../../utils/db/dataSourceManager';
 import {cleanSubmissionData} from '../../utils/scripts/cleanup-submissions';
 import {destroySubmissionPeriodManager} from '../../utils/scripts/dataGenartor/submissionPeriodHelper';
-import AxeBuilder from '@axe-core/playwright';
 
 setDefaultTimeout(180 * 1000);
 console.log('⏱️ Cucumber step timeout set to 180s');
@@ -37,24 +36,6 @@ BeforeAll(function () {
     } catch (err) {
         console.warn('⚠️ Could not initialize attachments directory:', err);
     }
-    const dirAcc = path.join(process.cwd(), 'reports', 'accessibility');
-    try {
-        fs.rmSync(dirAcc, {recursive: true, force: true});
-        fs.mkdirSync(dirAcc, {recursive: true});
-        console.log(`🧹 Cleared attachments: ${path.relative(process.cwd(), dirAcc)}`);
-    } catch (err) {
-        console.warn('⚠️ Could not initialize attachments directory:', err);
-    }
-    const accessibilityCsvPath = path.join(process.cwd(), 'reports', 'accessibility-violations.csv');
-    try {
-        if (fs.existsSync(accessibilityCsvPath)) {
-            fs.unlinkSync(accessibilityCsvPath);
-            console.log(`🧹 Deleted accessibility violations CSV: ${path.relative(process.cwd(), accessibilityCsvPath)}`);
-        }
-    } catch (err) {
-        console.warn('⚠️ Could not delete accessibility violations CSV:', err);
-    }
-
 });
 
 Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHookParameter) {

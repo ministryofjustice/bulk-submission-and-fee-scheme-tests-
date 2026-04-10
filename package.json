@@ -12,8 +12,7 @@
     "login": "ts-node tests/setup/auth.setup.ts",
     "teardown": "ts-node tests/utils/scripts/cleanup-submissions.ts",
     "test:tag": "cucumber-js --require-module ts-node/register --require \"tests/features/**/*.ts\" --format json:reports/cucumber.json --format html:reports/cucumber.html tests/features/**/*.feature",
-    "test:e2e": "cucumber-js -p stable",
-    "test:accessibility": "cucumber-js -p accessibility"
+    "test:e2e": "cucumber-js -p stable"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",

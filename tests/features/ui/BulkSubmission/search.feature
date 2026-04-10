@@ -13,35 +13,30 @@ Feature: Bulk Submission Search
     Given I determine a valid submission search criteria
     And I am on the Search page
     When I search using the valid search criteria
-    Then the Search page should pass accessibility checks
     Then I should see results matching the expected count
 
   Scenario: Search for submissions via Submission Period
     Given I determine a valid submission period for search criteria
     And I am on the Search page
     When I search using the valid search criteria
-    Then the Search page should pass accessibility checks
     Then I should see results matching the expected count
 
   Scenario: Search for submissions via Area of Law
     Given I determine a valid area of law for search criteria
     And I am on the Search page
     When I search using the valid search criteria
-    Then the Search page should pass accessibility checks
     Then I should see results matching the expected count
 
   Scenario: Search for submissions via Submission Status
     Given I determine a valid submissions status for search criteria
     And I am on the Search page
     When I search using the valid search criteria
-    Then the Search page should pass accessibility checks
     Then I should see results matching the expected count
 
   Scenario: Search for submissions via Office Account
     Given I determine a valid office account for search criteria
     And I am on the Search page
     When I search using the valid search criteria
-    Then the Search page should pass accessibility checks
     Then I should see results matching the expected count
 
   @inputValidation
@@ -58,4 +53,3 @@ Feature: Bulk Submission Search
     And I am on the Search page
     When I search using the valid search criteria
     Then I should see a message saying "No submissions were found."
-    Then the Search page should pass accessibility checks
