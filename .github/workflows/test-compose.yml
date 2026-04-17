@@ -1,0 +1,501 @@
+name: Run E2E Tests via Docker Compose
+run-name: Run ${{ inputs.test_annotation }} E2E tests - ${{ inputs.run_id }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_annotation:
+        description: 'Test annotation to run'
+        type: string
+        required: false
+        default: '@accessibility'
+      run_id:
+        description: 'The Identifier to give the run (Can be anything)'
+        type: string
+        required: false
+      sabc_image_tag:
+        description: 'SaBC image tag to use instead of UAT'
+        type: string
+        required: false
+      claims_api_image_tag:
+        description: 'Claims API image tag to use instead of UAT'
+        type: string
+        required: false
+      claims_events_image_tag:
+        description: 'Claims Events image tag to use instead of UAT'
+        type: string
+        required: false
+
+
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  get-app-versions:
+    runs-on: ubuntu-latest
+    outputs:
+      sabc_image_tag: ${{ inputs.sabc_image_tag || steps.sabc.outputs.image_tag }}
+      claims_events_image_tag: ${{ inputs.claims_events_image_tag || steps.claims_events.outputs.image_tag }}
+      claims_api_image_tag: ${{ inputs.claims_api_image_tag || steps.claims_api.outputs.image_tag }}
+      fsp_api_image_tag: ${{ steps.fsp_api.outputs.image_tag }}
+    environment: uat
+    permissions:
+      id-token: write
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch || github.ref }}
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: v1.29.4
+
+      - name: Authenticate to the SaBC EKS cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
+        with:
+          kube-cert: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-token: ${{ secrets.KUBE_TOKEN_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-sa: deploy-user
+
+      - name: Collect SaBC version
+        id: sabc
+        uses: ./.github/actions/collect-deployment-version
+        with:
+          deployment: uat-submit-a-bulk-claim
+          namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          friendly_name: Submit a Bulk Claim
+
+      - name: Authenticate to the Claims API EKS cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
+        with:
+          kube-cert: ${{ secrets.KUBE_CERT_LAA_DATA_CLAIMS_API_UAT }}
+          kube-token: ${{ secrets.KUBE_TOKEN_LAA_DATA_CLAIMS_API_UAT }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_DATA_CLAIMS_API_UAT }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
+          kube-sa: deploy-user
+
+      - name: Collect Claims API version
+        id: claims_api
+        uses: ./.github/actions/collect-deployment-version
+        with:
+          deployment: main-data-claims-api
+          namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_API_UAT }}
+          friendly_name: Data Claims API
+
+      - name: Authenticate to the FSP API EKS cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
+        with:
+          kube-cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
+          kube-token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          kube-sa: deploy-user
+
+      - name: Collect FSP API version
+        id: fsp_api
+        uses: ./.github/actions/collect-deployment-version
+        with:
+          deployment: laa-fee-scheme-api-uat-deployment
+          namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          friendly_name: FSP API
+
+
+      - name: Authenticate to the Claims Event Service EKS cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
+        with:
+          kube-cert: ${{ secrets.KUBE_CERT_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+          kube-token: ${{ secrets.KUBE_TOKEN_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+          kube-sa: deploy-user
+
+      - name: Collect Claims Event Service version
+        id: claims_events
+        uses: ./.github/actions/collect-deployment-version
+        with:
+          deployment: uat-data-claims-events
+          namespace: ${{ secrets.KUBE_NAMESPACE_LAA_DATA_CLAIMS_EVENT_SERVICE_UAT }}
+          friendly_name: Data Claims Events
+
+
+      - name: Publish test image versions summary
+        run: |
+          {
+            echo "## Versions testing against deployment versions"
+            echo ""
+            echo "| Service | Context | Image tag | Release time | Status |"
+            echo "| --- | --- | --- | --- | --- |"
+
+            SABC_TAG="${{ steps.sabc.outputs.image_tag }}"
+            SABC_OVERRIDE=""
+            if [ -n "${{ inputs.sabc_image_tag }}" ]; then
+              SABC_OVERRIDE=" (overridden: ${{ inputs.sabc_image_tag }})"
+            fi
+            echo "| Submit a Bulk Claim | ${{ steps.sabc.outputs.context }} | ${SABC_TAG}${SABC_OVERRIDE} | ${{ steps.sabc.outputs.release_time }} | ${{ steps.sabc.outputs.status }} |"
+
+            EVENTS_TAG="${{ steps.claims_events.outputs.image_tag }}"
+            EVENTS_OVERRIDE=""
+            if [ -n "${{ inputs.claims_events_image_tag }}" ]; then
+              EVENTS_OVERRIDE=" (overridden: ${{ inputs.claims_events_image_tag }})"
+            fi
+            echo "| Data Claims Events | ${{ steps.claims_events.outputs.context }} | ${EVENTS_TAG}${EVENTS_OVERRIDE} | ${{ steps.claims_events.outputs.release_time }} | ${{ steps.claims_events.outputs.status }} |"
+
+            API_TAG="${{ steps.claims_api.outputs.image_tag }}"
+            API_OVERRIDE=""
+            if [ -n "${{ inputs.claims_api_image_tag }}" ]; then
+              API_OVERRIDE=" (overridden: ${{ inputs.claims_api_image_tag }})"
+            fi
+            echo "| Data Claims API | ${{ steps.claims_api.outputs.context }} | ${API_TAG}${API_OVERRIDE} | ${{ steps.claims_api.outputs.release_time }} | ${{ steps.claims_api.outputs.status }} |"
+
+            echo "| FSP API | ${{ steps.fsp_api.outputs.context }} | ${{ steps.fsp_api.outputs.image_tag }} | ${{ steps.fsp_api.outputs.release_time }} | ${{ steps.fsp_api.outputs.status }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+
+  run-tests:
+    needs: [ get-app-versions ]
+    environment: uat
+    runs-on: ubuntu-22.04
+    permissions:
+      id-token: write
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch || github.ref }}
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: v1.29.4
+
+      - name: List all docker containers
+        run: docker ps -a
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Get Playwright version
+        id: pw
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').devDependencies.playwright || require('./package.json').dependencies.playwright")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.pw.outputs.version }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install
+
+      - name: Pull SABC image
+        uses: ./.github/actions/pull-ecr-image
+        with:
+          role-to-assume: ${{ secrets.LAA_SUBMIT_A_BULK_CLAIM_ECR_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
+          registry-account: ${{ secrets.ECR_ACCOUNT }}
+          repository: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}
+          image-tag: ${{ needs.get-app-versions.outputs.sabc_image_tag }}
+
+      - name: Pull OIDC image
+        uses: ./.github/actions/pull-ecr-image
+        with:
+          role-to-assume: ${{ secrets.LAA_OIDC_MOCK_SERVER_ECR_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.LAA_OIDC_MOCK_SERVER_ECR_REGION }}
+          registry-account: ${{ secrets.ECR_ACCOUNT }}
+          repository: ${{ vars.LAA_OIDC_MOCK_SERVER_ECR_REPOSITORY }}
+          image-tag: oidc-mock-latest
+
+      - name: Pull Event Service image
+        uses: ./.github/actions/pull-ecr-image
+        with:
+          role-to-assume: ${{ secrets.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REGION }}
+          registry-account: ${{ secrets.ECR_ACCOUNT }}
+          repository: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY }}
+          image-tag: ${{ needs.get-app-versions.outputs.claims_events_image_tag }}
+
+      - name: Pull Claims API image
+        uses: ./.github/actions/pull-ecr-image
+        with:
+          role-to-assume: ${{ secrets.LAA_DATA_CLAIMS_API_ECR_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.LAA_DATA_CLAIMS_API_ECR_REGION }}
+          registry-account: ${{ secrets.ECR_ACCOUNT }}
+          repository: ${{ vars.LAA_DATA_CLAIMS_API_ECR_REPOSITORY }}
+          image-tag: ${{ needs.get-app-versions.outputs.claims_api_image_tag }}
+
+      - name: Authenticate to FSP Kube Cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
+        with:
+          kube-cert: ${{ secrets.KUBE_CERT_LAA_FEE_SCHEME_API_UAT }}
+          kube-token: ${{ secrets.KUBE_TOKEN_LAA_FEE_SCHEME_API_UAT }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_FEE_SCHEME_API_UAT }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          kube-sa: deploy-user
+
+      - name: Port forward to FPS-API Service
+        uses: ./.github/actions/port-forward-service
+        with:
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
+          service_name: 'laa-fee-scheme-api-uat-service'
+          local_port: "8095"
+          remote_port: "8085"
+          pid_env_var: PORT_FORWARD_PID
+          wait_label: fsp-api
+
+      - name: Authenticate to the SaBC Kube Cluster
+        uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@768f673017edbb793cf052fa159c272d6c1f9177
+        with:
+          kube-cert: ${{ secrets.KUBE_CERT_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-token: ${{ secrets.KUBE_TOKEN_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          kube-sa: deploy-user
+
+      - name: Port forward to PDA-API Service SaBC Namespace
+        uses: ./.github/actions/port-forward-service
+        with:
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_SUBMIT_A_BULK_CLAIM_UAT }}
+          service_name: 'uat-e2e-testing-pda-proxy'
+          local_port: "8186"
+          remote_port: "8080"
+          pid_env_var: PORT_FORWARD_PID
+          wait_label: pda-api
+
+      # This step is required to allow E2E to use http://oidc:9000, just like the containers would. This keeps
+      # the host name the same, generating a valid JWT for SaBC. On the github runner, this should resolve to
+      # the IP address of the 127.0.0.1 container. Otherwise, should resolve to 127.0.0.1.
+      - name: Map hostnames to 127.0.0.1
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          HOST_IP="$(getent ahostsv4 127.0.0.1 | awk 'NR==1 {print $1}')"
+          echo "Resolved IPv4 127.0.0.1 to: ${HOST_IP}"
+
+          if ! grep -qE '(^|[[:space:]])oidc([[:space:]]|$)' /etc/hosts; then
+            echo "${HOST_IP} oidc" | sudo tee -a /etc/hosts >/dev/null
+          else
+            echo "oidc already present in /etc/hosts, skipping"
+          fi
+          
+          if ! grep -qE '(^|[[:space:]])app([[:space:]]|$)' /etc/hosts; then
+            echo "${HOST_IP} app" | sudo tee -a /etc/hosts >/dev/null
+          else
+            echo "oidc already present in /etc/hosts, skipping"
+          fi
+
+      - name: Create .env file for Docker Compose and E2E tests
+        shell: bash
+        run: |
+          cat <<EOF > .env
+          UI_BASE_URL=http://app:8082
+          FSP_API_BASE_URL=http://127.0.0.1:8095
+          FSP_API_TOKEN=${{ secrets.FSP_API_TOKEN }}
+          PROVIDER_API=http://127.0.0.1:8186/api/v1/provider-offices
+          PROVIDER_API_KEY=${{ secrets.PDA_API_TOKEN }}
+          DSTEW_API_BASE_URL=127.0.0.1:8080
+          DSTEW_API_TOKEN=f67f968e-b479-4e61-b66e-f57984931e56
+          MFA_SECRET=${{ secrets.MFA_SECRET }}
+          USERNAME=provider.user@provider.com
+          PASSWORD=password
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_USER=user
+          DB_PASS=dev
+          DB_NAME=laa_data_claims_api_dev
+          DB_SSL=false
+          DB_SSL=${{ secrets.DB_SSL }}
+          HEADLESS=true
+          AUTH_CLIENT_ID=${{ secrets.AUTH_CLIENT_ID }}
+          AUTH_CLIENT_SECRET=${{ secrets.AUTH_CLIENT_SECRET }}
+          AUTH_TENANT_ID=${{ secrets.AUTH_TENANT_ID }}
+          AUTH_SCOPE=${{ secrets.AUTH_SCOPE }}
+          REDIRECT_BASE_URI=app:8082
+          EOF
+
+      - name: Run services
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml up sabc-ui event-service claims-api -d --wait
+        env:
+          ECR_ACCOUNT: ${{ secrets.ECR_ACCOUNT }}
+          LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REPOSITORY }}
+          LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION: ${{ vars.LAA_SUBMIT_A_BULK_CLAIM_ECR_REGION }}
+          LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REPOSITORY }}
+          LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REGION: ${{ vars.LAA_DATA_CLAIMS_EVENT_SERVICE_ECR_REGION }}
+          LAA_DATA_CLAIMS_API_ECR_REGION: ${{ vars.LAA_DATA_CLAIMS_API_ECR_REGION }}
+          LAA_DATA_CLAIMS_API_ECR_REPOSITORY: ${{ vars.LAA_DATA_CLAIMS_API_ECR_REPOSITORY }}
+          LAA_OIDC_MOCK_SERVER_ECR_REGION: ${{ vars.LAA_OIDC_MOCK_SERVER_ECR_REGION }}
+          LAA_OIDC_MOCK_SERVER_ECR_REPOSITORY: ${{ vars.LAA_OIDC_MOCK_SERVER_ECR_REPOSITORY }}
+          SABC_TAG: ${{ needs.get-app-versions.outputs.sabc_image_tag }}
+          EVENT_SERVICE_TAG: ${{ needs.get-app-versions.outputs.claims_events_image_tag }}
+          CLAIMS_API_TAG: ${{ needs.get-app-versions.outputs.claims_api_image_tag }}
+          OIDC_TAG: oidc-mock-latest
+
+      - name: Wait for services
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Waiting for services to be ready..."
+          echo "Waiting for SaBC UI..."
+          for i in {1..36}; do
+          if curl -fsS http://app:8181/actuator/health | grep -q '"status":"UP"'; then
+            echo "Healthy"
+            exit 0
+          fi
+            sleep 5
+          done
+          
+          echo "Waiting for Event Service..."
+          for i in {1..36}; do
+          if curl -fsS http://127.0.0.1:8182/actuator/health | grep -q '"status":"UP"'; then
+            echo "Healthy"
+            exit 0
+          fi
+            sleep 5
+          done
+          
+          echo "Waiting for Claims API..."
+          for i in {1..36}; do
+          if curl -fsS http://127.0.0.1:8183/actuator/health | grep -q '"status":"UP"'; then
+            echo "Healthy"
+            exit 0
+          fi
+            sleep 5
+          done
+
+          echo "Services ready"
+          exit 0
+
+      - name: Check DB setup
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Checking PostgreSQL accessibility on jdbc:postgresql://127.0.0.1:5432"
+
+          # Install PostgreSQL client if not available
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+
+          # Test connection
+          for i in {1..12}; do
+            if PGPASSWORD=dev psql -h 127.0.0.1 -p 5432 -U user -d laa_data_claims_api_dev -c "SELECT 1;" >/dev/null 2>&1; then
+              echo "PostgreSQL is accessible"
+              break
+            fi
+            echo "Attempt $i: PostgreSQL not ready, waiting..."
+            sleep 5
+          done
+
+          # Wait for schema "claims" to be available
+          for i in {1..12}; do
+            if PGPASSWORD=dev psql -h 127.0.0.1 -p 5432 -U user -d laa_data_claims_api_dev -c "SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'claims';" | grep -q 'claims'; then
+              echo "Schema 'claims' is available"
+              exit 0
+            fi
+            echo "Attempt $i: Schema 'claims' not ready, waiting..."
+            sleep 5
+          done
+
+          echo "Schema 'claims' not found"
+          exit 1
+
+      - name: Curl multiple endpoints (DEBUGGING)
+        shell: bash
+        run: |
+          set +e
+          echo "=== sabc-ui health ==="
+          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://127.0.0.1:8181/actuator/health
+      
+          echo "=== UI ==="
+          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://127.0.0.1:8082
+      
+          echo "=== OIDC ==="
+          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://127.0.0.1:9000
+          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://127.0.0.1:9000
+          
+          echo "=== OIDC (host) ==="
+          curl -sS -w '\nHTTP_STATUS:%{http_code}\n' http://oidc:9000
+          
+          echo "=== FSP (PF) ==="
+          curl -sS -o /dev/null -w '\nHTTP_STATUS:%{http_code}\n' http://127.0.0.1:8095/v3/api-docs
+
+          echo "=== PDA (PF) ==="
+          curl -sS -o /dev/null -w '\nHTTP_STATUS:%{http_code}\n' http://127.0.0.1:8186/v3/api-docs
+          
+          exit 0
+
+      - name: Login
+        shell: bash
+        run: |
+          npm run login:mock
+
+      - name: Verify session is still alive
+        shell: bash
+        run: |
+           SESSION=$(cat storageState.json | python3 -c "import sys,json; cookies={c['name']:c['value'] for c in json.load(sys.stdin)['cookies']}; print(cookies.get('SESSION',''))")
+           curl -v -b "SESSION=$SESSION" http://app:8082/ 2>&1 | grep -E "(< HTTP|Location:)"
+
+      - name: Run tests
+        shell: bash
+        run: | 
+          npm run test -- --tags "${{ inputs.test_annotation || '@accessibility'}}"  --parallel 4 --retry 3
+
+      - name: Collect Docker logs
+        if: always()
+        run: |
+          mkdir -p logs
+          docker logs oidc > logs/oidc.log 2>&1 || true
+          docker logs app > logs/sabc.log 2>&1 || true
+          docker logs data-claims-api-app > logs/claims-api.log 2>&1 || true
+          docker logs data-claims-event-service-app > logs/claims-event-service.log 2>&1 || true
+          docker logs local-postgres > logs/postgres.log 2>&1 || true
+          docker logs event-service-localstack > logs/localstack.log 2>&1 || true
+          docker logs redis > logs/redis.log 2>&1 || true
+
+      - name: Upload Docker logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-logs
+          path: logs
+          if-no-files-found: warn
+
+      - name: Teardown docker containers
+        if: always()
+        run: |
+          docker compose -p "e2e-${GITHUB_RUN_ID}" -f docker-compose.yml down sabc-ui event-service claims-api postgres localstack redis laa-mock-oidc-service -v;
+
+      - name: Publish Cucumber summary
+        if: always()
+        run: node scripts/cucumber-summary.js
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: reports
+          if-no-files-found: warn

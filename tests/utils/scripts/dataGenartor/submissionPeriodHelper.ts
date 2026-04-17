@@ -146,6 +146,8 @@ export async function hasValidContract(
         }
     );
 
+    console.log(`[DEBUG] Provider API status code: ${res.status}`);
+
     const schedules = res.data?.schedules ?? [];
     if (!schedules.length) {
       providerScheduleCache.set(cacheKey, { valid: false });
@@ -211,9 +213,14 @@ export async function getUniqueSubmissionPeriod(
   let isDisbursement = false;
 
   if (feeCode) {
+    const feeDetailsUrl = `/api/v1/fee-details/${feeCode}`;
     console.log(`🔎 Fetching fee details for ${feeCode}`);
-    const feeDetailsResp = await fspClient.get(`/api/v1/fee-details/${feeCode}`);
+    const feeDetailsResp = await fspClient.get(feeDetailsUrl);
+    console.log(`[DEBUG] Response headers:`, feeDetailsResp.headers);
     if (feeDetailsResp.status >= 400) {
+
+      console.log(`[DEBUG] Full URL: ${fspClient.defaults.baseURL}${feeDetailsUrl}`);
+      
       throw new Error(
           `Unable to resolve feeDetails for ${feeCode}: HTTP ${feeDetailsResp.status}`
       );

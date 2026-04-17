@@ -41,40 +41,79 @@ BeforeAll(function () {
 Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHookParameter) {
     this.currentScenarioName = scenario.pickle.name || 'UnnamedScenario';
     console.log(`\n🚀 Preparing blank browser for: ${this.currentScenarioName}`);
+    console.log(`📌 Scenario tags: ${scenario.pickle.tags.map((t) => t.name).join(', ') || '(none)'}`);
 
     try {
-        // 1️⃣ Always try to open browser — no dependency on backend
         try {
+            console.log('🌐 Launching browser...');
             await this.openBrowser();
+            console.log('✅ Browser launched');
         } catch (err) {
             // @ts-ignore
             console.warn('⚠️ Browser launch failed:', err?.message || err);
             this.browser = undefined;
-            return; // don't throw, let retry logic handle it
+            return;
         }
 
-        // 2️⃣ Prepare unique storage state (optional, safe)
         const uniqueId = `${process.pid}-${Math.random().toString(36).slice(2, 8)}`;
         const globalStorage = path.resolve('storageState.json');
         const workerStorage = path.resolve(os.tmpdir(), `storageState-${uniqueId}.json`);
+
+        console.log(`🧾 Global storage state path: ${globalStorage}`);
+        console.log(`🧾 Worker storage state path: ${workerStorage}`);
+        console.log(`🔎 storageState.json exists before copy: ${fs.existsSync(globalStorage)}`);
+
         if (fs.existsSync(globalStorage)) {
             try {
                 fs.copyFileSync(globalStorage, workerStorage);
                 this.workerStoragePath = workerStorage;
-            } catch {
+
+                const workerStats = fs.statSync(workerStorage);
+                console.log(`✅ Copied storage state for worker (${workerStats.size} bytes)`);
+
+                // Debug: Log the cookies from the storage state
+                try {
+                    const storageContent = JSON.parse(fs.readFileSync(workerStorage, 'utf-8'));
+                    console.log('[DEBUG] Storage state cookies:');
+                    storageContent.cookies?.forEach((cookie: any) => {
+                        console.log(`  - ${cookie.name}: domain=${cookie.domain}, value=${cookie.value.substring(0, 20)}...`);
+                    });
+                } catch (err) {
+                    console.warn('⚠️ Could not parse storage state for debugging');
+                }
+            } catch (err) {
+                // @ts-ignore
+                console.warn('⚠️ Failed to copy storage state:', err?.message || err);
                 this.workerStoragePath = undefined;
             }
+        } else {
+            console.warn('⚠️ storageState.json was not found, browser will start unauthenticated');
         }
 
-        // 3️⃣ Create context + blank page
         try {
+            console.log(
+                `🧪 Creating context with storageState=${this.workerStoragePath ?? 'NONE'} and baseURL=${process.env.UI_BASE_URL || 'about:blank'}`
+            );
+
             this.context = await this.browser!.newContext({
                 baseURL: process.env.UI_BASE_URL || 'about:blank',
                 storageState: this.workerStoragePath,
             });
+            console.log('[DEBUG] Setting context baseURL to:', process.env.UI_BASE_URL || 'about:blank');
+
+
+            const cookies = await this.context.cookies('http://app:8082');
+            console.log('[DEBUG] Cookies Playwright will actually send:', JSON.stringify(cookies));
+
             this.page = await this.context.newPage();
-            // 🚫 Do NOT go to UI_BASE_URL here — stay blank
-            await this.page.goto('about:blank');
+            console.log(`✅ Context created. Current page URL: ${this.page.url() || '(empty)'}`);
+
+            // 👇 Force browser to re-enter the auth flow properly
+            await this.page.goto(process.env.UI_BASE_URL!);
+
+            await this.page.waitForLoadState('networkidle');
+            console.log('📄 Navigated to: ', process.env.UI_BASE_URL!);
+
             this.resetUiObjects();
         } catch (err) {
             // @ts-ignore
@@ -82,7 +121,6 @@ Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHoo
             return;
         }
 
-        // 4️⃣ Reset any world data
         this.cleanupSubmissionIds?.clear?.();
         this.submissionReference = undefined;
         this.submissionPeriod = undefined;

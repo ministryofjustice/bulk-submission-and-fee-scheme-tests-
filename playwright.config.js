@@ -21,7 +21,7 @@ export default defineConfig({
   use: {
     // Base URL pulled from your .env
     baseURL: process.env.UI_BASE_URL || process.env.UI_BASE_URL,
-    headless: process.env.HEADLESS !== 'true',
+    headless: process.env.HEADLESS === 'true',
 
     // Capture traces/screenshots on failure
     screenshot: 'only-on-failure',

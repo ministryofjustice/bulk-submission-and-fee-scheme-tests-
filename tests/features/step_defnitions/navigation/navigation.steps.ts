@@ -1,19 +1,20 @@
 import { Given } from '@cucumber/cucumber';
 import World from '../../support/world';
-import { logoutAndWipe, recreateLoggedInContext } from './reset.helper';
+import { recreateLoggedInContext } from './reset.helper';
 
 Given('I start from a clean logged-in state', async function (this: World) {
     if (!this.page || !this.browser) {
         throw new Error('Browser/Page not available');
     }
 
+    const baseUrl = process.env.UI_BASE_URL!;
     let status: number | undefined;
     let badStatus = false;
 
     // Retry initial navigation (env may be cold-starting)
     for (let attempt = 1; attempt <= 3; attempt++) {
         try {
-            const resp = await this.page.goto(process.env.UI_BASE_URL!, { timeout: 60000 });
+            const resp = await this.page.goto(baseUrl, { timeout: 60000 });
             await this.page.waitForLoadState('domcontentloaded');
 
             status = resp?.status();
@@ -41,18 +42,14 @@ Given('I start from a clean logged-in state', async function (this: World) {
         console.warn(`🔧 Navigation unhealthy (status=${status ?? 'none'}) — retrying again...`);
 
         // Final retry without sleeps
-        const resp = await this.page.goto(process.env.UI_BASE_URL!, { timeout: 60000 }).catch(() => null);
+        const resp = await this.page.goto(baseUrl, { timeout: 60000 }).catch(() => null);
         if (resp) await this.page.waitForLoadState('domcontentloaded');
     }
 
-    // Wait for readiness indicator
-    await this.page
-        .locator('button.sign-in-button:has-text("Sign out")')
-        .waitFor({ state: 'visible', timeout: 45000 })
-        .catch(() => console.warn('⚠️ Sign-out button not visible — continuing.'));
-
-    // Log out + clear session
-    await logoutAndWipe(this.page);
+    // Do not sign out server-side here. All parallel scenarios are seeded from the same
+    // saved auth state, so logging out in one worker can invalidate the shared session for
+    // other workers and trigger redirect loops. Closing the context is enough to reset the
+    // browser-side state for this scenario.
 
     try {
         await this.context?.close();
@@ -63,7 +60,7 @@ Given('I start from a clean logged-in state', async function (this: World) {
     // Recreate logged-in context
     const { context, page } = await recreateLoggedInContext({
         browser: this.browser!,
-        baseURL: process.env.UI_BASE_URL!,
+        baseURL: baseUrl,
         storageStatePath: this.workerStoragePath,
     });
 
