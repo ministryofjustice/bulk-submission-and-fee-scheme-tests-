@@ -1,6 +1,6 @@
 # GitHub Self-Hosted Runner
 enabled: true
-replicas: 2
+replicas: 1
 
 githubTokenSecretName: bulk-submission-and-fee-scheme-tests-github-token
 githubTokenSecretKey: token
