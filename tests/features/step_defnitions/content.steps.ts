@@ -188,7 +188,7 @@ Then('the search results table matches the expected layout', async function (thi
   expect(rowCount).toBeGreaterThan(0);
 
   const allowedAreas = new Set(['Legal help', 'Mediation', 'Crime lower']);
-  const datePattern = /^\d{1,2} [A-Z][a-z]{2} \d{4} at \d{2}:\d{2}:\d{2}$/;
+  const datePattern = /^\d{1,2}\s+[A-Za-z]+\s+\d{4}\s+at\s+\d{1,2}:\d{2}\s*(am|pm)$/i;
 
   for (let i = 0; i < rowCount; i++) {
     const cells = rows.nth(i).locator('td');
