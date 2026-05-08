@@ -255,7 +255,7 @@ jobs:
         uses: ./.github/actions/port-forward-service
         with:
           kube_namespace: ${{ secrets.KUBE_NAMESPACE_LAA_FEE_SCHEME_API_UAT }}
-          service_name: 'laa-fee-scheme-api-uat-service'
+          service_name: 'laa-fee-scheme-api-service'
           local_port: "8095"
           remote_port: "8085"
           pid_env_var: PORT_FORWARD_PID
