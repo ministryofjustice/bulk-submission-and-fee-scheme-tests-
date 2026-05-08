@@ -17,23 +17,22 @@ spec:
     spec:
       terminationGracePeriodSeconds: 90
       securityContext:
-        runAsNonRoot: false
-        runAsUser: 0
-        fsGroup: 0
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
         seccompProfile:
-          type: Unconfined
+          type: RuntimeDefault
       containers:
         - name: runner
           securityContext:
-            runAsNonRoot: false
-            runAsUser: 0
-            privileged: true
-            allowPrivilegeEscalation: true
+            runAsNonRoot: true
+            runAsUser: 1001
+            allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false
             seccompProfile:
-              type: Unconfined
+              type: RuntimeDefault
             capabilities:
-              add: ["ALL"]
+              drop: ["ALL"]
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           lifecycle:
