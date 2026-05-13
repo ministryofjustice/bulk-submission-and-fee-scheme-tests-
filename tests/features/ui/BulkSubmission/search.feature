@@ -1,4 +1,5 @@
-@search @stable
+@search @stable @ignore
+# Ignoring this test for stable runs, as no data exists when the feature is tested
 Feature: Bulk Submission Search
 
   Background:

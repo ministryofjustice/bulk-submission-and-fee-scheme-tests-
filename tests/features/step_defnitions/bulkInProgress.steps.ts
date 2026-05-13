@@ -15,8 +15,8 @@ Then('the bulk upload details are displayed', async function (this: CustomWorld)
   const submissionReference = await this.bulkInProgressPage!.getSubmissionReference();
   const fileName = await this.bulkInProgressPage!.getFileName();
 
-  // Validate date looks like "19 Sept 2025 at 10:23:26"
-  expect(dateOfUpload).toMatch(/^\d{1,2} \w+ \d{4} at \d{2}:\d{2}:\d{2}$/);
+  // Validate date looks like "19 Sept 2025 at 10:23am"
+  expect(dateOfUpload).toMatch(/^\d{1,2}\s+[A-Za-z]+\s+\d{4}\s+at\s+\d{1,2}:\d{2}\s*(am|pm)$/i);
 
   // Validate submission reference is a UUID v4
   expect(submissionReference).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
