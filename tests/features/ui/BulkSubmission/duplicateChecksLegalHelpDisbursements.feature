@@ -144,7 +144,7 @@ Feature: Duplicate checks - Legal Help - Disbursements
     When I upload the second file
     Then I should see the submission summary for "Legal help" with "1" claims
 
-  @duplicateChecks
+  @duplicateChecks @void
   Scenario: Voided claims allow duplicate resubmission 2 months apart
     Given I generate two Legal help files in "csv" format for office "0P322F" that are "2" months apart with the following claims
       | ucn             | feeCode1 | feeCode2 | ufn        |
