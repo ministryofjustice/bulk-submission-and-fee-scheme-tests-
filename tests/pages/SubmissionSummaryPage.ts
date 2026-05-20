@@ -239,7 +239,13 @@ export class SubmissionSummaryPage extends BasePage {
     const summary = await this.getSummaryData();
 
     expect(summary['Area of law']).toContain(expectedAreaOfLaw);
-    expect(summary['Calculated bulk claim value']).toMatch(/£[\d,]+\.\d{2}/);
+    const claims = await this.getClaimsData();
+    const totalClaims = claims.length;
+    if(totalClaims > 0){
+     expect(summary['Calculated bulk claim value']).toMatch(/£[\d,]+\.\d{2}/);
+    }else{
+      expect(summary['Calculated bulk claim value']).toBeUndefined();
+    }
     expect(summary['Submission reference']).toMatch(/[0-9a-f\-]{36}/);
     expect(summary['Submission period']).toMatch(/[A-Z]{3}-\d{4}/);
 
