@@ -461,7 +461,7 @@ jobs:
       - name: Run tests
         shell: bash
         run: | 
-          npm run test -- --tags "${{ inputs.test_annotation || '@accessibility'}}"  --parallel 4 --retry 3
+          npm run test -- --tags "${{ inputs.test_annotation || '@accessibility'}}" --retry 3
 
       - name: Collect Docker logs
         if: always()
