@@ -1,6 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { goToPaginationPage } from '../utils/scripts/pageNavigation';
+import { parse } from 'date-fns';
 
 export class SubmissionSummaryPage extends BasePage {
   readonly successBanner: Locator;
@@ -366,10 +367,10 @@ export class SubmissionSummaryPage extends BasePage {
   }
 
   async getDuplicateSubmissionError(): Promise<string> {
-    const locator = this.page.locator('[data-sort-value*="Submission already exists"]');
+    const locator = this.page.locator('.govuk-table__cell', { hasText: 'Submission already exists' });
     await locator.waitFor({ state: 'visible', timeout: 3_000 });
 
-    const text = (await locator.getAttribute('data-sort-value'))?.trim() || '';
+    const text = (await locator.textContent())?.trim() || '';
     return text;
   }
 
@@ -402,8 +403,8 @@ export class SubmissionSummaryPage extends BasePage {
       case 'legal help':
         return {
           text: [
-            'Client Surname',
-            'Client Forename',
+            'Client surname',
+            'Client forename',
             'UFN',
             'UCN',
             'Fee code',
@@ -416,8 +417,8 @@ export class SubmissionSummaryPage extends BasePage {
       case 'crime lower':
         return {
           text: [
-            'Client Surname',
-            'Client Initial',
+            'Client surname',
+            'Client initial',
             'UFN',
             'Fee code',
             'Date work concluded',
@@ -430,11 +431,11 @@ export class SubmissionSummaryPage extends BasePage {
       case 'mediation':
         return {
           text: [
-            'Client 1 Surname',
-            'Client 1 Forename',
+            'Client 1 surname',
+            'Client 1 forename',
             'Client 1 UCN',
-            'Client 2 Surname',
-            'Client 2 Forename',
+            'Client 2 surname',
+            'Client 2 forename',
             'Client 2 UCN',
             'Fee code',
             'Messages',
@@ -452,7 +453,7 @@ export class SubmissionSummaryPage extends BasePage {
 
   async hasSortableHeader(headerText: string): Promise<boolean> {
     const header = this.page.locator('th[aria-sort]', {
-      has: this.page.locator('button', { hasText: headerText }),
+      has: this.page.locator('a', { hasText: headerText }),
     });
 
     return (await header.count()) > 0;
@@ -460,20 +461,20 @@ export class SubmissionSummaryPage extends BasePage {
 
   async sortByHeader(headerText: string, direction: 'ascending' | 'descending') {
     const header = this.page.locator('th[aria-sort]', {
-      has: this.page.locator('button', { hasText: headerText }),
+      has: this.page.locator('a', { hasText: headerText }),
     });
 
     await expect(header, `Sortable header "${headerText}" was not found`).toHaveCount(1, {
       timeout: 10_000,
     });
 
-    const button = header.locator('button');
+    const link = header.locator('a');
 
     for (let i = 0; i < 3; i++) {
       const current = await header.getAttribute('aria-sort');
       if (current === direction) return;
 
-      await button.click();
+      await link.click();
       await expect(header).toHaveAttribute('aria-sort', direction, { timeout: 10_000 });
     }
 
@@ -519,8 +520,8 @@ export class SubmissionSummaryPage extends BasePage {
 
     for (let i = 0; i < rowCount; i++) {
       const cell = rows.nth(i).locator('td').nth(columnIndex);
-      const sortValue = await cell.getAttribute('data-sort-value');
-      values.push(Number(sortValue));
+      const textContent = await cell.textContent();
+      values.push(Number(textContent));
     }
 
     return values;
@@ -536,19 +537,6 @@ export class SubmissionSummaryPage extends BasePage {
         direction === 'ascending'
             ? a.localeCompare(b)
             : b.localeCompare(a)
-    );
-
-    expect(values).toEqual(expected);
-  }
-
-  async validateNumericSortingByHeader(
-      headerText: string,
-      direction: 'ascending' | 'descending'
-  ) {
-    const values = await this.getColumnNumericValuesByHeader(headerText);
-
-    const expected = [...values].sort((a, b) =>
-        direction === 'ascending' ? a - b : b - a
     );
 
     expect(values).toEqual(expected);
@@ -594,6 +582,21 @@ export class SubmissionSummaryPage extends BasePage {
       return direction === 'ascending'
           ? a.localeCompare(b)
           : b.localeCompare(a);
+    });
+
+    expect(values).toEqual(expected);
+  }
+
+
+  async validateDateSorting(headerText: string, direction: 'ascending' | 'descending') {
+    const values = await this.getColumnTextValuesByHeader(headerText);
+
+    const expected = [...values].sort((a, b) => {
+      const dateA = parse(a, "dd MMM yyyy", new Date());
+      const dateB = parse(b, "dd MMM yyyy", new Date());
+      return direction === 'ascending' 
+          ? dateA.getTime() - dateB.getTime()
+          : dateB.getTime() - dateA.getTime();
     });
 
     expect(values).toEqual(expected);
@@ -711,8 +714,8 @@ export class SubmissionSummaryPage extends BasePage {
     const expected = [...values].sort((a, b) => {
       const rankDiff =
           direction === 'ascending'
-              ? rank(a) - rank(b)
-              : rank(b) - rank(a);
+              ? rank(b) - rank(a)
+              : rank(a) - rank(b);
 
       if (rankDiff !== 0) return rankDiff;
 
@@ -744,6 +747,8 @@ export class SubmissionSummaryPage extends BasePage {
         await this.validateEscapeCaseSortingAcrossPages('ascending');
       } else if (header === 'Messages') {
         await this.validateMessagesSortingAcrossPages('ascending');
+      } else if (header === 'Date work concluded') {
+        await this.validateDateSorting(header, 'ascending');
       } else {
         await this.validateTextSortingAcrossPagesByHeader(header, 'ascending');
       }
@@ -755,6 +760,8 @@ export class SubmissionSummaryPage extends BasePage {
         await this.validateEscapeCaseSortingAcrossPages('descending');
       } else if (header === 'Messages') {
         await this.validateMessagesSortingAcrossPages('descending');
+      } else if (header === 'Date work concluded') {
+        await this.validateDateSorting(header, 'descending');
       } else {
         await this.validateTextSortingAcrossPagesByHeader(header, 'descending');
       }
