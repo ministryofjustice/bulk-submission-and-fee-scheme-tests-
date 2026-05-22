@@ -320,8 +320,8 @@ Then(
         dataTable?: DataTable
     ) {
       // @ts-ignore
-      const locator = this.page.locator('[data-sort-value*="Submission already exists"]');
-      const text = (await locator.getAttribute('data-sort-value'))?.trim() || '';
+      const locator = this.page.locator('.govuk-table__cell', { hasText: 'Submission already exists' });
+      const text = (await locator.textContent())?.trim() || '';
       await this.attach(`🔍 Error detected:\n${text}`, 'text/plain');
       expect(text.toUpperCase()).toContain(areaOfLaw.toUpperCase());
       expect(text).toContain('Submission already exists for Office');
