@@ -27,7 +27,7 @@ dotenv.config();
 const submissionCleanupManager = createDataSourceManager({label: 'submissionCleanup'});
 
 BeforeAll(function () {
-    
+
     const dirAtt = path.join(process.cwd(), 'reports', 'attachments');
     try {
         fs.rmSync(dirAtt, {recursive: true, force: true});
@@ -38,8 +38,19 @@ BeforeAll(function () {
     }
 });
 
+Before({ tags: '@api' }, function (
+    this: World,
+    scenario: ITestCaseHookParameter
+) {
+    this.currentScenarioName = scenario.pickle.name || 'UnnamedScenario';
+    this.tags = scenario.pickle.tags.map(tag => tag.name);
+
+    console.log('✅ API tags:', this.tags);
+});
+
 Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHookParameter) {
     this.currentScenarioName = scenario.pickle.name || 'UnnamedScenario';
+    this.tags = scenario.pickle.tags.map(tag => tag.name);
     console.log(`\n🚀 Preparing blank browser for: ${this.currentScenarioName}`);
     console.log(`📌 Scenario tags: ${scenario.pickle.tags.map((t) => t.name).join(', ') || '(none)'}`);
 

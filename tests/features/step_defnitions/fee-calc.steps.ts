@@ -39,9 +39,19 @@ function maybeBool(rows: Record<string, string>, key: string): boolean | undefin
   return undefined; // unrecognised -> omit
 }
 
+function yesterdayDate(): string {
+  const date = new Date();
+  date.setDate(date.getDate() - 1);
+  return date.toISOString().split('T')[0]; // YYYY-MM-DD
+}
+
 Given('a fee calculation payload with:', function (this: World, table: DataTable) {
   const rows = table.rowsHash() as Record<string, string>;
   const payload: Record<string, any> = {};
+  const hasMediationTag = this.tags.some(tag =>
+      tag.toLowerCase().includes('mediation')
+  );
+
 
   // Strings
   const feeCode = maybeStr(rows, 'feeCode');
@@ -51,7 +61,6 @@ Given('a fee calculation payload with:', function (this: World, table: DataTable
   const policeStationSchemeId = maybeStr(rows, 'policeStationSchemeId');
   const representationOrderDate = maybeStr(rows, 'representationOrderDate');
   const immigrationPriorAuthorityNumber = maybeStr(rows, 'immigrationPriorAuthorityNumber');
-  const caseConcludedDate = maybeStr(rows, 'caseConcludedDate');
 
   if (feeCode !== undefined) payload.feeCode = feeCode;
   if (startDate !== undefined) payload.startDate = startDate;
@@ -60,7 +69,9 @@ Given('a fee calculation payload with:', function (this: World, table: DataTable
   if (policeStationSchemeId !== undefined) payload.policeStationSchemeId = policeStationSchemeId;
   if (representationOrderDate !== undefined) payload.representationOrderDate = representationOrderDate;
   if (immigrationPriorAuthorityNumber !== undefined) payload.immigrationPriorAuthorityNumber = immigrationPriorAuthorityNumber;
-  if (caseConcludedDate !== undefined) payload.caseConcludedDate = caseConcludedDate;
+  if (!hasMediationTag) {
+    payload.caseConcludedDate = yesterdayDate();
+  }
 
   // Numbers (preserve 0, omit when row absent/blank/placeholder)
   const netProfitCosts = maybeNum(rows, 'netProfitCosts');

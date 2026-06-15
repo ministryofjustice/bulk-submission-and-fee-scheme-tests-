@@ -53,6 +53,7 @@ export class World {
   submissionPeriod: string | undefined;
   filePath: string | undefined;
   currentScenarioName: string | undefined;
+  tags: string[] = [];
   workerStoragePath: string | undefined;
   currentSubmissionMonth: string | undefined;
   // @ts-ignore
@@ -61,7 +62,7 @@ export class World {
   secondFile: any;
   // @ts-ignore
   period: string;
-    expectedCrimeClaim: any;
+  expectedCrimeClaim: any;
   expectedImmigrationClaims: any;
   // @ts-ignore
   stepText: string;
@@ -122,10 +123,10 @@ export class World {
     return path.split('.').reduce((acc: any, key: string) => (acc == null ? acc : acc[key]), obj as any);
   }
 
-    // ===== UI helpers =====
-    async openBrowser(opts: LaunchOptions = {headless: process.env.HEADLESS === 'true'}) {
-        this.browser = await chromium.launch(opts);
-    }
+  // ===== UI helpers =====
+  async openBrowser(opts: LaunchOptions = {headless: process.env.HEADLESS === 'true'}) {
+    this.browser = await chromium.launch(opts);
+  }
 
   async goto(path: string) {
     if (!this.page) throw new Error('Browser not opened! Did you forget to tag this scenario with @ui?');
