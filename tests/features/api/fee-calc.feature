@@ -152,7 +152,7 @@ Feature: Fee Calculation API
     Examples: Discrimination sg
       | feeCode | startDate  | netProfitCosts | netCostOfCounsel | travelAndWaitingCosts | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
       | DISC    | 2013-04-01 | 400            | 300              | 100                   | Yes          | 20                    | 2.00                  | 862.00        |
-      | DISC    | 2013-04-01 | 300            | 399              |                       | No           | 20                    | 2.00                  | 721.00       |
+      | DISC    | 2013-04-01 | 300            | 399              |                       | No           | 20                    | 2.00                  | 721.00        |
       | DISC    | 2013-04-01 |                | 700              |                       | Yes          | 20                    | 2.00                  | 862.00        |
       | DISC    | 2013-04-01 | 700            |                  |                       | No           | 20                    | 2.00                  | 722.00        |
 

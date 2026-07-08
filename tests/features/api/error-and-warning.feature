@@ -444,8 +444,15 @@ Feature: Error and warning API
       | IMCE    | 2023-03-31  |                  |                         |                |                       |                       |               | ERROR | ERRIA3 | For the Fee Code used, Case Start Date must be on or after 1st April 2023. |
       | IMCF    | 2023-03-31  |                  |                         |                |                       |                       |               | ERROR | ERRIA3 | For the Fee Code used, Case Start Date must be on or after 1st April 2023. |
 
-    @errciv1
-    Examples:
+    @warall1
+    Examples: WARALL1 - Value entered exceeds the VAT threshold for the net disbursement amount claimed. Costs have been capped at the maximum VAT amount claimable.
+      | feeCode   | startDate  | netProfitCosts | netCostOfCounsel | vatIndicator | netDisbursementAmount | disbursementVatAmount  | expectedTotal | type    | code    | message                                                                                                                                      |
+      | HOUS      | 2025-12-22 |                |                  | Yes          | 20                    | 20.00                  | 289.60        | WARNING | WARALL1 | Value entered exceeds the VAT threshold for the net disbursement amount claimed. Costs have been capped at the maximum VAT amount claimable. |
+      | ELA       | 2025-12-22 |                |                  | No           | 20                    | 20.00                  | 245.00        | WARNING | WARALL1 | Value entered exceeds the VAT threshold for the net disbursement amount claimed. Costs have been capped at the maximum VAT amount claimable. |
+      | DEBT      | 2025-12-22 |                |                  | No           | 20                    | 20.00                  | 278.00        | WARNING | WARALL1 | Value entered exceeds the VAT threshold for the net disbursement amount claimed. Costs have been capped at the maximum VAT amount claimable. |
+      | DISC      | 2013-04-01 |                |                  | Yes          | 20                    | 20.00                  | 862.00        | WARNING | WARALL1 | Value entered exceeds the VAT threshold for the net disbursement amount claimed. Costs have been capped at the maximum VAT amount claimable. |
+      | MHL01     | 2013-04-01 |                |                  | Yes          | 20                    | 20.00                  | 334.10        | WARNING | WARALL1 | Value entered exceeds the VAT threshold for the net disbursement amount claimed. Costs have been capped at the maximum VAT amount claimable. |
+      | MHL02     | 2013-04-01 |                |                  | No           | 20                    | 20.00                  | 276.50        | WARNING | WARALL1 | Value entered exceeds the VAT threshold for the net disbursement amount claimed. Costs have been capped at the maximum VAT amount claimable. |
 
     @warcrm8
     Examples: WARCRM8 - The claim exceeds the Escape Case Threshold. An Escape Case Claim must be submitted for further costs to be paid.
