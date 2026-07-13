@@ -38,9 +38,9 @@ Feature: Escape Fee Calculation for Dec 2025 escape threshold changes
     @esc_dec2025_other_civil
     Examples: Other Civil Escape cases
       | feeCode   | startDate  | netProfitCosts | netCostOfCounsel | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal | escapeCaseFlag |
-      | DEBT      | 2025-12-22 | 768.01         |                  | No           | 20                    | 15.5                  | 291.50        | TRUE           |
-      | ELA       | 2025-12-22 | 669.01         | 5                | No           | 20                    | 10.5                  | 253.50        | TRUE           |
-      | HOUS      | 2025-12-22 | 669.01         |                  | Yes          | 20                    | 15.5                  | 303.10        | TRUE           |
+      | DEBT      | 2025-12-22 | 768.01         |                  | No           | 20                    | 2.00                  | 278.00        | TRUE           |
+      | ELA       | 2025-12-22 | 669.01         | 5                | No           | 20                    | 2.00                  | 245.00        | TRUE           |
+      | HOUS      | 2025-12-22 | 669.01         |                  | Yes          | 20                    | 2.00                  | 289.60        | TRUE           |
 
     @esc_dec2025_prison_law
     Examples: Prison Law (Escape and fee limit cases)

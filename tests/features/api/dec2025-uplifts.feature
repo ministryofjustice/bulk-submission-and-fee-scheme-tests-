@@ -37,9 +37,9 @@ Feature: Fee Calculations for Dec 2025 uplifts
     @dec2025_other_civil
     Examples: Other Civil
       | feeCode   | startDate  | netProfitCosts | netCostOfCounsel | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
-      | HOUS      | 2025-12-22 |                |                  | Yes          | 20                    | 15.5                  | 303.10        |
-      | ELA       | 2025-12-22 |                |                  | No           | 20                    | 15.5                  | 258.50        |
-      | DEBT      | 2025-12-22 |                |                  | No           | 20                    | 10.5                  | 286.50        |
+      | HOUS      | 2025-12-22 |                |                  | Yes          | 20                    | 2.00                  | 289.60        |
+      | ELA       | 2025-12-22 |                |                  | No           | 20                    | 2.00                  | 245.00        |
+      | DEBT      | 2025-12-22 |                |                  | No           | 20                    | 2.00                  | 278.00        |
 
     @dec2025_sending_hearing
     Examples: CL Sending Hearing FF
