@@ -84,7 +84,7 @@ Feature: Fee Calculations for Dec 2025 uplifts
       | feeCode | startDate  | netProfitCosts | immigrationPriorAuthorityNumber  | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal |
       | IAXL    | 2025-12-22 | 1099.99        |                                  | Yes          | 399                   | 10.5                  | 1729.49       |
       | IMXL    | 2025-12-22 | 699.99         |                                  | Yes          | 399                   | 10.5                  | 1249.49       |
-      | IA100   | 2025-12-22 | 150            |                                  | Yes          |                       | 10.5                  | 190.50        |
+      | IA100   | 2025-12-22 | 150            |                                  | Yes          |                       | 10.5                  | 180.00        |
 
     @dec2025_immigration_and_asylum_hourly_rate_CLR
     Examples: Immigration and Asylum Hourly Rate CLR

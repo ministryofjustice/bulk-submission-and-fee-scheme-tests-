@@ -1153,8 +1153,8 @@ Feature: Fee Calculation API
       | IMXL    | 2013-04-02 | 500            |                                  | No           | 400                   | 10.5                  | 910.50        |
       | IMXL    | 2025-04-03 | 501            | 111                              | Yes          | 401                   | 15.5                  | 1017.70       |
       | IMXL    | 2013-04-01 | 700            | 111                              | No           | 500                   | 15.5                  | 1215.50       |
-      | IA100   | 2013-04-01 | 99             |                                  | Yes          |                       | 10.5                  | 129.30        |
-      | IA100   | 2013-04-02 | 100            |                                  | No           |                       | 10.5                  | 110.50        |
+      | IA100   | 2013-04-01 | 99             |                                  | Yes          |                       | 10.5                  | 118.80        |
+      | IA100   | 2013-04-02 | 100            |                                  | No           |                       | 10.5                  | 100.00        |
 
     @immigration_and_asylum_hourly_rate_CLR
     Examples: Immigration and Asylum Hourly Rate CLR
