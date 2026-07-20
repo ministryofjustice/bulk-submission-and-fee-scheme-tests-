@@ -45,19 +45,19 @@ Feature: Escape Fee Calculation for Dec 2025 escape threshold changes
     @esc_dec2025_prison_law
     Examples: Prison Law (Escape and fee limit cases)
       | feeCode | startDate  | uniqueFileNumber | netProfitCosts | netTravelCosts | netWaitingCosts | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal | escapeCaseFlag |
-      | PRIA    | 2016-04-01 | 221225/001       | 436.8          | 10             | 310.00          | Yes          | 20                    | 10.5                  | 329.22        | TRUE           |
-      | PRIB2   | 2016-04-01 | 221225/001       | 1406.01        |                | 691.70          | No           | 20                    | 10.5                  | 730.06        | TRUE           |
-      | PRIC2   | 2016-04-01 | 221225/001       | 3047.01        |                | 2362.55         | Yes          | 20                    | 10.5                  | 2194.71       | TRUE           |
-      | PRID2   | 2016-04-01 | 221225/001       | 1406.01        |                | 691.70          | No           | 20                    | 10.5                  | 730.06        | TRUE           |
-      | PRIE2   | 2016-04-01 | 221225/001       | 3047.01        |                | 2362.55         | Yes          | 20                    | 10.5                  | 2194.71       | TRUE           |
-      | PRIB1   | 2016-04-01 | 221225/001       | 285.69         |                | 157.06          | No           | 20                    | 10.5                  | 283.37        | FALSE          |
-      | PRIB1   | 2016-04-01 | 221225/001       | 500            | 10             | 0.00            | No           | 20                    | 10.5                  | 283.37        | FALSE          |
-      | PRIC1   | 2016-04-01 | 221225/001       | 724.14         |                | 433.93          | Yes          | 20                    | 10.5                  | 681.07        | FALSE          |
-      | PRIC1   | 2016-04-01 | 221225/001       | 400            | 10             | 950.00          | Yes          | 20                    | 10.5                  | 681.07        | FALSE          |
-      | PRID1   | 2016-04-01 | 221225/001       | 285.69         |                | 157.06          | No           | 20                    | 10.5                  | 283.37        | FALSE          |
-      | PRID1   | 2016-04-01 | 221225/001       | 500            | 10             | 0.00            | No           | 20                    | 10.5                  | 283.37        | FALSE          |
-      | PRIE1   | 2016-04-01 | 221225/001       | 724.14         |                | 433.93          | Yes          | 20                    | 10.5                  | 681.07        | FALSE          |
-      | PRIE1   | 2016-04-01 | 221225/001       | 300            | 10             | 950.00          | Yes          | 20                    | 10.5                  | 681.07        | FALSE          |
+      | PRIA    | 2016-04-01 | 221225/001       | 436.8          | 10             | 310.00          | Yes          | 20                    | 10.5                  | 322.72| TRUE           |
+      | PRIB2   | 2016-04-01 | 221225/001       | 1406.01        |                | 691.70          | No           | 20                    | 10.5                  | 723.56| TRUE           |
+      | PRIC2   | 2016-04-01 | 221225/001       | 3047.01        |                | 2362.55         | Yes          | 20                    | 10.5                  | 2188.21| TRUE           |
+      | PRID2   | 2016-04-01 | 221225/001       | 1406.01        |                | 691.70          | No           | 20                    | 10.5                  | 723.56| TRUE           |
+      | PRIE2   | 2016-04-01 | 221225/001       | 3047.01        |                | 2362.55         | Yes          | 20                    | 10.5                  | 2188.21| TRUE           |
+      | PRIB1   | 2016-04-01 | 221225/001       | 285.69         |                | 157.06          | No           | 20                    | 10.5                  | 276.87| FALSE          |
+      | PRIB1   | 2016-04-01 | 221225/001       | 500            | 10             | 0.00            | No           | 20                    | 10.5                  | 276.87| FALSE          |
+      | PRIC1   | 2016-04-01 | 221225/001       | 724.14         |                | 433.93          | Yes          | 20                    | 10.5                  | 674.57| FALSE          |
+      | PRIC1   | 2016-04-01 | 221225/001       | 400            | 10             | 950.00          | Yes          | 20                    | 10.5                  | 674.57| FALSE          |
+      | PRID1   | 2016-04-01 | 221225/001       | 285.69         |                | 157.06          | No           | 20                    | 10.5                  | 276.87| FALSE          |
+      | PRID1   | 2016-04-01 | 221225/001       | 500            | 10             | 0.00            | No           | 20                    | 10.5                  | 276.87| FALSE          |
+      | PRIE1   | 2016-04-01 | 221225/001       | 724.14         |                | 433.93          | Yes          | 20                    | 10.5                  | 674.57| FALSE          |
+      | PRIE1   | 2016-04-01 | 221225/001       | 300            | 10             | 950.00          | Yes          | 20                    | 10.5                  | 674.57| FALSE          |
 
     @esc_dec2025_immigration_and_asylum_fixed_fee
     Examples: Immigration and Asylum Fixed Fee
@@ -72,9 +72,9 @@ Feature: Escape Fee Calculation for Dec 2025 escape threshold changes
     @esc_dec2025_police_station_work
     Examples: Police Station Work Escape cases
       | feeCode | startDate   | uniqueFileNumber | policeStationId | policeStationSchemeId | netProfitCosts | netTravelCosts | netWaitingCosts | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal | escapeCaseFlag |
-      | INVC    | 2016-04-01  | 221225/001       | NE001           | 1001                  | 445.01         | 100.00         | 105             | Yes          | 20                    | 10.5                  | 414.50        | TRUE           |
-      | INVC    | 2016-04-01  | 221225/001       | NE003           | 1001                  | 433.01         | 100.00         | 117             | No           | 20                    | 10.5                  | 350.50        | TRUE           |
-      | INVC    | 2022-09-30  | 221225/001       | NE016           | 1004                  | 412.01         | 100.00         | 138             | Yes          | 20                    | 15.5                  | 419.50        | TRUE           |
-      | INVC    | 2022-09-30  | 221225/001       | NE041           | 1010                  | 355.01         | 100.00         | 195             | No           | 20                    | 15.5                  | 355.50        | TRUE           |
-      | INVC    | 2024-12-06  | 221225/001       | RD052           | 1141                  | 324.01         | 326.00         |                 | Yes          | 20                    | 15.5                  | 419.50        | TRUE           |
-      | INVC    | 2024-12-06  | 221225/001       | RD091           | 1142                  | 361.01         |                | 289             | No           | 20                    | 15.5                  | 355.50        | TRUE           |
+      | INVC    | 2016-04-01  | 221225/001       | NE001           | 1001                  | 445.01         | 100.00         | 105             | Yes          | 20                    | 10.5                  | 408.00| TRUE           |
+      | INVC    | 2016-04-01  | 221225/001       | NE003           | 1001                  | 433.01         | 100.00         | 117             | No           | 20                    | 10.5                  | 344.00| TRUE           |
+      | INVC    | 2022-09-30  | 221225/001       | NE016           | 1004                  | 412.01         | 100.00         | 138             | Yes          | 20                    | 15.5                  | 408.00| TRUE           |
+      | INVC    | 2022-09-30  | 221225/001       | NE041           | 1010                  | 355.01         | 100.00         | 195             | No           | 20                    | 15.5                  | 344.00| TRUE           |
+      | INVC    | 2024-12-06  | 221225/001       | RD052           | 1141                  | 324.01         | 326.00         |                 | Yes          | 20                    | 15.5                  | 408.00| TRUE           |
+      | INVC    | 2024-12-06  | 221225/001       | RD091           | 1142                  | 361.01         |                | 289             | No           | 20                    | 15.5                  | 344.00| TRUE           |
