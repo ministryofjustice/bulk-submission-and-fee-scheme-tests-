@@ -1,4 +1,8 @@
 module.exports = {
+  default: [
+    "--require-module ts-node/register",
+    "--require tests/features/**/*.ts"
+  ].join(" "),
   bulksubmission: [
     "--require-module ts-node/register",
     "--require tests/features/**/*.ts",
