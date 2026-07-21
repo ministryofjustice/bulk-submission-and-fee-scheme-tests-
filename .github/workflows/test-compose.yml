@@ -307,7 +307,7 @@ jobs:
         shell: bash
         run: |
           cat <<EOF > .env
-          UI_BASE_URL=http://localhost:8082
+          UI_BASE_URL=http://app:8082
           FSP_API_BASE_URL=http://127.0.0.1:8095
           FSP_API_TOKEN=${{ secrets.FSP_API_TOKEN }}
           PROVIDER_API=http://127.0.0.1:8186/api/v1/provider-offices
