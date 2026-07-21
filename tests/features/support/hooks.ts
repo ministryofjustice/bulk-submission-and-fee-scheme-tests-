@@ -113,7 +113,7 @@ Before({ tags: 'not @api' }, async function (this: World, scenario: ITestCaseHoo
             console.log('[DEBUG] Setting context baseURL to:', process.env.UI_BASE_URL || 'about:blank');
 
 
-            const cookies = await this.context.cookies('http://localhost:8082');
+            const cookies = await this.context.cookies('http://app:8082');
             console.log('[DEBUG] Cookies Playwright will actually send:', JSON.stringify(cookies));
 
             this.page = await this.context.newPage();
