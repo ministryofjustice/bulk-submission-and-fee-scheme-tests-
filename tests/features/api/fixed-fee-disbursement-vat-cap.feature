@@ -7,11 +7,12 @@ Feature: Immigration and Asylum fixed fee disbursement VAT cap (WARALL1)
   Scenario Outline: Disbursement VAT is capped across the I&A fixed fee codes
     Given I have an initialized API client
     And a fee calculation payload with:
-      | feeCode               | <feeCode>   |
-      | startDate             | <startDate> |
-      | vatIndicator          | true        |
-      | netDisbursementAmount | 100.21      |
-      | disbursementVatAmount | 50          |
+      | feeCode               | <feeCode>           |
+      | startDate             | <startDate>         |
+      | caseConcludedDate     | <caseConcludedDate> |
+      | vatIndicator          | true                |
+      | netDisbursementAmount | 100.21              |
+      | disbursementVatAmount | 50                  |
 
     When I POST "/api/v1/fee-calculation" with the payload
     Then the response status should be 200
@@ -21,12 +22,12 @@ Feature: Immigration and Asylum fixed fee disbursement VAT cap (WARALL1)
     And the JSON path "feeCalculation.totalAmount" should equal number <expectedTotal>
 
     Examples: Entered disbursement VAT of 50 exceeds 20% of the 100.21 net disbursement (max 20.04)
-      | feeCode | startDate  | expectedTotal |
-      | IACA    | 2022-09-30 | 392.65        |
-      | IACB    | 2022-09-30 | 1163.05       |
-      | IMCA    | 2022-09-30 | 392.65        |
-      | IMLB    | 2025-12-22 | 500.65        |
-      | IDAS1   | 2025-12-22 | 419.05        |
+      | feeCode | startDate  | caseConcludedDate | expectedTotal |
+      | IACA    | 2022-09-30 | 2022-09-30        | 392.65        |
+      | IACB    | 2022-09-30 | 2022-09-30        | 1163.05       |
+      | IMCA    | 2022-09-30 | 2022-09-30        | 392.65        |
+      | IMLB    | 2025-12-22 | 2025-12-22        | 500.65        |
+      | IDAS1   | 2025-12-22 | 2025-12-22        | 419.05        |
 
   @warall1 @vat_rate_by_case_concluded_date
   Scenario: The disbursement VAT cap uses the VAT rate in force on the case concluded date
@@ -55,6 +56,7 @@ Feature: Immigration and Asylum fixed fee disbursement VAT cap (WARALL1)
     And a fee calculation payload with:
       | feeCode               | IMCF       |
       | startDate             | 2024-09-30 |
+      | caseConcludedDate     | 2026-01-01 |
       | vatIndicator          | true       |
       | netDisbursementAmount | 650        |
       | disbursementVatAmount | 130        |
