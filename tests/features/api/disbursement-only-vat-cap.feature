@@ -56,11 +56,11 @@ Feature: Immigration and Asylum disbursement-only VAT cap (WARALL1)
 
     When I POST "/api/v1/fee-calculation" with the payload
     Then the response status should be 200
-    # net disbursement is capped to the £1600 disbursement limit (WARIA11) ...
-    And the JSON path "validationMessages.0.code" should equal "WARIA11"
+    # net disbursement is capped to the £1600 disbursement limit (WARIA11), and the VAT cap
+    # then uses 20% of the CAPPED £1600 (i.e. £320), not 20% of £5000. Both warnings are
+    # asserted as a set so the test does not depend on their order.
+    And the validation message codes should be "WARIA11,WARALL1"
     And the JSON path "feeCalculation.disbursementAmount" should equal number 1600
-    # ... so the maximum disbursement VAT is 20% of the CAPPED £1600 (i.e. £320), not 20% of £5000
-    And the JSON path "validationMessages.1.code" should equal "WARALL1"
     And the JSON path "feeCalculation.disbursementVatAmount" should equal number 320
     And the JSON path "feeCalculation.totalAmount" should equal number 1920.00
 
@@ -76,9 +76,10 @@ Feature: Immigration and Asylum disbursement-only VAT cap (WARALL1)
 
     When I POST "/api/v1/fee-calculation" with the payload
     Then the response status should be 200
-    # prior authority number means the net disbursement is NOT capped (no WARIA11) ...
+    # prior authority number means the net disbursement is NOT capped, so WARALL1 is the only
+    # warning (the exact-set assertion also proves WARIA11 is absent) ...
+    And the validation message codes should be "WARALL1"
     And the JSON path "feeCalculation.disbursementAmount" should equal number 5000
     # ... but the VAT cap still applies: 20% of £5000 = £1000
-    And the JSON path "validationMessages.0.code" should equal "WARALL1"
     And the JSON path "feeCalculation.disbursementVatAmount" should equal number 1000
     And the JSON path "feeCalculation.totalAmount" should equal number 6000.00
