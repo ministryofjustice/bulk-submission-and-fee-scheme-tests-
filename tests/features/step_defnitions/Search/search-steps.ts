@@ -31,6 +31,9 @@ function convertSubmissionPeriodFormat(period: string): string {
   }
 }
 
+function convertAreaOfLawForSelectOption(areaOfLaw: string): string {
+  return areaOfLaw.replace(/_/g, ' ');
+}
 
 Given('I am on the Search page', async function (this: CustomWorld) {
   await this.page!.goto(
@@ -336,7 +339,7 @@ async function determineSearchCriteria(
     world.searchOfficeAccount = result[0].office_account_number;
   }
   if (criteriaType === 'all' || criteriaType === 'area_of_law') {
-    world.searchAreaOfLaw = result[0].area_of_law;
+    world.searchAreaOfLaw = convertAreaOfLawForSelectOption(result[0].area_of_law);
   }
   if (criteriaType === 'all' || criteriaType === 'status') {
     world.searchStatus = result[0].status;
@@ -441,7 +444,7 @@ When('I search using the most recent submission reference', async function (this
 
   this.searchSubmissionPeriod = convertSubmissionPeriodFormat(result[0].submission_period);
   this.searchOfficeAccount = result[0].office_account_number;
-  this.searchAreaOfLaw = result[0].area_of_law;
+  this.searchAreaOfLaw = convertAreaOfLawForSelectOption(result[0].area_of_law);
   this.searchStatus = result[0].status;
 
   const searchPage = new SearchPage(this.page!);
