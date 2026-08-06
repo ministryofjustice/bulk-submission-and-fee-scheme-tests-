@@ -1,4 +1,5 @@
 @stable
+@deprecatedByCwc
 Feature: Sort submission via UI
 
   Background:
