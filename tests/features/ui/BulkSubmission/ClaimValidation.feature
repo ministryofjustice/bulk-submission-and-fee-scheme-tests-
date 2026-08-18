@@ -156,7 +156,7 @@ Feature: Display message checks
       | Advice Type Code must be valid                                                                                                             |
       | Medical Reports Count must be 20 or less                                                                                                   |
       | Surgery Clients Count must be between 1 and 20                                                                                             |
-      | Surgery Matters Count must be between 1 and 20                                                                                             |
+      | Surgery Matters Count must be between 0 and 99                                                                                             |
       | CMRH Oral Count must be between 0 and 9                                                                                                    |
       | CMRH Telephone Count must be between 0 and 9                                                                                               |
       | AIT Hearing Centre Code must be valid                                                                                                      |
@@ -301,7 +301,7 @@ Feature: Display message checks
       | JR Form Filling Amount must be a valid monetary value                                                                                      |
       | Advice Type Code must be valid                                                                                                             |
       | Medical Reports Count must be 20 or less                                                                                                   |
-      | Surgery Matters Count must be between 1 and 20                                                                                             |
+      | Surgery Matters Count must be between 0 and 99                                                                                            |
       | CMRH Oral Count must be between 0 and 9                                                                                                    |
       | CMRH Telephone Count must be between 0 and 9                                                                                               |
       | AIT Hearing Centre Code must be valid                                                                                                      |
@@ -436,7 +436,7 @@ Feature: Display message checks
       | JR Form Filling Amount must be a valid monetary value                                                                                      |
       | Advice Type Code must be valid                                                                                                             |
       | Medical Reports Count must be 20 or less                                                                                                   |
-      | Surgery Matters Count must be between 1 and 20                                                                                             |
+      | Surgery Matters Count must be between 0 and 99                                                                                            |
       | CMRH Oral Count must be between 0 and 9                                                                                                    |
       | CMRH Telephone Count must be between 0 and 9                                                                                               |
       | AIT Hearing Centre Code must be valid                                                                                                      |
