@@ -1,12 +1,14 @@
 import type { Page, Browser, BrowserContext } from '@playwright/test';
 
+const signOutSelector = 'form[name="logoutForm"] a[data-module="logout-link"], #sign-out-link, button.sign-in-button:has-text("Sign out")';
+
 export async function logoutAndWipe(page: Page) {
-    const signOutButton = page.locator('button.sign-in-button:has-text("Sign out")');
+    const signOut = page.locator(signOutSelector).first();
 
     try {
-        if (await signOutButton.isVisible({ timeout: 3000 })) {
+        if (await signOut.isVisible({ timeout: 3000 })) {
             console.log('🔐 Signing out to reset backend session...');
-            await signOutButton.click();
+            await signOut.click();
             await page.waitForTimeout(1000);
         } else {
             console.log('ℹ️ No active session found, skipping sign out.');
@@ -67,7 +69,7 @@ export async function recreateLoggedInContext(opts: {
     try {
         // Navigate without waiting for full load
         await page.goto(opts.baseURL, { timeout: 60000 });
-        await page.locator('button.sign-in-button:has-text("Sign out")').waitFor({
+        await page.locator(signOutSelector).first().waitFor({
             state: 'visible',
             timeout: 30000,
         });
