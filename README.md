@@ -3,6 +3,11 @@
 Automated **end-to-end (E2E)** tests for the **LAA Bulk Claims** platform using **Playwright**, **Cucumber.js**, and **BrowserStack**.  
 This project supports both **UI** and **API** test automation, integrated with parallel execution and automatic reporting.
 
+> [!WARNING]
+> **Controlled Work Claims (CWC) transition notice**
+> CWC are moving away from using this repository in favour of automated tests maintained directly alongside their own codebases.
+> Any feature reviewed by CWC and no longer supported for UI testing is tagged with `@deprecatedByCwc`.
+
 ---
 
 ## 📋 Table of Contents
@@ -12,6 +17,7 @@ This project supports both **UI** and **API** test automation, integrated with p
 - [🧩 BrowserStack Configuration](#-browserstack-configuration)
 - [🧠 Scripts](#-scripts)
 - [🧭 How to Run Tests](#-how-to-run-tests)
+- [🚨 CWC deprecation tag policy](#-cwc-deprecation-tag-policy)
 - [🧰 Key Features](#-key-features)
 - [📸 Reports & Logs](#-reports--logs)
 - [🧼 Cleanup Logic](#-cleanup-logic)

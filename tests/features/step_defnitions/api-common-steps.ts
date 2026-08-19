@@ -164,3 +164,16 @@ Then('print the response body', function (this: World) {
     console.log('Response headers:', JSON.stringify(this.response.headers, null, 2));
     console.log('Response body:', JSON.stringify(this.response.data, null, 2));
 });
+
+// Assert the full set of validationMessages codes, regardless of order.
+// Codes are given as a comma-separated list, e.g. "WARIA11,WARALL1".
+Then(
+    'the validation message codes should be {string}',
+    function (this: World, expected: string) {
+        const messages = this.response?.data?.validationMessages ?? [];
+        const actualCodes = messages.map((message: any) => message.code).sort();
+        const expectedCodes = expected.split(',').map(code => code.trim()).sort();
+
+        expect(actualCodes).toEqual(expectedCodes);
+    }
+);
