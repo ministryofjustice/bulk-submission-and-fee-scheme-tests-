@@ -165,12 +165,12 @@ When(
     }
 
     const id = this.mostRecentSubmissionId;
-    const link = this.page!.locator(`a[href="/submission/${id}"]`);
+    const link = this.page!.locator(`a[href="/submissions/${id}"]`);
 
     await link.first().waitFor({state: 'visible', timeout: 10_000});
 
     await this.attach(
-      `🔗 Clicking submission link: /submission/${id}`,
+      `🔗 Clicking submission link: /submissions/${id}`,
       'text/plain'
     );
 
