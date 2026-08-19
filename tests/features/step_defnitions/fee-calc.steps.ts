@@ -69,7 +69,10 @@ Given('a fee calculation payload with:', function (this: World, table: DataTable
   if (policeStationSchemeId !== undefined) payload.policeStationSchemeId = policeStationSchemeId;
   if (representationOrderDate !== undefined) payload.representationOrderDate = representationOrderDate;
   if (immigrationPriorAuthorityNumber !== undefined) payload.immigrationPriorAuthorityNumber = immigrationPriorAuthorityNumber;
-  if (!hasMediationTag) {
+  const caseConcludedDate = maybeStr(rows, 'caseConcludedDate');
+  if (caseConcludedDate !== undefined) {
+    payload.caseConcludedDate = caseConcludedDate;
+  } else if (!hasMediationTag) {
     payload.caseConcludedDate = yesterdayDate();
   }
 
