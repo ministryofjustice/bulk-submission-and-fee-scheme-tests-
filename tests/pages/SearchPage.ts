@@ -183,7 +183,7 @@ export class SearchPage extends BasePage {
 
     while (true) {
       // 🧾 Collect all submission links currently visible
-      const links = this.page.locator('table.govuk-table tbody tr td a[href*="/submission/"]');
+      const links = this.page.locator('table.govuk-table tbody tr td a[href*="/submissions/"]');
       const count = await links.count();
 
       for (let i = 0; i < count; i++) {
