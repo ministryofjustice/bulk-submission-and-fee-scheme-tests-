@@ -106,48 +106,41 @@ export class SubmissionSummaryPage extends BasePage {
       const cells = rows.nth(i).locator('td');
 
       let claim: Record<string, string | null> = {
-        surname: await cells.nth(1).textContent(),
-        forename: null,
-        ucn: null,
-        surnameTwo: null,
-        forenameTwo: null,
-        ucnTwo: null,
-        initial: null,
+        clientName: await cells.nth(0).textContent(),
         ufn: null,
         feeCode: null,
-        value: await cells.nth(6).textContent(),
-        escapeCase: await cells.nth(7).textContent(),
-        dateWorkConcluded: null,
-        messages: null,
+        initial: null,
+        ucn: null,
+        escapeCase: await cells.nth(5).textContent(),
+        status: null,
       };
 
       if (areaOfLaw === 'Legal help') {
         claim = {
           ...claim,
-          forename: await cells.nth(2).textContent(),
-          ufn: await cells.nth(3).textContent(),
+          name: await cells.nth(0).textContent(),
+          ufn: await cells.nth(1).textContent(),
+          feeCode: await cells.nth(2).textContent(),
           ucn: await cells.nth(4).textContent(),
-          feeCode: await cells.nth(5).textContent(),
-          messages: await cells.nth(8).textContent(),
         };
       } else if (areaOfLaw === 'Crime lower') {
         claim = {
           ...claim,
-          initial: await cells.nth(2).textContent(),
-          ufn: await cells.nth(3).textContent(),
+          initial: await cells.nth(3).textContent(),
+          ufn: await cells.nth(1).textContent(),
           feeCode: await cells.nth(4).textContent(),
-          dateWorkConcluded: await cells.nth(5).textContent(),
-          messages: await cells.nth(8).textContent(),
         };
       } else if (areaOfLaw === 'Mediation') {
         claim = {
           ...claim,
-          forename: await cells.nth(2).textContent(),
-          ucn: await cells.nth(3).textContent(),
-          surnameTwo: await cells.nth(4).textContent(),
-          forenameTwo: await cells.nth(5).textContent(),
-          ucnTwo: await cells.nth(6).textContent(),
-          feeCode: await cells.nth(7).textContent(),
+          client1Name: await cells.nth(0).textContent(),
+          client1Ucn: await cells.nth(1).textContent(),
+          client2Name: await cells.nth(2).textContent(),
+          client2Ucn: await cells.nth(3).textContent(),
+          feeCode: await cells.nth(4).textContent(),
+          initial: await cells.nth(5).textContent(),
+          escape: await cells.nth(6).textContent(),
+          status: await cells.nth(7).textContent(),
         };
       }
 
