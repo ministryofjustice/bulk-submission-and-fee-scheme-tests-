@@ -29,6 +29,15 @@ module.exports = {
     "--retry 2",
     "tests/features/**/BulkSubmission/*.feature"
   ].join(" "),
+  smoke: [
+    "--require-module ts-node/register",
+    "--require tests/features/**/*.ts",
+    "--format json:reports/cucumber.json",
+    "--format html:reports/cucumber.html",
+    "--tags '@smoke and not @ignore'",
+    "--retry 2",
+    "tests/features/**/BulkSubmission/*.feature"
+  ].join(" "),
   api: [
     "--require-module ts-node/register",
     "--require tests/features/**/*.ts",
