@@ -221,9 +221,9 @@ Feature: Error and warning API
       | PROP2   | 2022-09-30 | 101023/001       |                        | 10             | 22.16          | 10              |                  |              | 10                    |                       |               | ERROR | ERRCRM10 | The costs reported exceed the Upper Costs Limit for this claim. The limit is not extendable. Resubmit your claim with reported costs under the specified limit. |
 
     @errcrm3
-    Examples: ERRCRM3 - Enter a valid Police station ID, Court ID, or Prison ID.
+    Examples: ERRCRM3 - Enter a valid Police station ID.
       | feeCode | startDate  | uniqueFileNumber | representationOrderDate| netProfitCosts | netTravelCosts | netWaitingCosts | netCostOfCounsel | policeStationId  | policeStationSchemeId | vatIndicator | netDisbursementAmount | disbursementVatAmount | expectedTotal | type  | code    | message                                                     |
-      | INVC    | 2016-04-01 | 110516/001       |                        |                |                |                 |                  | XXXX             |                       |              |                       |                       |               | ERROR | ERRCRM3 | Enter a valid Police station ID, Court ID, or Prison ID.    |
+      | INVC    | 2016-04-01 | 110516/001       |                        |                |                |                 |                  | XXXX             |                       |              |                       |                       |               | ERROR | ERRCRM3 | Enter a valid Police station ID.    |
 
     @errcrm4
     Examples: ERRCRM4 - Enter a valid Scheme ID.
@@ -518,14 +518,14 @@ Feature: Error and warning API
       | PRIE1   | 2016-04-01  | 020416/003       | 500.01         |                | 433.93          | Yes          | 20                     | 2.00                   | WARNING | WARCRM5 | Profit Costs and Waiting combined exceed the Lower Standard Fee Limit. A higher standard fee may be claimable instead. A claim amendment may be submitted to request the higher standard fee.     |
 
     @warcrm3
-    Examples: WARCRM3 - Costs are included. The Net Costs exceeds the Upper Costs Limitation.
+    Examples: WARCRM3 - Net Costs entered exceeds the Upper Costs Limitation.
       | feeCode | startDate   | uniqueFileNumber | representationOrderDate  | netProfitCosts | netTravelCosts | netWaitingCosts | vatIndicator | netDisbursementAmount  | type    | code    | message                                                                                   |
-      | PROH    | 2022-09-30  | 110516/001       | 2022-10-01               | 1503.57        | 20.50          | 30.00           | Yes          | 20                     | WARNING | WARCRM3 | Costs are included. The Net Costs exceeds the Upper Costs Limitation.                     |
-      | PROH    | 2016-04-01  | 110516/002       |                          | 1308.76        | 10.00          | 30.00           | No           | 20                     | WARNING | WARCRM3 | Costs are included. The Net Costs exceeds the Upper Costs Limitation.                     |
-      | APPA    | 2016-04-01  | 121019/003       |                          | 213.76         | 10.00          | 30.00           | Yes          | 20                     | WARNING | WARCRM3 | Costs are included. The Net Costs exceeds the Upper Costs Limitation.                     |
-      | APPA    | 2022-09-30  | 121022/004       |                          | 254.82         | 10.00          | 30.00           | No           | 20                     | WARNING | WARCRM3 | Costs are included. The Net Costs exceeds the Upper Costs Limitation.                     |
-      | APPB    | 2022-09-30  | 131224/005       |                          | 464.70         | 10.00          | 30.00           | Yes          | 20                     | WARNING | WARCRM3 | Costs are included. The Net Costs exceeds the Upper Costs Limitation.                     |
-      | APPB    | 2016-04-01  | 020416/006       |                          | 396.26         | 10.00          | 30.00           | No           | 20                     | WARNING | WARCRM3 | Costs are included. The Net Costs exceeds the Upper Costs Limitation.                     |
+      | PROH    | 2022-09-30  | 110516/001       | 2022-10-01               | 1503.57        | 20.50          | 30.00           | Yes          | 20                     | WARNING | WARCRM3 | Net Costs entered exceeds the Upper Costs Limitation.                     |
+      | PROH    | 2016-04-01  | 110516/002       |                          | 1308.76        | 10.00          | 30.00           | No           | 20                     | WARNING | WARCRM3 | Net Costs entered exceeds the Upper Costs Limitation.                     |
+      | APPA    | 2016-04-01  | 121019/003       |                          | 213.76         | 10.00          | 30.00           | Yes          | 20                     | WARNING | WARCRM3 | Net Costs entered exceeds the Upper Costs Limitation.                     |
+      | APPA    | 2022-09-30  | 121022/004       |                          | 254.82         | 10.00          | 30.00           | No           | 20                     | WARNING | WARCRM3 | Net Costs entered exceeds the Upper Costs Limitation.                     |
+      | APPB    | 2022-09-30  | 131224/005       |                          | 464.70         | 10.00          | 30.00           | Yes          | 20                     | WARNING | WARCRM3 | Net Costs entered exceeds the Upper Costs Limitation.                     |
+      | APPB    | 2016-04-01  | 020416/006       |                          | 396.26         | 10.00          | 30.00           | No           | 20                     | WARNING | WARCRM3 | Net Costs entered exceeds the Upper Costs Limitation.                     |
 
     @warcrm4
     Examples: WARCRM4 - The claim exceeds the Escape Case Threshold. An Escape Case Claim must be submitted for further costs to be paid.
