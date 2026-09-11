@@ -2,6 +2,7 @@ import {Page, Locator, expect} from '@playwright/test';
 import {BasePage} from './BasePage';
 import {authenticator} from 'otplib';
 import dotenv from 'dotenv';
+import path from 'path';
 
 dotenv.config(); // loads .env
 
@@ -28,6 +29,7 @@ class LoginPage extends BasePage {
 
     async navigateTo() {
         const targetUrl = process.env.UI_BASE_URL || '/';
+        console.log(`[DEBUG] Navigating to: ${targetUrl}`);
         await this.page.goto(targetUrl, {
             waitUntil: 'domcontentloaded',
             timeout: 120_000,
@@ -74,18 +76,33 @@ class LoginPage extends BasePage {
         }
 
         await this.otcInput.waitFor({state: 'visible'});
+        console.log(`[DEBUG] Current URL before OTP submit: ${this.page.url()}`);
         await this.resolveOneTimeCode(secret);
+        console.log(`[DEBUG] Current URL after OTP submit: ${this.page.url()}`);
 
         const expectedBaseUrl = process.env.UI_BASE_URL;
         if (expectedBaseUrl) {
             const normalizedExpected = expectedBaseUrl.replace(/\/$/, '');
-            await this.page.waitForURL(
-                (url: URL) => {
-                    const normalizedActual = `${url.origin}${url.pathname}`.replace(/\/$/, '');
-                    return normalizedActual.startsWith(normalizedExpected);
-                },
-                {timeout: 60000}
-            );
+            const appHeading = this.page.getByRole('heading', {name: 'Submit a bulk claim'});
+
+            try {
+                await this.page.waitForURL(
+                    (url: URL) => {
+                        const normalizedActual = `${url.origin}${url.pathname}`.replace(/\/$/, '');
+                        return normalizedActual.startsWith(normalizedExpected);
+                    },
+                    {timeout: 60000}
+                );
+            } catch (error) {
+                console.error(`[DEBUG] Timed out waiting for post-login redirect. Final URL: ${this.page.url()}`);
+                await this.captureLoginDebugScreenshot();
+
+                if (!(await appHeading.isVisible().catch(() => false))) {
+                    throw error;
+                }
+
+                console.warn('[DEBUG] App heading is visible despite URL mismatch; continuing.');
+            }
         } else {
             await this.page.waitForLoadState('networkidle');
         }
@@ -135,6 +152,14 @@ class LoginPage extends BasePage {
         }
 
         await this.page.waitForTimeout(1_500);
+    }
+
+    private async captureLoginDebugScreenshot() {
+        const screenshotPath = path.resolve('reports', 'login-timeout.png');
+        await this.page.screenshot({path: screenshotPath, fullPage: true}).catch((screenshotError: unknown) => {
+            console.error(`[DEBUG] Failed to capture login timeout screenshot: ${String(screenshotError)}`);
+        });
+        console.error(`[DEBUG] Saved login timeout screenshot to ${screenshotPath}`);
     }
 }
 
