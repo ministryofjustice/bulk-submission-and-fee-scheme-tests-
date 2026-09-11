@@ -43,14 +43,16 @@ runs:
         set -euo pipefail
         
         IMAGE_URI="${{ inputs.registry-account }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/${{ inputs.repository }}:${{ inputs.image-tag }}"
-        MAX_RETRIES=30
-        RETRY_DELAY=20
+        TAG_CHECK_MAX_RETRIES=30
+        TAG_CHECK_RETRY_DELAY=20
+        PULL_MAX_RETRIES=10
+        PULL_RETRY_DELAY=6
 
         if [[ "${{ inputs.wait_for_tag }}" == 'true' ]]; then
           attempt=0
-          while (( attempt < MAX_RETRIES )); do
+          while (( attempt < TAG_CHECK_MAX_RETRIES )); do
             ((++attempt))
-            echo "Checking for image tag in ECR (attempt ${attempt}/${MAX_RETRIES}): ${IMAGE_URI}"
+            echo "Checking for image tag in ECR (attempt ${attempt}/${TAG_CHECK_MAX_RETRIES}): ${IMAGE_URI}"
 
             if aws ecr describe-images \
               --repository-name "${{ inputs.repository }}" \
@@ -61,16 +63,35 @@ runs:
               break
             fi
 
-            if (( attempt < MAX_RETRIES )); then
-              echo "Image tag not available yet, waiting ${RETRY_DELAY} seconds before retry..." >&2
-              sleep "$RETRY_DELAY"
+            if (( attempt < TAG_CHECK_MAX_RETRIES )); then
+              echo "Image tag not available yet, waiting ${TAG_CHECK_RETRY_DELAY} seconds before retry..." >&2
+              sleep "$TAG_CHECK_RETRY_DELAY"
             fi
           done
 
-          if (( attempt == MAX_RETRIES )); then
+          if (( attempt == TAG_CHECK_MAX_RETRIES )); then
             echo "Timed out waiting for image tag '${{ inputs.image-tag }}' in repository '${{ inputs.repository }}'" >&2
             exit 1
           fi
+
+          attempt=0
+          while (( attempt < PULL_MAX_RETRIES )); do
+            ((++attempt))
+            echo "Pulling image after tag became visible (attempt ${attempt}/${PULL_MAX_RETRIES}): ${IMAGE_URI}"
+
+            if docker pull "$IMAGE_URI"; then
+              echo "Successfully pulled image"
+              exit 0
+            fi
+
+            if (( attempt < PULL_MAX_RETRIES )); then
+              echo "Image tag is visible but not pullable yet, waiting ${PULL_RETRY_DELAY} seconds before retry..." >&2
+              sleep "$PULL_RETRY_DELAY"
+            fi
+          done
+
+          echo "Failed to pull image '${IMAGE_URI}' after the tag became visible in ECR" >&2
+          exit 1
         fi
 
         echo "Pulling image: ${IMAGE_URI}"
