@@ -18,6 +18,10 @@ inputs:
   image-tag:
     description: Docker image tag to pull
     required: true
+  wait_for_tag:
+    description: Wait for the image tag to exist in ECR before pulling
+    required: false
+    default: 'false'
 
 runs:
   using: composite
@@ -41,22 +45,39 @@ runs:
         IMAGE_URI="${{ inputs.registry-account }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/${{ inputs.repository }}:${{ inputs.image-tag }}"
         MAX_RETRIES=30
         RETRY_DELAY=20
-      
-        attempt=0
-        while (( attempt < MAX_RETRIES )); do
-          ((++attempt))
-          echo "Attempting to pull image (attempt ${attempt}/${MAX_RETRIES}): ${IMAGE_URI}"
-          
-          if docker pull "$IMAGE_URI"; then
-            echo "Successfully pulled image"
-            exit 0
+
+        if [[ "${{ inputs.wait_for_tag }}" == 'true' ]]; then
+          attempt=0
+          while (( attempt < MAX_RETRIES )); do
+            ((++attempt))
+            echo "Checking for image tag in ECR (attempt ${attempt}/${MAX_RETRIES}): ${IMAGE_URI}"
+
+            if aws ecr describe-images \
+              --repository-name "${{ inputs.repository }}" \
+              --registry-id "${{ inputs.registry-account }}" \
+              --image-ids "imageTag=${{ inputs.image-tag }}" \
+              >/dev/null; then
+              echo "Image tag is available in ECR"
+              break
+            fi
+
+            if (( attempt < MAX_RETRIES )); then
+              echo "Image tag not available yet, waiting ${RETRY_DELAY} seconds before retry..." >&2
+              sleep "$RETRY_DELAY"
+            fi
+          done
+
+          if (( attempt == MAX_RETRIES )); then
+            echo "Timed out waiting for image tag '${{ inputs.image-tag }}' in repository '${{ inputs.repository }}'" >&2
+            exit 1
           fi
-          
-          if (( attempt < MAX_RETRIES )); then
-            echo "Pull failed, waiting ${RETRY_DELAY} seconds before retry..." >&2
-            sleep "$RETRY_DELAY"
-          fi
-        done
-      
-        echo "Failed to pull image after ${MAX_RETRIES} attempts" >&2
+        fi
+
+        echo "Pulling image: ${IMAGE_URI}"
+        if docker pull "$IMAGE_URI"; then
+          echo "Successfully pulled image"
+          exit 0
+        fi
+
+        echo "Failed to pull image '${IMAGE_URI}'" >&2
         exit 1
