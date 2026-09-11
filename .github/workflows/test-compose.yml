@@ -303,6 +303,9 @@ jobs:
             echo "oidc already present in /etc/hosts, skipping"
           fi
 
+          echo "Current host mappings:"
+          grep -E '(^|[[:space:]])(oidc|app)([[:space:]]|$)' /etc/hosts || true
+
       - name: Create .env file for Docker Compose and E2E tests
         shell: bash
         run: |
@@ -360,33 +363,56 @@ jobs:
           echo "Waiting for services to be ready..."
           echo "Waiting for SaBC UI..."
           for i in {1..36}; do
-          if curl -fsS http://localhost:8181/actuator/health | grep -q '"status":"UP"'; then
-            echo "Healthy"
-            exit 0
-          fi
+            if curl -fsS http://localhost:8181/actuator/health | grep -q '"status":"UP"'; then
+              echo "SaBC UI healthy"
+              break
+            fi
             sleep 5
           done
           
           echo "Waiting for Event Service..."
           for i in {1..36}; do
-          if curl -fsS http://127.0.0.1:8182/actuator/health | grep -q '"status":"UP"'; then
-            echo "Healthy"
-            exit 0
-          fi
+            if curl -fsS http://127.0.0.1:8182/actuator/health | grep -q '"status":"UP"'; then
+              echo "Event Service healthy"
+              break
+            fi
             sleep 5
           done
           
           echo "Waiting for Claims API..."
           for i in {1..36}; do
-          if curl -fsS http://127.0.0.1:8183/actuator/health | grep -q '"status":"UP"'; then
-            echo "Healthy"
-            exit 0
-          fi
+            if curl -fsS http://127.0.0.1:8183/actuator/health | grep -q '"status":"UP"'; then
+              echo "Claims API healthy"
+              break
+            fi
             sleep 5
           done
 
           echo "Services ready"
           exit 0
+
+      - name: Wait for auth host endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Waiting for app host endpoint..."
+          for i in {1..24}; do
+            if curl -fsS -o /dev/null http://app:8082; then
+              echo "app host reachable"
+              break
+            fi
+            sleep 5
+          done
+
+          echo "Waiting for oidc host endpoint..."
+          for i in {1..24}; do
+            if curl -fsS -o /dev/null http://oidc:9000; then
+              echo "oidc host reachable"
+              break
+            fi
+            sleep 5
+          done
 
       - name: Check DB setup
         shell: bash
