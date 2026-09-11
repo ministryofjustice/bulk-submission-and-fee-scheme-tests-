@@ -79,13 +79,23 @@ class LoginPage extends BasePage {
         const expectedBaseUrl = process.env.UI_BASE_URL;
         if (expectedBaseUrl) {
             const normalizedExpected = expectedBaseUrl.replace(/\/$/, '');
-            await this.page.waitForURL(
-                (url: URL) => {
-                    const normalizedActual = `${url.origin}${url.pathname}`.replace(/\/$/, '');
-                    return normalizedActual.startsWith(normalizedExpected);
-                },
-                {timeout: 60000}
-            );
+            const urlMatcher = (url: URL) => {
+                const normalizedActual = `${url.origin}${url.pathname}`.replace(/\/$/, '');
+                return normalizedActual.startsWith(normalizedExpected);
+            };
+
+            try {
+                await Promise.race([
+                    this.page.waitForURL(urlMatcher, {timeout: 120000}),
+                    this.page.waitForSelector('h1:has-text("Submit a bulk claim")', {timeout: 120000})
+                ]);
+            } catch (error) {
+                const currentUrl = this.page.url();
+                throw new Error(
+                    `Login did not complete redirect to "${normalizedExpected}" and app header was not visible. Current URL: ${currentUrl}`,
+                    {cause: error}
+                );
+            }
         } else {
             await this.page.waitForLoadState('networkidle');
         }
