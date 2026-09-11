@@ -454,6 +454,21 @@ jobs:
         run: |
           npm run login
 
+      - name: Check callback target
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          echo "=== Local app root ==="
+          curl -vk http://localhost:8082/ -o /dev/null 2>&1 | grep -E "(> Host:|< HTTP|< location:|< Location:)"
+          echo "=== Local app sign-in ==="
+          curl -vk http://localhost:8082/sign-in -o /dev/null 2>&1 | grep -E "(> Host:|< HTTP|< location:|< Location:)"
+          echo "=== App host root ==="
+          curl -vk http://app:8082/ -o /dev/null 2>&1 | grep -E "(> Host:|< HTTP|< location:|< Location:)"
+          echo "=== App host sign-in ==="
+          curl -vk http://app:8082/sign-in -o /dev/null 2>&1 | grep -E "(> Host:|< HTTP|< location:|< Location:)"
+          exit 0
+
       - name: Verify session is still alive
         shell: bash
         run: |

@@ -80,6 +80,10 @@ class LoginPage extends BasePage {
         await this.resolveOneTimeCode(secret);
         console.log(`[DEBUG] Current URL after OTP submit: ${this.page.url()}`);
 
+        if (this.page.url().startsWith('chrome-error://')) {
+            await this.logBrowserErrorDetails();
+        }
+
         const expectedBaseUrl = process.env.UI_BASE_URL;
         if (expectedBaseUrl) {
             const normalizedExpected = expectedBaseUrl.replace(/\/$/, '');
@@ -160,6 +164,16 @@ class LoginPage extends BasePage {
             console.error(`[DEBUG] Failed to capture login timeout screenshot: ${String(screenshotError)}`);
         });
         console.error(`[DEBUG] Saved login timeout screenshot to ${screenshotPath}`);
+    }
+
+    private async logBrowserErrorDetails() {
+        const title = await this.page.title().catch(() => 'unavailable');
+        const bodyText = await this.page.locator('body').innerText().catch(() => 'unavailable');
+        const html = await this.page.content().catch(() => 'unavailable');
+
+        console.error(`[DEBUG] Browser error page title: ${title}`);
+        console.error(`[DEBUG] Browser error page body: ${bodyText.slice(0, 2_000)}`);
+        console.error(`[DEBUG] Browser error page HTML: ${html.slice(0, 4_000)}`);
     }
 }
 
